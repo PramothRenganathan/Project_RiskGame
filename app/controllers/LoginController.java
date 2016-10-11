@@ -5,7 +5,6 @@ import controllers.*;
 import play.db.DB;
 import play.mvc.BodyParser;
 import play.mvc.Result;
-import views.html.index;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
