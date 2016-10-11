@@ -1,0 +1,120 @@
+$(function() {
+
+    var username = $('#username').val();
+    var gameid = $('#gameid').val();
+    // get websocket class, firefox has a different way to get it
+    var WS = window['MozWebSocket'] ? window['MozWebSocket'] : WebSocket;
+
+    // open socket on page load
+    var socket = new WS('@routes.Application.wsInterface().webSocketURL(request)');
+
+    //this list will be used to append joining players
+    var userList = $('#userList');
+
+    var writeMessages = function (event) {
+        var model = event.data;
+
+        //model is not coming as Json so have to use this jquery json parser
+        model = jQuery.parseJSON(model);
+
+        if (model.type == "joined") {
+            var users = model.joinedUsers;
+            userList.html("");
+            // userList.append('<li>' + users[i] + '</li>');
+            for (i = 0; i < users.length; i++) {
+                userList.append('<li class="list-group-item" id="'+ users[i] +'">' + users[i] + '</li>');
+            }
+        }
+
+        else if (model.type == "leaving") {
+            var users = model.joinedUsers;
+            var leavinguser = model.leavingUser;
+
+            var listItemToBeRemoved = $(userList).find('#' + leavinguser).remove();
+        }
+
+        else if (model.type == "redirect") {
+
+           $('#frmHidden').submit();
+
+        }
+
+        else {
+            var name = model.name;
+            $('#lblCount').text(count);
+            $('#divJoined').prepend('<p>' + name + '</p>');
+
+        }
+    }
+
+    var publishMyPresence = function (event) {
+        //push to socket on first page load of any user
+        var data = JSON.stringify({"gameid":gameid, "type": "joined", "player": {"name": "someuser", "team": "somecode"}});
+        socket.send(data);
+    }
+
+    //read message from socket
+    socket.onmessage = writeMessages;
+
+    //without this I am getting exception that CONNECTION NOT ESTABLISHED
+    socket.onopen = publishMyPresence;
+
+
+    $('#btnJoin').click(function (event) {
+
+        var name = $('#txtName').val();
+        var code = $('#txtCode').val();
+
+
+        var data = JSON.stringify({"name": name, "team": code});
+
+        //push to socket
+        socket.send(data);
+
+        $('#txtName').val('');
+        $('#txtCode').val('');
+
+        $('#txtName').attr('hidden', true);
+        $('#txtCode').attr('hidden', true);
+        $('#divPlayerStatus').attr('hidden', false);
+        $('#btnLeave').attr('hidden', false);
+        $('#btnJoin').attr('hidden', true);
+    });
+
+
+    //Event handler for start game event
+    $('#btnStart').click(function(e){
+
+        var data = JSON.stringify({"gameid": gameid, "type": "StartGame", "player": {"username": username}});
+        socket.send(data);
+    });
+
+
+    $('#btnLeave').click(function (e) {
+        var username = $('#username').val();
+
+        var data = JSON.stringify({"type": "leaving", "player": {"username": username}});
+        socket.send(data);
+
+        //ajax call to logout of session
+        // @*$.ajax({*@
+        //     @*type: "POST",*@
+        //     @*url: '/leave',*@
+        //     @*data: JSON.stringify({username:username}),*@
+        //     @*success: function(data){},*@
+        //     @*contentType: 'application/json',*@
+        //     @*dataType: 'json'*@
+        // @*});*@
+
+        $.ajax({
+            type: "GET",
+            url: '/leave',
+            data: {'username': username},
+            success:function(data)
+            {
+                window.location.replace("/");
+            }
+
+        });
+    });
+});

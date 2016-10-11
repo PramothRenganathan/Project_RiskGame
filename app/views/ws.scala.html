@@ -1,0 +1,126 @@
+$(function() {
+
+    var username = $('#username').val();
+    var gameid = $('#gameid').val();
+    // get websocket class, firefox has a different way to get it
+    var WS = window['MozWebSocket'] ? window['MozWebSocket'] : WebSocket;
+
+    // open socket on page load
+    var socket = new WS('@routes.Application.wsInterface().webSocketURL(request)');
+
+    var writeMessages = function (event) {
+        var model = event.data;
+
+        //model is not coming as Json so have to use this jquery json parser
+        model = jQuery.parseJSON(model);
+
+        if (model.type == "joined") {
+            var users = model.joinedUsers;
+            $('#divJoined').html("");
+            $('#divJoined').append('<p><b>' + username + ' (you)' + '</b></p>');
+            for (i = 0; i < users.length; i++) {
+                if (users[i] != username) {
+                    $('#divJoined').append('<p>' + users[i] + '</p>');
+                }
+            }
+        }
+
+        else if (model.type == "leaving") {
+            var users = model.joinedUsers;
+            var leavinguser = model.leavingUser;
+            $('#divJoined').html("");
+            if (username == leavinguser) {
+                $('#divJoined').append('<p><b>' + username + '(You have left)' + '</b></p>');
+            }
+            else {
+                $('#divJoined').append('<p><b>' + username + '(You)' + '</b></p>');
+            }
+            for (i = 0; i < users.length; i++) {
+                if (users[i] != username) {
+                    if (users[i] === leavinguser) {
+                        $('#divJoined').append('<p>' + users[i] + ' left' + '</p>');
+                    }
+                    else {
+                        $('#divJoined').append('<p>' + users[i] + '</p>');
+                    }
+                }
+            }
+        }
+
+        else if (model.type == "redirect") {
+        $('#frmHidden').submit();
+             //window.location.replace("/game");
+        }
+
+        else {
+            var name = model.name;
+            $('#lblCount').text(count);
+            $('#divJoined').prepend('<p>' + name + '</p>');
+
+        }
+    }
+
+    var publishMyPresence = function (event) {
+        //push to socket on first page load of any user
+        var data = JSON.stringify({"gameid":gameid, "type": "joined", "player": {"username": username, "team": "gamer"}});
+        socket.send(data);
+    }
+
+    //read message from socket
+    socket.onmessage = writeMessages;
+
+    //without this I am getting exception that CONNECTION NOT ESTABLISHED
+    socket.onopen = publishMyPresence;
+
+
+    $('#btnJoin').click(function (event) {
+
+        var name = $('#txtName').val();
+        var code = $('#txtCode').val();
+        var uname =  $('#username').val();
+
+        var message = name + "::" + code;
+
+        var data = JSON.stringify({"name": uname, "team": code});
+
+        //push to socket
+        socket.send(data);
+
+        $('#txtName').val('');
+        $('#txtCode').val('');
+
+        $('#txtName').attr('hidden', true);
+        $('#txtCode').attr('hidden', true);
+        $('#divPlayerStatus').attr('hidden', false);
+        $('#btnLeave').attr('hidden', false);
+        $('#btnJoin').attr('hidden', true);
+    });
+
+
+    $('#btnLeave').click(function (e) {
+        var username = $('#username').val();
+
+        var data = JSON.stringify({"type": "leaving", "player": {"username": username}});
+        socket.send(data);
+
+        //ajax call to logout of session
+        // @*$.ajax({*@
+        //     @*type: "POST",*@
+        //     @*url: '/leave',*@
+        //     @*data: JSON.stringify({username:username}),*@
+        //     @*success: function(data){},*@
+        //     @*contentType: 'application/json',*@
+        //     @*dataType: 'json'*@
+        // @*});*@
+
+        $.ajax({
+            type: "GET",
+            url: '/leave',
+            data: {'username': username},
+            success:function(data)
+            {
+                window.location.replace("/");
+            }
+        });
+    });
+});

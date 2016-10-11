@@ -1,0 +1,429 @@
+@*(hm: Map[models.Phase, List[models.ProjectStep]])*@
+@(phases: List[models.Phase])
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Project Steps</title>
+        <link rel="shortcut icon" href="">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" hredef="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
+
+        <style type="text/css">
+        .container > header {
+            padding: 0px 30px 10px 30px !important;
+
+        }
+
+        td {
+            padding-right: 20px;
+            padding-bottom: 20px;
+        }
+
+        </style>
+        <script src="jquery.js"></script>
+        <script>
+                $(function () {
+                    $("#includedContent").load("chat.html");
+                });
+        </script>
+    </head>
+    <script>
+
+
+            function myfunc(clicked_id) {
+
+
+                alert("aaaaaaaa" + clicked_id);
+            }
+
+
+            function clickevent(clicked_id) {
+
+                var test = 'abc';
+//                    var test = $.('#id').val();
+//                    alert(clicked_id);
+                var obj = {
+                    'phaseId': clicked_id
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: '@routes.GameController.getProjectSteps()',
+                    // data : JSON.stringify(obj),
+                    data: JSON.stringify(obj),
+                    // dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+//                            alert(Object.prototype.toString.call(data));
+                        var result = "";
+                        for (i = 0; i < data.length; i++) {
+                            var obj = data[i];
+//                                alert(obj.projectStepName);
+//                                result= result+"<h1>"+obj.projectStepName+"</h1>";
+
+                            result = result + "<button href='#editTodoDialog' id='" + obj.projectStepId + "'" +
+                                    " style='white-space: normal;'  class='open-EditTodo col-md-3 btn btn-primary'  " +
+                                    " data-toggle='modal'" +
+                                    "data-title='" + obj.projectStepName +
+                                    "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
+                                    "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
+                                    "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
+                                    "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
+                                    "'data-level='Level:' data-levelvalue='" + obj.level +
+                                    "'data-id='" + obj.projectStepId +
+                                    "'" +
+//                                            "data-todo='{'id':12,'todo':'xyz'}'"+
+                                    "title='Budget :" + obj.budget + "  Capability points: " + obj.capabilityPoints + "'" +
+                                    "  id='todolink'>" + obj.projectStepName +
+                                    "</button><div class='col-md-1' style='height:80px;'></div>";
+                        }
+
+//                            alert(result);
+                        document.getElementById('results').innerHTML = result;
+                        // $.('#id').val(data);
+                        //setError('Call succedded');
+                        //$('#test1').attr("src", data)
+                    },
+                    error: function (data) {
+                        alert("error");
+                        //setError('Make call failed');
+                    }
+                });
+
+            }
+
+            $(document).on("click", ".open-EditTodo", function () {
+//                alert($(this).data('title'));
+
+                var title = $(this).data('title');
+                var budget = $(this).data('budget');
+                var budgetValue = $(this).data('budgetvalue');
+                var capabilityPoints = $(this).data('capabilitypoints');
+                var capabilityPointsValue = $(this).data('capabilitypointsvalue');
+                var capabilityBonus = $(this).data('capabilitybonus');
+                var capabilityBonusValue = $(this).data('capabilitybonusvalue');
+                var level = $(this).data('level');
+                var levelValue = $(this).data('levelvalue');
+                var personnel = $(this).data('personnel');
+                var personnelValue = $(this).data('personnelvalue');
+                var projectStepId = $(this).data('id');
+                $("#windowtitle").text(title);
+                $("#Budget").text(budget);
+                $("#BudgetValue").text(budgetValue);
+                $("#CapabilityPoints").text(capabilityPoints);
+                $("#CapabilityPointsValue").text(capabilityPointsValue);
+                $("#CapabilityBonus").text(capabilityBonus);
+                $("#CapabilityBonusValue").text(capabilityBonusValue);
+                $("#Level").text(level);
+                $("#LevelValue").text(levelValue);
+                $("#Personnel").text(personnel);
+                $("#PersonnelValue").text(personnelValue);
+                $("#ProjectStepId").val(projectStepId);
+            });
+
+            function totalGameTimer() {
+
+                var sec = 0;
+
+                function pad(val) {
+                    return val > 9 ? val : "0" + val;
+                }
+
+                var timer = setInterval(function () {
+                    document.getElementById("seconds").innerHTML = pad(++sec % 60);
+                    document.getElementById("minutes").innerHTML = pad(parseInt(sec / 60, 10));
+                }, 1000);
+
+                setTimeout(function () {
+                    clearInterval(timer);
+                }, 500000);
+            }
+
+    </script>
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="clickevent('CPM1');
+    totalGameTimer()">
+        <input type="hidden" name="phase" id="phase" value="plan"/>
+        <div class="container" >
+
+
+            <header style="" >
+
+                <div class="col-md-4" style="background-color: #CED4BD">RISK-GAME-- LOGO</div>
+                @*<div class="col-md-2 " ></div>*@
+                <div class="col-md-3" style="background-color: #CED4BD">Game ID: 123</div>
+                <div class="col-md-3" style="background-color: #CED4BD">
+
+                    Total Game time
+                    <span id="minutes">00</span>:<span id="seconds">00</span>
+
+
+                </div>
+                <div class="col-md-2" style="">
+                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome User!</div>
+                    <div class="btn-group">
+                        <button type="button"
+                        class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Help</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#">Leave Game</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#" >Logout</a></li>
+                        </ul>
+                    </div>
+
+
+                </div>
+
+            </header>
+
+
+            <div class="col-xs-12" style="height: 30px;"></div>
+            @*<header>*@
+            @*<div class="col-md-12" style="background-color: #E09D87" >*@
+            @*<div class="col-md-2" style="border: 1px solid transparent">Time Remaining: 4:00</div>*@
+            @*<div class="col-md-3" style="border: 1px solid transparent">Budget Left: 50000</div>*@
+            @*<div class="col-md-3" style="border: 1px solid transparent">Capability Points : 15</div>*@
+            @*<div class="col-md-2" style="border: 1px solid transparent">Capability Bonus : 30%</div>*@
+
+            @*<div class="col-md-2" style="border: 1px solid transparent">*@
+            @*<button class="btn btn-info" >Help</button>*@
+            @*<button class="btn btn-danger" > Exit Game</button>*@
+
+            @*</div>*@
+            @*</div>*@
+            @*</header>*@
+            <header>
+                <div class="col-md-2" style="border-right: 1px dashed #969C9E">
+
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="background-color: #A8A2A3">
+                            <h4 class="panel-title">My Status</h4>
+                        </div>
+                        <div class="panel-body" style="height: 100px; ">
+                            <div>Budget Remaining:</div>
+                            <div>Capability Points:</div>
+                            <div>Capability Bonus:</div>
+                            <a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>
+
+
+                        </div>
+                        <div class="modal fade" id="myAssetModal" role="dialog">
+                            <div class="modal-dialog">
+
+                                    <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Status</h4>
+                                    </div>
+                                    <div class="modal-body" style="text-align: left">
+                                        <div>Budget Remaining:</div>
+                                        <div>Capability Points:</div>
+                                        <div>Capability Bonus:</div>
+                                        <div>Risks Mitigated</div>
+
+                                        <div style="height: 30px;"></div>
+                                        <div style="font-weight: bolder;
+                                            font-size: large" >
+                                            <h2>Project Steps Completed</h2>
+                                        </div>
+                                        <div>Planning: 2/ 10</div>
+                                        <div>Requirements: 2/9</div>
+                                        <div>Design: </div>
+                                        <div>Implementation</div>
+                                        <div>Testing</div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="background-color: #A8A2A3">
+                            <h4 class="panel-title">Current Action</h4>
+                        </div>
+                        <div class="panel-body" style="height: 200px; ">
+                            Roll the Dice
+                        </div>
+                    </div>
+
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="background-color: #A8A2A3">
+                            <h4 class="panel-title">Who's turn? </h4>
+                        </div>
+                        <div class="panel-body" style="height: 60px; ">
+                            user1<br/>
+                            user2<br/>
+                        </div>
+                    </div>
+                    @*<div style="height: 300px;*@
+                    @*border: 1px solid transparent;*@
+                    @*background-size: 100% 100%;*@
+                    @*background-image: url(@routes.Assets.at("images/chat1.jpg")) !important;"></div>*@
+
+
+                </div>
+                <div class="col-md-8" style="border: 1px solid transparent">
+
+                    @*<div class="col-md-12">*@
+                    @*<div class="col-md-4" style="border: 1px solid black">Budget left</div>*@
+                    @*<div class="col-md-4" style="border: 1px solid black">Capability points</div>*@
+                    @*<div class="col-md-4" style="border: 1px solid black">Time Remaining</div>*@
+                    @*<div class="col-md-4" style="border: 1px solid black">60000</div>*@
+                    @*<div class="col-md-4" style="border: 1px solid black">5%</div>*@
+                    @*<div class="col-md-4" style="border: 1px solid black">3:30</div>*@
+                    @*</div>*@
+                    <div class="col-md-12" style="border: 1px solid transparent">
+                        <div style="height: 20px; "></div>
+                        @for(phase <- phases) {
+
+                            <button class="xxxx col-md-3 btn "
+                            style="background-color: #DB8B00 !important;"
+                            onclick="clickevent(id)"
+                            id=@phase.getPhaseId>@phase.getPhaseName</button>
+                            <div class="col-md-1" style="height: 50px;"> </div>
+
+                        }
+
+                    </div>
+
+                    <div class="col-md-12" style="border: 1px solid transparent;
+                        height: 400px">
+                        <hr style="width: 100%;
+                            color: black;
+                            height: 1px;
+                            background-color: black;" />
+                        <div class="col-md-12" style="height: 50px;"> </div>
+                        <div id="results"></div>
+                    </div>
+
+
+                </div>
+                <div class="col-md-2" style="border-left: 1px Dashed #969C9E;
+                    border-width: thin">
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="background-color: #A8A2A3">
+                            <h4 class="panel-title">Chat</h4>
+                        </div>
+                        <div class="panel-body" style="height: 200px;
+                        border: 1px solid transparent;
+                        background-size: 100% 100%;
+                        background-image: url(@routes.Assets.at("images/chat1.jpg")) !important;">
+
+                        </div>
+
+                    </div>
+                    @*<div class="panel panel-default">*@
+                    @*<div class="panel-heading" style="background-color: #A8A2A3">*@
+                    @*<h4 class="panel-title">Active Players </h4>*@
+                    @*</div>*@
+                    @*<div class="panel-body" style="height: 200px; ">*@
+                    @*user1<br/>*@
+                    @*user2<br/>*@
+                    @*</div>*@
+                    @*</div>*@
+                    @*<div>Players in the Game</div>*@
+
+
+                    @*<div style="height: 200px;"></div>*@
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="background-color: #A8A2A3">
+                            <h4 class="panel-title">Activity Log </h4>
+                        </div>
+                        <div class="panel-body" style="height: 300px; ">
+
+                        </div>
+                    </div>
+
+
+                    @*<div>*@
+                    @*Activity Log*@
+                    @*</div>*@
+
+                    @*<div style="height: 300px;*@
+                    @*border: 1px solid transparent">*@
+                    @*<textarea style="height: 300px;width: 180px"*@
+                    @*placeholder="User 1 has performed 'Update Project Plan'" > </textarea>*@
+
+                    @*</div>*@
+
+
+                </div>
+
+            </header>
+            <div class="clearfix"></div>
+            <div class="clearfix"></div>
+            <div class="clearfix"></div>
+            <header>
+
+
+            </header>
+
+
+            <div class="modal fade" tabindex="-1" role="dialog" style="margin-top: 150px;" id="editTodoDialog">
+                <div class="modal-dialog" align="center">
+                    <div class="modal-content" style="width: 350px;">
+                        <div class="modal-header" align="left" style="background-color: #A6DBED">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">
+                                Close</span></button>
+                            <h4 id="windowtitle" class="modal-title" >new window</h4>
+
+
+                        </div>
+                        <div class="modal-body" align="center" style="display: inline">
+
+
+                            @*<form class="form-inline" role="form" method="post" >*@
+                            @*<div class="form-group">*@
+                            <table>
+                                <tr>
+                                    <td><h5 id="Budget" > </h5></td>
+                                    <td><h5 id="BudgetValue"></h5></td>
+                                </tr>
+                                <tr>
+                                    <td><h5 id="CapabilityPoints" > </h5></td>
+                                    <td><h5 id="CapabilityPointsValue"></h5></td>
+                                </tr>
+                                <tr>
+                                    <td><h5 id="CapabilityBonus" > </h5></td>
+                                    <td><h5 id="CapabilityBonusValue"></h5></td>
+                                </tr>
+                                <tr>
+                                    <td><h5 id="Level" > </h5></td>
+                                    <td><h5 id="LevelValue"></h5></td>
+                                </tr>
+                                <tr>
+                                    <td><h5 id="Personnel" > </h5></td>
+                                    <td> <h5 id="PersonnelValue"></h5></td>
+                                </tr>
+
+                            </table>
+
+                            <input type="hidden" id="ProjectStepId" value="">
+
+                            <div class="col-xs-12" style="height: 30px;"></div>
+                            <button class="btn btn-success" style="margin-bottom: 20px" >Perform this Step</button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>

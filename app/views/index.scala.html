@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8" />
+    <title>RISK GAME - CARNEGIE MELLON UNIVERSITY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login and Registration Form with HTML5 and CSS3" />
+    <meta name="keywords" content="html5, css3, form, switch, animation, :target, pseudo-class" />
+    <meta name="author" content="Codrops" />
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/sweetalert.css")" />
+    <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/sweetalert.min.js")" type="text/javascript"></script>
+
+    <script>
+
+    $(document).ready(function() {
+
+        /*
+         alert("page ready")
+         $('#registerform').validate({ // initialize plugin
+         // rules & options,
+         rules: {
+         passwordsignup: {
+         minlength: 6
+         },
+         passwordsignup_confirm: {
+         minlength: 6
+         }
+         },
+         submitHandler: function(form) {
+         alert("inside submit hadnler")
+         // register();
+         // your ajax would go here
+         //alert('simulated ajax submit');
+         return false;  // blocks regular submit since you have ajax
+         }
+         });
+
+         */
+
+        $('#regsubmit').click(function(){
+            // alert("inside reg submit")
+            if($("#registerform")[0].checkValidity()) {
+                register();
+                return false;
+                // alert("fully validated");
+                //register();
+                //your form execution code
+            }else {
+
+                // alert("invalid form");
+            }
+        });
+
+    });
+
+
+    function resetForm($form) {
+        $form.find('input:text, input:password, input:file, select, textarea').val('');
+        $form.find('input:radio, input:checkbox')
+                .removeAttr('checked').removeAttr('selected');
+
+        $("#landrewid").hide();
+        $("#andrewid").hide();
+        $("#emailsignup").val('');
+
+    }
+
+    function enableandrew(checkbox)
+    {
+        if (checkbox.checked)
+        {
+            //alert("checked");
+            // document.getElementById('landrewid').style.display = 'block';
+            // document.getElementById('andrewid').style.display = 'block';
+            $("#landrewid").show();
+            $("#andrewid").show();
+            $("#andrewid").attr('required', true);
+        }
+        else
+        {
+            //alert("unchecked")
+            //  document.getElementById('landrewid').style.display = 'none';
+            // document.getElementById('andrewid').style.display = 'none';
+            $("#landrewid").hide();
+            $("#andrewid").hide();
+            $('#andrewid').val('');
+            $("#andrewid").attr('required', false);
+        }
+    }
+
+    function register()
+    {
+
+        if($('#passwordsignup').val() != $('#passwordsignup_confirm').val()) {
+            $("#errormsg").show();
+            //$('#passwordsignup').after('<p>Password is not matching</p>')
+        }
+        else {
+            $("#errormsg").hide();
+            //debugger;
+            var firstname = $('#firstname').val();
+            var lastname = $('#lastname').val();
+            var iscmu = $('#iscmu').checked ? '1' : '0';
+            var andrewid = $('#andrewid').val();
+            var password = $('#passwordsignup').val();
+            var username = $('#emailsignup').val();
+
+            var obj = {
+
+                "username": username,
+                "password": password,
+                "firstname": firstname,
+                "lastname": lastname,
+                "iscmu": iscmu,
+                "andrewid": andrewid
+            };
+
+
+            $.ajax({
+                type: 'POST',
+                url: '@routes.RegisterController.register()',
+                // data : JSON.stringify(obj),
+                data: JSON.stringify(obj),
+                async: false,
+                cache: false,
+                // dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                    // alert(data);
+                    if(data=="success") {
+                        resetForm($('#registerform'));
+                        swal("Registration Successful!", "Now you can login!", "success");
+                        window.location.href = "#tologin";
+                    }
+                    else
+                    {
+                        swal("OOPS!", "Registration not successful", "error");
+                    }
+                    // alert(data);
+                    // $.('#id').val(data);
+                    //setError('Call succedded');
+                    //$('#test1').attr("src", data)
+                },
+                error: function (data) {
+                    alert("error");
+                    //setError('Make call failed');
+                }
+            });
+        }
+    }
+
+    function login()
+    {
+
+    }
+
+
+
+</script>
+
+
+</head>
+<body>
+    <div class="container">
+            <!-- Codrops top bar -->
+        <div class="codrops-top">
+
+            <div class="clr"></div>
+        </div><!--/ Codrops top bar -->
+        <header>
+            <h1>RISK GAME - <span style="color:red;">Carnegie Mellon University</span></h1>
+            <nav class="codrops-demos">
+                <span><strong>"Give small description about the game"</strong></span>
+
+            </nav>
+        </header>
+        <section>
+            <div id="container_demo" >
+                    <!-- hidden anchor to stop jump http://www.css3create.com/Astuce-Empecher-le-scroll-avec-l-utilisation-de-target#wrap4  -->
+                <a class="hiddenanchor" id="toregister"></a>
+                <a class="hiddenanchor" id="tologin"></a>
+                <div id="wrapper">
+                    <div id="login" class="animate form">
+                        <form  id="loginform" method ="POST"  action="@routes.LoginController.login()">
+                            <h1>Log in</h1>
+                            <p>
+                                <label for="username" class="uname" data-icon="u" > Your email id </label>
+                                <input id="username" name="username" required="required" type="email" placeholder="myandrewid@@cmu.andrew.edu"/>
+                            </p>
+                            <p>
+                                <label for="password" class="youpasswd" data-icon="p"> Your password </label>
+                                <input id="password" name="password" required="required" type="password" placeholder="eg. X8df!90EO" />
+                            </p>
+
+                            <p class="login button">
+                                <input type="submit" value="Login" />
+                            </p>
+                            <p class="change_link">
+									Not a member yet ?
+                                <a href="#toregister" class="to_register">REGISTER</a>
+                            </p>
+                        </form>
+                    </div>
+
+                    <div id="register" class="animate form">
+                        <form id="registerform">
+                            <h1> Sign up </h1>
+                            <p>
+                                <label for="emailsignup" class="youmail" data-icon="e" > Your email(This will be your username)</label>
+                                <input id="emailsignup" name="emailsignup" required="required" type="email" placeholder="andrewid@@andrew.cmu.edu"/>
+                            </p>
+                            <p>
+                                <label for="firstname" class="uname" data-icon="u" > First Name</label>
+                                <input id="firstname" name="firstname" required="required" type="text" placeholder="firstname"/>
+                            </p>
+                            <p>
+                                <label for="lastname" class="uname" data-icon="u" > Last Name</label>
+                                <input id="lastname" name="lastname" required="required" type="text" placeholder="lastname"/>
+                            </p>
+
+                            <p>
+                                <label for="passwordsignup" class="youpasswd" data-icon="p">Your password </label>
+                                <input id="passwordsignup" name="passwordsignup" required="required" type="password" placeholder="eg. X8df!90EO"/>
+                            </p>
+                            <p id="errormsg" hidden>Password is not matching</p>
+                            <p>
+                                <label for="passwordsignup_confirm" class="youpasswd" data-icon="p">Please confirm your password </label>
+                                <input id="passwordsignup_confirm" name="passwordsignup_confirm" required="required" type="password" placeholder="eg. X8df!90EO"/>
+                            </p>
+                            <p>
+                                <label for="iscmu" class="uname" > Are you a CMU Student</label>
+                                <input id="iscmu" name="iscmu" type="checkbox" onchange="enableandrew(this)" />
+                            </p>
+                            <p>
+                                <label id="landrewid" for="andrewid" hidden class="uname"  data-icon="u" > Andrew ID</label>
+                                <input id="andrewid" name="andrewid"  hidden type="text" placeholder="andrewid"/>
+                            </p>
+
+                            <p class="signin button">
+                                <input type="submit" id="regsubmit" value="Sign up" />
+                            </p>
+                            <p class="change_link">
+									Already a member ?
+                                <a href="#tologin" class="to_register"> Go and log in </a>
+                            </p>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

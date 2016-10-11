@@ -1,0 +1,46 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+GET     /config                           controllers.GameController.startGame()
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+POST     /login                  controllers.LoginController.login()
+GET     /logout                controllers.LoginController.logout()
+
+GET     /playerjoin                controllers.Application.playerJoin()
+
+POST     /register                  controllers.RegisterController.register()
+
+POST     /host                  controllers.GameController.hostGame()
+POST     /join                  controllers.GameController.joinGame()
+
+POST /joingame              controllers.DashboardController.JoinGame()
+
+
+
+POST /start                      controllers.GameController.startGame()
+
+POST /projectsteps           controllers.GameController.getProjectSteps()
+
+
+GET     /assets.javascript.ws.js        controllers.Application.wsJs()
+GET     /assets.javascript.hostjs.js        controllers.Application.hostJs()
+GET     /wsInterface                    controllers.Application.wsInterface()
+
+
+POST /testing       controllers.DashboardController.HostGame()
+#POST /testing2      controllers.DashboardController.JoinGame()
+#GET /hostgame       controllers.DashboardController.ViewHostGame()
+POST /hostgame       controllers.DashboardController.ViewHostGame()
+GET /dashboard      controllers.DashboardController.ViewDashboard()
+
+
+
+
+
+    

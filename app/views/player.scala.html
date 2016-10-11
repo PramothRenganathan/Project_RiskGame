@@ -1,0 +1,13 @@
+@main(null) {
+    <section>
+
+        <h1>Join game</h1>
+        <input type="hidden" value="1" id="gameid">
+
+
+        <form method="post" action="@routes.GameController.joinGame()">
+            <input type="text" name = "username" id="txtUsername" placeholder="Username"/>
+            <input type="submit" id="btnJoin" value="Join"/>
+        </form>
+    </section>
+}

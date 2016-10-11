@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RISK GAME - CARNEGIE MELLON UNIVERSITY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login and Registration Form with HTML5 and CSS3" />
+  <meta name="keywords" content="html5, css3, form, switch, animation, :target, pseudo-class" />
+  <meta name="author" content="Codrops" />
+  <link rel="shortcut icon" href="../favicon.ico">
+  <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
+  <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
+  <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
+  <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/sweetalert.css")" />
+  <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("javascripts/sweetalert.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("javascripts/loading.js")" type="text/javascript"></script>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" charset="utf-8" src="@routes.Application.hostJs()"></script>
+
+  <script>
+
+    $(document).ready(function() {
+    });
+
+    </script>
+  <style>
+  .customHr {
+    width: 95%;
+    font-size: 1px;
+    color: rgba(0, 0, 0, 0);
+    line-height: 1px;
+
+    background-color: grey;
+    margin-top: -6px;
+    margin-bottom: 10px;
+  }
+
+
+  </style>
+
+</head>
+<body>
+  <form id="frmHidden" method="POST" action="/phases" hidden>
+
+  </form>
+  <input type="hidden" value="1" id="gameid">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>
+               New Game Hosted..Waiting for the users to join
+        </h3>
+        <button type="button" class="btn btn-primary btn-default" id="btnStart">
+                START THE GAME
+        </button>
+
+      </div>
+    </div>
+
+    <br>
+    <div class="customHr">.</div>
+    <div class="row">
+      <div class="col-md-4">
+        <form role="form">
+          <legend>Invite friends</legend>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="emailid">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button">Invite</button>
+            </span>
+          </div><!-- /input-group -->
+          <br>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="emailid">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button">Invite</button>
+            </span>
+          </div><!-- /input-group -->
+          <br>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="emailid">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button">Invite</button>
+            </span>
+          </div><!-- /input-group -->
+          <br>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="emailid">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button">Invite</button>
+            </span>
+          </div><!-- /input-group -->
+          <br>
+        </form>
+      </div>
+      <div class="col-md-4">
+        <form class="form-horizontal">
+          <fieldset>
+
+              <!-- Form Name -->
+            <legend>Game Settings</legend>
+
+              <!-- Multiple Radios -->
+            <div class="form-group">
+              <label class="col-md-4 control-label" for="TimeBound">Is the game timebound</label>
+              <div class="col-md-4">
+                <div class="radio">
+                  <label for="TimeBound-0">
+                    <input type="radio" name="TimeBound" id="TimeBound-0" value="1" checked="checked">
+                    Yes
+                  </label>
+                </div>
+                <div class="radio">
+                  <label for="TimeBound-1">
+                    <input type="radio" name="TimeBound" id="TimeBound-1" value="2">
+                    No
+                  </label>
+                </div>
+              </div>
+            </div>
+
+              <!-- Select Basic -->
+            <div class="form-group">
+              <label class="col-md-4 control-label" for="selecttime">Time for each step(in mins):</label>
+              <div class="col-md-4">
+                <select id="selecttime" name="selecttime" class="form-control">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+            </div>
+
+              <!-- Select Basic -->
+            <div class="form-group">
+              <label class="col-md-4 control-label" for="selectsteps">No. of project steps:</label>
+              <div class="col-md-4">
+                <select id="selectsteps" name="selectsteps" class="form-control">
+                  <option value="1">15</option>
+                  <option value="2">20</option>
+                  <option value="3">25</option>
+                  <option value="4">30</option>
+                </select>
+              </div>
+            </div>
+
+          </fieldset>
+        </form>
+
+
+      </div>
+      <div class="col-md-4">
+        <legend>Players who have joined</legend>
+
+        <ul class="list-group" id="userList">
+          @*<li class="list-group-item">Nivas</li>*@
+        </ul>
+      </div>
+    </div>
+    </div>
+
+</body>
+</html>
