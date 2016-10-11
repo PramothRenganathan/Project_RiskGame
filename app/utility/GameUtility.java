@@ -271,4 +271,15 @@ public class GameUtility {
     }
 
 
+    public static boolean insertSnapshots(List<String> playersInTheGame) {
+        return false;
+    }
+
+    public static String generateGameId() {
+        return getSeed();
+    }
+
+    public static String getSeed(){
+        return String.format("%d%d", Math.abs((int) System.currentTimeMillis() % 1000), (int) (Math.random() * 1000));
+    }
 }
