@@ -192,7 +192,7 @@ public class GameController extends Controller {
             if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame))
                 return badRequest("Error while inserting order");
 
-            if(!GameUtility.insertSnapshots(playersInTheGame))
+            if(!GameUtility.insertSnapshots(playersInTheGame, initialGameStat))
                 return badRequest("Error while inserting into Snapshots");
             //Generate Random Risk cards for players
             //if(!generateRandomRiskCardsForPlayer(playersInTheGame))return badRequest("Error while mapping risks to players");
@@ -219,11 +219,11 @@ public class GameController extends Controller {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
+            conn = DB.getConnection();
             String query = "SELECT initial_budget,initial_resources,capability_bonus,capability_points FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,configId);
             ResultSet rs = stmt.executeQuery();
-            int resources = 0, budget = 0,capabilityBonus = 0, capabilityPoints = 0;
             while(rs.next()){
                 initialGameStat.setResources(rs.getInt("initial_resources"));
                 initialGameStat.setBudget(rs.getInt("initial_budget"));
