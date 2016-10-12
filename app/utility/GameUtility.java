@@ -1,10 +1,7 @@
 package utility;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import models.InitialGameStat;
 import models.Phase;
-
 import play.Play;
 import play.db.DB;
 
@@ -201,8 +198,6 @@ public class GameUtility {
                 e.printStackTrace();
             }
         }
-
-
     }
 
     public static boolean isHost(String gameId, String userName) {
@@ -274,6 +269,7 @@ public class GameUtility {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
+            conn = DB.getConnection();
             String query = "SELECT initial_budget,initial_resources,capability_bonus,capability_points,loan_amount FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,configId);
@@ -337,6 +333,8 @@ public class GameUtility {
             }
             return true;
         }catch (Exception e){
+            System.out.println(e.getMessage());
+            return false;
 
         }
         finally{
@@ -346,7 +344,7 @@ public class GameUtility {
                 e.printStackTrace();
             }
         }
-        return false;
+
     }
 
     public static String generateGameId() {
@@ -362,6 +360,7 @@ public class GameUtility {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
+            conn = DB.getConnection();
             String query = "SELECT time_for_each_move,steps_for_each_player FROM GAME WHERE game_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,configId);

@@ -8,6 +8,7 @@ public class Data {
 
     public String gameid;
     public String stepName;
+    public String message;
 
     //type of message
     public String type;

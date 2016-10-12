@@ -33,12 +33,6 @@
         }
 
         </style>
-        <script src="jquery.js"></script>
-        <script>
-                $(function () {
-                    $("#includedContent").load("chat.html");
-                });
-        </script>
     </head>
     <script>
 
@@ -179,7 +173,7 @@
                             <li role="separator" class="divider"></li>
                             <li><a href="#">Leave Game</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#" >Logout</a></li>
+                            <li><a href="/logout" >Logout</a></li>
                         </ul>
                     </div>
                 </div>
@@ -322,27 +316,19 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Chat</h4>
                         </div>
-                        <div class="panel-body" style="height: 200px;
+                        <div id="chatArea" class="panel-body" style="height: 200px;
                         border: 1px solid transparent;
-                        background-size: 100% 100%;
-                        background-image: url(@routes.Assets.at("images/chat1.jpg")) !important;">
-
+                        background-size: 100% 100%; overflow-wrap: break-word;overflow-y: scroll;">
                         </div>
 
                     </div>
-                    @*<div class="panel panel-default">*@
-                    @*<div class="panel-heading" style="background-color: #A8A2A3">*@
-                    @*<h4 class="panel-title">Active Players </h4>*@
-                    @*</div>*@
-                    @*<div class="panel-body" style="height: 200px; ">*@
-                    @*user1<br/>*@
-                    @*user2<br/>*@
-                    @*</div>*@
-                    @*</div>*@
-                    @*<div>Players in the Game</div>*@
 
+                    <textarea id="txtMessage">
 
-                    @*<div style="height: 200px;"></div>*@
+                    </textarea>
+                    <div>
+                        <input id="btnSend" style="width: inherit;" type="button" value="send"/>
+                    </div>
 
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
@@ -352,20 +338,6 @@
 
                         </div>
                     </div>
-
-
-                    @*<div>*@
-                    @*Activity Log*@
-                    @*</div>*@
-
-                    @*<div style="height: 300px;*@
-                    @*border: 1px solid transparent">*@
-                    @*<textarea style="height: 300px;width: 180px"*@
-                    @*placeholder="User 1 has performed 'Update Project Plan'" > </textarea>*@
-
-                    @*</div>*@
-
-
                 </div>
 
             </header>
@@ -390,9 +362,6 @@
                         </div>
                         <div class="modal-body" align="center" style="display: inline">
 
-
-                            @*<form class="form-inline" role="form" method="post" >*@
-                            @*<div class="form-group">*@
                             <table>
                                 <tr>
                                     <td><h5 id="Budget" > </h5></td>
