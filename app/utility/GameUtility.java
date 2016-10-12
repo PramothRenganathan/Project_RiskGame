@@ -2,14 +2,12 @@ package utility;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import models.InitialGameStat;
 import models.Phase;
 
 import play.db.DB;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -242,7 +240,7 @@ public class GameUtility {
     public static boolean updateStartTimeInGameTable(String gameId) {
         Connection conn = DB.getConnection();
         PreparedStatement stmt = null;
-        java.sql.Date date = new java.sql.Date(new java.util.Date().getTime());
+        Date date = new Date(new java.util.Date().getTime());
         try{
             conn = DB.getConnection();
             String query = "UPDATE GAME SET start_time=? WHERE game_id = ?";
@@ -271,7 +269,48 @@ public class GameUtility {
     }
 
 
-    public static boolean insertSnapshots(List<String> playersInTheGame) {
+    public static boolean insertSnapshots(List<String> playersInTheGame, InitialGameStat initialGameStat) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            stmt = conn.prepareStatement(query);
+            for(String playerId : playersInTheGame){
+                stmt.setString(1,playerId);
+                stmt.setInt(2,0);//Turn number
+                stmt.setInt(3,initialGameStat.getBudget());
+                stmt.setInt(4,initialGameStat.getResources());
+                stmt.setInt(5,initialGameStat.getCapabilityBonus());
+                stmt.setInt(6,0);//time taken
+                stmt.setNull(7, Types.VARCHAR);//move type
+                stmt.setNull(8,Types.TINYINT);//move Status
+                stmt.setNull(9,Types.TINYINT);//skip turn status
+                stmt.setNull(10,Types.VARCHAR);//project Step Id
+                stmt.setNull(11,Types.VARCHAR);//risk id
+                stmt.setNull(12,Types.VARCHAR);//oops id
+                stmt.setNull(13,Types.VARCHAR);//surprise id
+                stmt.setNull(14,Types.VARCHAR);//oops impact id
+                stmt.setNull(15,Types.VARCHAR);//surprise impact id
+                stmt.setInt(16,initialGameStat.getLoanAmount());
+                stmt.setNull(17,Types.TINYINT);
+                stmt.addBatch();
+            }
+            int[] result = stmt.executeBatch();
+            for(int i : result){
+                if(i<=0)return false;
+            }
+            return true;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        finally{
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
         return false;
     }
 
