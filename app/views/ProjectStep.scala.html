@@ -305,11 +305,11 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">My Status</h4>
                         </div>
-                        <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll">
-                            <div>Budget Remaining: @model.getBudget()</div>
+                        <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small;">
+                            <div>Budget: @model.getBudget()</div>
                             <div>Capability Points: @model.getCapabilityPoints()</div>
                             <div>Capability Bonus: @model.getCapabilityBonus()</div>
-                            <a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>
+                            @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 
                         </div>
