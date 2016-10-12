@@ -18,6 +18,7 @@ POST     /register                  controllers.RegisterController.register()
 
 POST     /host                  controllers.GameController.hostGame()
 POST     /join                  controllers.GameController.joinGame()
+POST     /Activegames                  controllers.DashboardController.ActiveGames()
 
 POST /joingame              controllers.DashboardController.JoinGame()
 
