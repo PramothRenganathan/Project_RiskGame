@@ -1,10 +1,7 @@
 package utility;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import models.InitialGameStat;
 import models.Phase;
-
 import play.Play;
 import play.db.DB;
 
@@ -201,8 +198,6 @@ public class GameUtility {
                 e.printStackTrace();
             }
         }
-
-
     }
 
     public static boolean isHost(String gameId, String userName) {
@@ -338,6 +333,8 @@ public class GameUtility {
             }
             return true;
         }catch (Exception e){
+            System.out.println(e.getMessage());
+            return false;
 
         }
         finally{
@@ -347,7 +344,7 @@ public class GameUtility {
                 e.printStackTrace();
             }
         }
-        return false;
+
     }
 
     public static String generateGameId() {

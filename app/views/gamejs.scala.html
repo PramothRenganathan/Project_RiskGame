@@ -16,7 +16,7 @@ $(function() {
 
     //This function should be called whenever each player gets his/her turn
     var startTimer = function(){
-        clock.setTime(10);
+        clock.setTime(1800);
         clock.start();
     }
 
@@ -76,7 +76,7 @@ $(function() {
 
                 var txt = playerName + " performed step: " + stepName;
 
-                activityLog.prepend('<p>' + txt + '</p><br/>')
+                activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//UpdateActivtyLog
 
         else if (model.type == "Timeout") {
@@ -86,14 +86,24 @@ $(function() {
 
             var txt = playerName + " missed their turn due to timeout!";
 
-            activityLog.prepend('<p>' + txt + '</p><br/>')
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//Timeout
+
+        else if (model.type == "Chat") {
+            var playerName = model.player,
+                    message = model.message;
+
+            var chatArea = $('#chatArea');
+
+            var txt = "<b>" + playerName + "</b>: " + message;
+
+            chatArea.append('<p>' + txt + '</p><hr/>');
+        }//Chat
 
         else {
             var name = model.name;
             $('#lblCount').text(count);
             $('#divJoined').prepend('<p>' + name + '</p>');
-
         }
     }
 
@@ -161,6 +171,15 @@ $(function() {
         var data = JSON.stringify({"gameid": gameid, "stepName":title, "type": "PerformStep", "player": {"username": username}});
         socket.send(data);
     }
+
+    $('#btnSend').click(function () {
+        var message = $('#txtMessage').val();
+        $('#txtMessage').val('');
+        if(message!=""){
+            var data = JSON.stringify({"gameid": gameid, "message":message, "type": "Chat", "player": {"username": username}});
+            socket.send(data);
+        }
+    });
 
     $('#btnLeave').click(function (e) {
 
