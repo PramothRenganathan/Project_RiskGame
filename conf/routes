@@ -34,7 +34,7 @@ GET     /assets.javascript.gamejs.js        controllers.Application.gameJs()
 GET     /wsInterface                    controllers.Application.wsInterface()
 
 
-POST /testing       controllers.DashboardController.HostGame()
+#POST /testing       controllers.DashboardController.HostGame()
 #POST /testing2      controllers.DashboardController.JoinGame()
 #GET /hostgame       controllers.DashboardController.ViewHostGame()
 POST /hostgame       controllers.DashboardController.ViewHostGame()

@@ -16,6 +16,36 @@ public class InitialGameStat {
     private String userName;
     private int loanAmount;
 
+    public int getTimeForEachMove() {
+        return timeForEachMove;
+    }
+
+    public void setTimeForEachMove(int timeForEachMove) {
+        this.timeForEachMove = timeForEachMove;
+    }
+
+    private int timeForEachMove;
+
+    public int getStepsForEachPlayer() {
+        return stepsForEachPlayer;
+    }
+
+    public void setStepsForEachPlayer(int stepsForEachPlayer) {
+        this.stepsForEachPlayer = stepsForEachPlayer;
+    }
+
+    private int stepsForEachPlayer;
+
+    public int getTurnNo() {
+        return turnNo;
+    }
+
+    public void setTurnNo(int turnNo) {
+        this.turnNo = turnNo;
+    }
+
+    private int turnNo;
+
     public int getLoanAmount() {
         return loanAmount;
     }
@@ -24,10 +54,11 @@ public class InitialGameStat {
         this.loanAmount = loanAmount;
     }
 
+
+
     public List<Phase> getPhases() {
         return phases;
     }
-
 
     public void setPhases(List<Phase> phases) {
         this.phases = phases;

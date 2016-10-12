@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import models.InitialGameStat;
 import models.Phase;
 
+import play.Play;
 import play.db.DB;
 
 import java.sql.*;
@@ -240,13 +241,14 @@ public class GameUtility {
     public static boolean updateStartTimeInGameTable(String gameId) {
         Connection conn = DB.getConnection();
         PreparedStatement stmt = null;
-        Date date = new Date(new java.util.Date().getTime());
+        java.sql.Date date = new java.sql.Date(new java.util.Date().getTime());
         try{
             conn = DB.getConnection();
-            String query = "UPDATE GAME SET start_time=? WHERE game_id = ?";
+            String query = "UPDATE GAME SET start_time=?,status=? WHERE game_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setDate(1,date);
-            stmt.setString(2,gameId);
+            stmt.setString(2,Constants.RUNNING_STATUS);
+            stmt.setString(3,gameId);
             int updateStatus = stmt.executeUpdate();
             if(updateStatus > 0 ) return true;
             return false;
@@ -265,6 +267,39 @@ public class GameUtility {
             }
         }
 
+
+    }
+    public static boolean getResources(InitialGameStat initialGameStat){
+        String configId = Play.application().configuration().getString("config_id");
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            String query = "SELECT initial_budget,initial_resources,capability_bonus,capability_points,loan_amount FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,configId);
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()){
+                initialGameStat.setResources(rs.getInt("initial_resources"));
+                initialGameStat.setBudget(rs.getInt("initial_budget"));
+                initialGameStat.setCapabilityBonus(rs.getInt("capability_bonus"));
+                initialGameStat.setCapabilityPoints(rs.getInt("capability_points"));
+                initialGameStat.setLoanAmount(rs.getInt("loan_amount"));
+            }
+            return true;
+
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return false;
+
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -302,7 +337,7 @@ public class GameUtility {
             }
             return true;
         }catch (Exception e){
-            System.out.println(e.getMessage());
+
         }
         finally{
             try {
@@ -320,5 +355,35 @@ public class GameUtility {
 
     public static String getSeed(){
         return String.format("%d%d", Math.abs((int) System.currentTimeMillis() % 1000), (int) (Math.random() * 1000));
+    }
+
+    public static boolean getTimeBound(InitialGameStat initialGameStat, String gameId) {
+        String configId = Play.application().configuration().getString("config_id");
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            String query = "SELECT time_for_each_move,steps_for_each_player FROM GAME WHERE game_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,configId);
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()){
+                initialGameStat.setTimeForEachMove(rs.getInt("time_for_each_move"));
+                initialGameStat.setStepsForEachPlayer(rs.getInt("steps_for_each_player"));
+            }
+            return true;
+
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return false;
+
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

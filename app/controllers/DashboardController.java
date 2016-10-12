@@ -33,18 +33,6 @@ public class DashboardController extends Controller {
         return ok(views.html.HostGame.render(gameId));
     }
 
-
-
-    @BodyParser.Of(BodyParser.Json.class)
-    public static Result HostGame()
-    {
-        //String node = request().body().asJson().get("istimebound").toString();
-        // System.out.println(node);
-       // response().setContentType("");
-
-        return ok("success");
-    }
-
     public static Result JoinGame()
     {
         String userName = session().get("username");
