@@ -30,6 +30,7 @@ POST /projectsteps           controllers.GameController.getProjectSteps()
 
 GET     /assets.javascript.ws.js        controllers.Application.wsJs()
 GET     /assets.javascript.hostjs.js        controllers.Application.hostJs()
+GET     /assets.javascript.gamejs.js        controllers.Application.gameJs()
 GET     /wsInterface                    controllers.Application.wsInterface()
 
 

@@ -192,8 +192,8 @@ public class GameController extends Controller {
             if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame))
                 return badRequest("Error while inserting order");
 
-            if(!GameUtility.insertSnapshots(playersInTheGame, initialGameStat))
-                return badRequest("Error while inserting into Snapshots");
+//            if(!GameUtility.insertSnapshots(playersInTheGame, initialGameStat))
+//                return badRequest("Error while inserting into Snapshots");
             //Generate Random Risk cards for players
             //if(!generateRandomRiskCardsForPlayer(playersInTheGame))return badRequest("Error while mapping risks to players");
 
