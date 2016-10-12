@@ -14,10 +14,20 @@ public class InitialGameStat {
     private int capabilityBonus;
     private String gameId;
     private String userName;
+    private int loanAmount;
+
+    public int getLoanAmount() {
+        return loanAmount;
+    }
+
+    public void setLoanAmount(int loanAmount) {
+        this.loanAmount = loanAmount;
+    }
 
     public List<Phase> getPhases() {
         return phases;
     }
+
 
     public void setPhases(List<Phase> phases) {
         this.phases = phases;
