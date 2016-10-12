@@ -40,6 +40,25 @@ public class PlayerSocket{
                     wsdata.joinedUsers = activeUsers;
                 }
 
+                else if(data.type.equals("PerformStep")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "UpdateActivityLog";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                    wsdata.stepName = data.stepName;
+                }
+
+                else if(data.type.equals("Timeout")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "Timeout";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                }
+
                 else if(data.type.equals("leaving")){
                     //push the list of all users so that everyone gets updated
                     List<String> activeUsers = SessionManager.getAllUsers(data.gameid);

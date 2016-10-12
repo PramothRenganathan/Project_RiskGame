@@ -9,4 +9,6 @@ public class WebSocketData {
     public String type;
     public List<String> joinedUsers;
     public String leavingUser;
+    public String player;
+    public String stepName;
 }

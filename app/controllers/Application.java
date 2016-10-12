@@ -24,6 +24,9 @@ public class Application extends Controller {
     public static Result wsJs() {
         return ok(views.html.ws.render()).as("application/javascript");
     }
+    public static Result gameJs() {
+        return ok(views.html.gamejs.render()).as("application/javascript");
+    }
 
     public static WebSocket<JsonNode> wsInterface(){
         return new WebSocket<JsonNode>(){
