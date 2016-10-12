@@ -40,6 +40,8 @@ GET     /wsInterface                    controllers.Application.wsInterface()
 POST /hostgame       controllers.DashboardController.ViewHostGame()
 GET /dashboard      controllers.DashboardController.ViewDashboard()
 
+POST /performstep  controllers.GameController.performStep()
+
 
 
 
