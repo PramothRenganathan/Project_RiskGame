@@ -186,7 +186,7 @@ public class GameController extends Controller {
                 return badRequest("Error while inserting into Snapshots");
             //Generate Random Risk cards for players
             //if(!generateRandomRiskCardsForPlayer(playersInTheGame))return badRequest("Error while mapping risks to players");
-
+            //Enter risk for individual players with status in some table
 
             //Identify whose turn is first
 
@@ -203,8 +203,26 @@ public class GameController extends Controller {
     }
 
 
-
+    @BodyParser.Of(BodyParser.Json.class)
     public static Result performStep(){
+
+        if(!validateSession())return badRequest("Login to perform steps in the game");
+        String gamePlayerId = session().get("gameplayerid");
+
+        JsonNode body = request().body().asJson();
+
+        String type = body.get("type").asText();
+        String id = body.get("id").asText();
+        boolean projectStep = false;
+        if(type.equalsIgnoreCase("projectstep")){
+            if(GameUtility.isProjectStepPerformed(id,gamePlayerId))return badRequest("You already performed this step");
+            if(!GameUtility.updateProjectStepStatus(id,gamePlayerId))return badRequest("Error while updating project step status");
+            return ok("success");
+        }
+
+
+
+
 
 
         return ok();

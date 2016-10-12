@@ -274,6 +274,7 @@ public class GameUtility {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
+            conn = DB.getConnection();
             String query = "SELECT initial_budget,initial_resources,capability_bonus,capability_points,loan_amount FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,configId);
@@ -362,6 +363,7 @@ public class GameUtility {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
+            conn = DB.getConnection();
             String query = "SELECT time_for_each_move,steps_for_each_player FROM GAME WHERE game_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,configId);
@@ -377,6 +379,61 @@ public class GameUtility {
             System.out.println(e.getMessage());
             return false;
 
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static boolean isProjectStepPerformed(String id, String gamePlayerId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        System.out.println("Checking if the project step is performed");
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT status FROM GAME_PLAYER_PROJECT_STEP_STATUS WHERE config_project_step_mapping_id = ? and game_player_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,id);
+            stmt.setString(2,gamePlayerId);
+            ResultSet rs = stmt.executeQuery();
+            if(rs.next()){
+                if(rs.getBoolean("status"))return true;
+            }
+            return false;
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static boolean updateProjectStepStatus(String id, String gamePlayerId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        System.out.println("Updating project step status to true");
+        try{
+            conn = DB.getConnection();
+            String query = "UPDATE GAME_PLAYER_PROJECT_STEP_STATUS SET status = ? WHERE config_project_step_mapping_id = ? and game_player_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setBoolean(1,true);
+            stmt.setString(2,id);
+            stmt.setString(3,gamePlayerId);
+            int result = stmt.executeUpdate();
+            if(result > 0) return true;
+            return false;
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return false;
         }
         finally {
             try {
