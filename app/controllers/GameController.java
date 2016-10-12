@@ -3,10 +3,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import models.InitialGameStat;
-import models.Phase;
-import models.ProjectStep;
-import models.SessionManager;
+import models.*;
 import play.Play;
 import play.db.DB;
 import play.libs.Json;
@@ -213,10 +210,12 @@ public class GameController extends Controller {
 
         String type = body.get("type").asText();
         String id = body.get("id").asText();
+        int turnNo = body.get("turnno").asInt();
         boolean projectStep = false;
         if(type.equalsIgnoreCase("projectstep")){
             if(GameUtility.isProjectStepPerformed(id,gamePlayerId))return badRequest("You already performed this step");
             if(!GameUtility.updateProjectStepStatus(id,gamePlayerId))return badRequest("Error while updating project step status");
+            Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo);
             return ok("success");
         }
 

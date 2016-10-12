@@ -2,6 +2,7 @@ package utility;
 
 import models.InitialGameStat;
 import models.Phase;
+import models.Snapshot;
 import play.Play;
 import play.db.DB;
 
@@ -431,6 +432,41 @@ public class GameUtility {
         }catch(Exception e){
             System.out.println(e.getMessage());
             return false;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static Snapshot getPreviousSnapshot(String gamePlayerId, int turnNo) {
+        System.out.println("In Getting previous step snapshot");
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        System.out.println("Updating project step status to true");
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT budget,personnel,capability_bonus,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = (SELECT max(turn_no) from GAME_MOVES_SNAPSHOT where game_player_id=?) ";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,gamePlayerId);
+            stmt.setString(2,gamePlayerId);
+            ResultSet rs = stmt.executeQuery();
+            Snapshot step = new Snapshot();
+            while(rs.next()){
+                step.setBudget(rs.getInt("budget"));
+                step.setCapabilityBonus(rs.getInt("capability_bonus"));
+                step.setPersonnel(rs.getInt("personnel"));
+                step.setSkipTurnStatus(rs.getBoolean("skip_turn_status"));
+                step.setProduction(rs.getBoolean("isProduction"));
+            }
+            return step;
+
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return null;
         }
         finally {
             try {
