@@ -31,7 +31,6 @@
             padding-right: 20px;
             padding-bottom: 20px;
         }
-
         .stepStyle{
             /* BUTTON STYLING */
             border-top: 1px solid #fff;
@@ -73,7 +72,27 @@
             background: -webkit-gradient(radial, top top, 0px, center center, 100%, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)));
             background: -webkit-radial-gradient(top, ellipse cover, rgba(255,255,255,0.3) 0px,rgba(255,255,255,0) 275px);
         }
+        .phaseStyle{
+            /* BUTTON STYLING */
+            border-top: 1px solid #fff;
+            box-shadow: 0 5px 8px #EDBF5C, 0 8px 0 #EDBF5C, -2px 1px 0 #EDBF5C, 2px 1px 0 #EDBF5C, 0px 8px 10px #000, 0 10px 30px #EDBF5C;
 
+            /* FONT STYLING */
+
+            text-decoration: none;
+            color: #14467a;
+            font-weight: bold;
+        }
+
+        .phaseStyle:hover{
+            /* BUTTON SHADOW */
+            color: #ffffff;
+            box-shadow: 0 6px 6px #EDBF5C, 0 6px 0 #EDBF5C, -1px 0px 0 #EDBF5C, 0px 0px 0 #EDBF5C, 0px 7px 8px #000, 0 7px 20px #EDBF5C;
+        }
+        .modalHeader{
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(114,184,255,1)), color-stop(100%,rgba(64,150,238,1)));
+            background: linear-gradient(to bottom, rgba(114,184,255,1) 0%,rgba(64,150,238,1) 100%);
+        }
         </style>
 
 
@@ -88,7 +107,7 @@
             }
 
             function onPerformStep(id){
-//                alert(id);
+
                 var test = 'abc';
 //                    var test = $.('#id').val();
 //                    alert(clicked_id);
@@ -104,7 +123,7 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
-
+                        onPhaseClick(currentPhase);
 
                     },
                     error: function (data) {
@@ -115,8 +134,10 @@
 
             }
 
+            var currentPhase="";
             function onPhaseClick(clicked_id) {
 
+                currentPhase=clicked_id;
                 var test = 'abc';
 //                    var test = $.('#id').val();
 //                    alert(clicked_id);
@@ -368,11 +389,11 @@
                         <div style="height: 20px; "></div>
                         @for(phase <- model.getPhases()) {
 
-                            <button class="xxxx col-md-3 btn "
+                            <button class="phaseStyle col-md-3 btn "
                             style="background-color: #DB8B00 !important;"
                             onclick="onPhaseClick(id)"
                             id=@phase.getPhaseId>@phase.getPhaseName()</button>
-                            <div class="col-md-1" style="height: 50px;"> </div>
+                            <div class="col-md-1" style="height: 60px;"> </div>
 
                         }
 
@@ -433,7 +454,7 @@
             <div class="modal fade" tabindex="-1" role="dialog" style="margin-top: 150px;" id="editTodoDialog">
                 <div class="modal-dialog" align="center">
                     <div class="modal-content" style="width: 350px;">
-                        <div class="modal-header" align="left" style="background-color: #A6DBED">
+                        <div class="modal-header modalHeader" align="left" >
                             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">
                                 Close</span></button>
                             <h4 id="windowtitle" class="modal-title" >new window</h4>
