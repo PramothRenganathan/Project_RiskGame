@@ -1,5 +1,5 @@
 @*(hm: Map[models.Phase, List[models.ProjectStep]])*@
-@(phases: models.InitialGameStat)
+@(model: models.InitialGameStat)
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -149,14 +149,14 @@
     <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="clickevent('CPM1');
     totalGameTimer()">
         <input type="hidden" name="phase" id="phase" value="plan"/>
+        <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
         <div class="container" >
-testingagain
 
             <header style="" >
 
                 <div class="col-md-4" style="background-color: #CED4BD">RISK-GAME-- LOGONEW</div>
                 @*<div class="col-md-2 " ></div>*@
-                <div class="col-md-3" style="background-color: #CED4BD">Game ID: 123</div>
+                <div class="col-md-3" style="background-color: #CED4BD">Game ID: @model.getGameId()</div>
                 <div class="col-md-3" style="background-color: #CED4BD">
 
                     Total Game time
@@ -165,7 +165,7 @@ testingagain
 
                 </div>
                 <div class="col-md-2" style="">
-                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome User!</div>
+                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome @model.getUserName()!</div>
                     <div class="btn-group">
                         <button type="button"
                         class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
@@ -211,9 +211,9 @@ testingagain
                             <h4 class="panel-title">My Status</h4>
                         </div>
                         <div class="panel-body" style="height: 100px; ">
-                            <div>Budget Remaining:</div>
-                            <div>Capability Points:</div>
-                            <div>Capability Bonus:</div>
+                            <div>Budget Remaining: @model.getBudget()</div>
+                            <div>Capability Points: @model.getCapabilityPoints()</div>
+                            <div>Capability Bonus: @model.getCapabilityBonus()</div>
                             <a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>
 
 
@@ -228,9 +228,9 @@ testingagain
                                         <h4 class="modal-title">Status</h4>
                                     </div>
                                     <div class="modal-body" style="text-align: left">
-                                        <div>Budget Remaining:</div>
-                                        <div>Capability Points:</div>
-                                        <div>Capability Bonus:</div>
+                                        <div>Budget Remaining: @model.getBudget()</div>
+                                        <div>Capability Points: @model.getCapabilityPoints()</div>
+                                        <div>Capability Bonus: @model.getCapabilityBonus()</div>
                                         <div>Risks Mitigated</div>
 
                                         <div style="height: 30px;"></div>
@@ -288,12 +288,12 @@ testingagain
                     @*</div>*@
                     <div class="col-md-12" style="border: 1px solid transparent">
                         <div style="height: 20px; "></div>
-                        @for(phase <- phases) {
+                        @for(phase <- model.getPhases()) {
 
                             <button class="xxxx col-md-3 btn "
                             style="background-color: #DB8B00 !important;"
                             onclick="clickevent(id)"
-                            id=@phase.getPhaseId>@phase.getPhaseName</button>
+                            id=@phase.getPhaseId>@phase.getPhaseName()</button>
                             <div class="col-md-1" style="height: 50px;"> </div>
 
                         }
