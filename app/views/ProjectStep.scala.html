@@ -1,5 +1,5 @@
 @*(hm: Map[models.Phase, List[models.ProjectStep]])*@
-@(phases: List[models.Phase])
+@(model: models.InitialGameStat)
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -15,6 +15,12 @@
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
 
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/flipclock.css")" />
+
+        <script src="@routes.Assets.at("javascripts/flipclock.js")"></script>
+
+        <script type="text/javascript" charset="utf-8" src="@routes.Application.gameJs()"></script>
+
         <style type="text/css">
         .container > header {
             padding: 0px 30px 10px 30px !important;
@@ -25,14 +31,71 @@
             padding-right: 20px;
             padding-bottom: 20px;
         }
+        .stepStyle{
+            /* BUTTON STYLING */
+            border-top: 1px solid #fff;
+            box-shadow: 0 5px 8px #002851, 0 8px 0 #002851, -2px 1px 0 #003872, 2px 1px 0 #003872, 0px 8px 10px #000, 0 10px 30px #1b1b1b;
 
+            /* FONT STYLING */
+
+            text-decoration: none;
+            color: #14467a;
+            font-weight: bold;
+        }
+        .stepStyle:hover{
+            /* BUTTON SHADOW */
+            box-shadow: 0 6px 6px #002851, 0 6px 0 #002851, -1px 0px 0 #003872, 0px 0px 0 #003872, 0px 7px 8px #000, 0 7px 20px #1b1b1b;
+        }
+        /* BLUE GRADIENT ON BUTTON */
+        .grad {
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(114,184,255,1)), color-stop(100%,rgba(64,150,238,1)));
+            background: linear-gradient(to bottom, rgba(114,184,255,1) 0%,rgba(64,150,238,1) 100%);
+        }
+
+        /* ANIMATE THE BUTTON */
+        .transition,
+        .transition:hover,
+        {
+            -webkit-transition: all 0.3s ease-in-out;
+            -moz-transition: all 0.3s ease-in-out;
+            -o-transition: all 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .highlight {
+            position: relative;
+            margin: -200px auto 0 auto;
+            width: 500px;
+            height: 400px;
+            opacity: 0.4;
+            background: -moz-radial-gradient(top, ellipse cover, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+            background: -webkit-gradient(radial, top top, 0px, center center, 100%, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)));
+            background: -webkit-radial-gradient(top, ellipse cover, rgba(255,255,255,0.3) 0px,rgba(255,255,255,0) 275px);
+        }
+        .phaseStyle{
+            /* BUTTON STYLING */
+            border-top: 1px solid #fff;
+            box-shadow: 0 5px 8px #EDBF5C, 0 8px 0 #EDBF5C, -2px 1px 0 #EDBF5C, 2px 1px 0 #EDBF5C, 0px 8px 10px #000, 0 10px 30px #EDBF5C;
+
+            /* FONT STYLING */
+
+            text-decoration: none;
+            color: #14467a;
+            font-weight: bold;
+        }
+
+        .phaseStyle:hover{
+            /* BUTTON SHADOW */
+            color: #ffffff;
+            box-shadow: 0 6px 6px #EDBF5C, 0 6px 0 #EDBF5C, -1px 0px 0 #EDBF5C, 0px 0px 0 #EDBF5C, 0px 7px 8px #000, 0 7px 20px #EDBF5C;
+        }
+        .modalHeader{
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(114,184,255,1)), color-stop(100%,rgba(64,150,238,1)));
+            background: linear-gradient(to bottom, rgba(114,184,255,1) 0%,rgba(64,150,238,1) 100%);
+        }
         </style>
-        <script src="jquery.js"></script>
-        <script>
-                $(function () {
-                    $("#includedContent").load("chat.html");
-                });
-        </script>
+
+
     </head>
     <script>
 
@@ -43,9 +106,38 @@
                 alert("aaaaaaaa" + clicked_id);
             }
 
+            function onPerformStep(id){
 
-            function clickevent(clicked_id) {
+                var test = 'abc';
+//                    var test = $.('#id').val();
+//                    alert(clicked_id);
+                var obj = {
+                    'id': id,
+                    'type': 'projectstep'
+                };
+                $.ajax({
+                    type: 'POST',
+                    url: '@routes.GameController.performStep()',
+                    // data : JSON.stringify(obj),
+                    data: JSON.stringify(obj),
+                    // dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        onPhaseClick(currentPhase);
 
+                    },
+                    error: function (data) {
+                        alert("error");
+                        //setError('Make call failed');
+                    }
+                });
+
+            }
+
+            var currentPhase="";
+            function onPhaseClick(clicked_id) {
+
+                currentPhase=clicked_id;
                 var test = 'abc';
 //                    var test = $.('#id').val();
 //                    alert(clicked_id);
@@ -64,13 +156,22 @@
                         var result = "";
                         for (i = 0; i < data.length; i++) {
                             var obj = data[i];
-//                                alert(obj.projectStepName);
+
+//                                alert(obj.status);
+                            var status;
+                            if(obj.status){
+
+                                obj.status="disabled"
+                            }
 //                                result= result+"<h1>"+obj.projectStepName+"</h1>";
 
-                            result = result + "<button href='#editTodoDialog' id='" + obj.projectStepId + "'" +
-                                    " style='white-space: normal;'  class='open-EditTodo col-md-3 btn btn-primary'  " +
+                            result = result + "<button " +obj.status+
+                                    " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
+                                    " style='white-space: normal; ' " +
+                                    " class='open-EditTodo col-md-3 btn btn-primary stepStyle grad transition'  " +
                                     " data-toggle='modal'" +
                                     "data-title='" + obj.projectStepName +
+                                    "'data-id='" + obj.projectStepId +
                                     "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
                                     "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
                                     "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
@@ -79,9 +180,9 @@
                                     "'data-id='" + obj.projectStepId +
                                     "'" +
 //                                            "data-todo='{'id':12,'todo':'xyz'}'"+
-                                    "title='Budget :" + obj.budget + "  Capability points: " + obj.capabilityPoints + "'" +
+                                    "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
                                     "  id='todolink'>" + obj.projectStepName +
-                                    "</button><div class='col-md-1' style='height:80px;'></div>";
+                                    "</button><div class='col-md-1' style='height:90px;'></div>";
                         }
 
 //                            alert(result);
@@ -113,6 +214,7 @@
                 var personnel = $(this).data('personnel');
                 var personnelValue = $(this).data('personnelvalue');
                 var projectStepId = $(this).data('id');
+                $(".perform-step").attr("id",projectStepId);
                 $("#windowtitle").text(title);
                 $("#Budget").text(budget);
                 $("#BudgetValue").text(budgetValue);
@@ -144,28 +246,24 @@
                     clearInterval(timer);
                 }, 500000);
             }
-
     </script>
-    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="clickevent('CPM1');
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="onPhaseClick('CPM1');
     totalGameTimer()">
         <input type="hidden" name="phase" id="phase" value="plan"/>
+        <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
         <div class="container" >
-testing
 
             <header style="" >
 
                 <div class="col-md-4" style="background-color: #CED4BD">RISK-GAME-- LOGONEW</div>
                 @*<div class="col-md-2 " ></div>*@
-                <div class="col-md-3" style="background-color: #CED4BD">Game ID: 123</div>
+                <div class="col-md-3" style="background-color: #CED4BD">Game ID: @model.getGameId()</div>
                 <div class="col-md-3" style="background-color: #CED4BD">
-
                     Total Game time
                     <span id="minutes">00</span>:<span id="seconds">00</span>
-
-
                 </div>
                 <div class="col-md-2" style="">
-                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome User!</div>
+                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome @model.getUserName()!</div>
                     <div class="btn-group">
                         <button type="button"
                         class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
@@ -177,13 +275,10 @@ testing
                             <li role="separator" class="divider"></li>
                             <li><a href="#">Leave Game</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#" >Logout</a></li>
+                            <li><a href="/logout" >Logout</a></li>
                         </ul>
                     </div>
-
-
                 </div>
-
             </header>
 
 
@@ -210,11 +305,11 @@ testing
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">My Status</h4>
                         </div>
-                        <div class="panel-body" style="height: 100px; ">
-                            <div>Budget Remaining:</div>
-                            <div>Capability Points:</div>
-                            <div>Capability Bonus:</div>
-                            <a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>
+                        <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small;">
+                            <div>Budget: @model.getBudget()</div>
+                            <div>Capability Points: @model.getCapabilityPoints()</div>
+                            <div>Capability Bonus: @model.getCapabilityBonus()</div>
+                            @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 
                         </div>
@@ -228,9 +323,9 @@ testing
                                         <h4 class="modal-title">Status</h4>
                                     </div>
                                     <div class="modal-body" style="text-align: left">
-                                        <div>Budget Remaining:</div>
-                                        <div>Capability Points:</div>
-                                        <div>Capability Bonus:</div>
+                                        <div>Budget Remaining: @model.getBudget()</div>
+                                        <div>Capability Points: @model.getCapabilityPoints()</div>
+                                        <div>Capability Bonus: @model.getCapabilityBonus()</div>
                                         <div>Risks Mitigated</div>
 
                                         <div style="height: 30px;"></div>
@@ -256,7 +351,11 @@ testing
                         </div>
                         <div class="panel-body" style="height: 200px; ">
                             Roll the Dice
+                            <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0">
+
+                            </div>
                         </div>
+
                     </div>
 
 
@@ -288,13 +387,13 @@ testing
                     @*</div>*@
                     <div class="col-md-12" style="border: 1px solid transparent">
                         <div style="height: 20px; "></div>
-                        @for(phase <- phases) {
+                        @for(phase <- model.getPhases()) {
 
-                            <button class="xxxx col-md-3 btn "
+                            <button class="phaseStyle col-md-3 btn "
                             style="background-color: #DB8B00 !important;"
-                            onclick="clickevent(id)"
-                            id=@phase.getPhaseId>@phase.getPhaseName</button>
-                            <div class="col-md-1" style="height: 50px;"> </div>
+                            onclick="onPhaseClick(id)"
+                            id=@phase.getPhaseId>@phase.getPhaseName()</button>
+                            <div class="col-md-1" style="height: 60px;"> </div>
 
                         }
 
@@ -319,50 +418,28 @@ testing
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Chat</h4>
                         </div>
-                        <div class="panel-body" style="height: 200px;
-                        border: 1px solid transparent;
-                        background-size: 100% 100%;
-                        background-image: url(@routes.Assets.at("images/chat1.jpg")) !important;">
-
+                        <div id="chatArea" class="panel-body" style="height: 200px;
+                            border: 1px solid transparent;
+                            background-size: 100% 100%; overflow-wrap: break-word;overflow-y: scroll;">
                         </div>
 
                     </div>
-                    @*<div class="panel panel-default">*@
-                    @*<div class="panel-heading" style="background-color: #A8A2A3">*@
-                    @*<h4 class="panel-title">Active Players </h4>*@
-                    @*</div>*@
-                    @*<div class="panel-body" style="height: 200px; ">*@
-                    @*user1<br/>*@
-                    @*user2<br/>*@
-                    @*</div>*@
-                    @*</div>*@
-                    @*<div>Players in the Game</div>*@
 
+                    <textarea id="txtMessage">
 
-                    @*<div style="height: 200px;"></div>*@
+                    </textarea>
+                    <div>
+                        <input id="btnSend" style="width: inherit;" type="button" value="send"/>
+                    </div>
 
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Activity Log </h4>
                         </div>
-                        <div class="panel-body" style="height: 300px; ">
+                        <div class="panel-body" style="height: 300px; overflow-wrap: break-word;overflow-y: scroll" id="activity-log">
 
                         </div>
                     </div>
-
-
-                    @*<div>*@
-                    @*Activity Log*@
-                    @*</div>*@
-
-                    @*<div style="height: 300px;*@
-                    @*border: 1px solid transparent">*@
-                    @*<textarea style="height: 300px;width: 180px"*@
-                    @*placeholder="User 1 has performed 'Update Project Plan'" > </textarea>*@
-
-                    @*</div>*@
-
-
                 </div>
 
             </header>
@@ -371,14 +448,13 @@ testing
             <div class="clearfix"></div>
             <header>
 
-
             </header>
 
 
             <div class="modal fade" tabindex="-1" role="dialog" style="margin-top: 150px;" id="editTodoDialog">
                 <div class="modal-dialog" align="center">
                     <div class="modal-content" style="width: 350px;">
-                        <div class="modal-header" align="left" style="background-color: #A6DBED">
+                        <div class="modal-header modalHeader" align="left" >
                             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">
                                 Close</span></button>
                             <h4 id="windowtitle" class="modal-title" >new window</h4>
@@ -387,9 +463,6 @@ testing
                         </div>
                         <div class="modal-body" align="center" style="display: inline">
 
-
-                            @*<form class="form-inline" role="form" method="post" >*@
-                            @*<div class="form-group">*@
                             <table>
                                 <tr>
                                     <td><h5 id="Budget" > </h5></td>
@@ -417,7 +490,7 @@ testing
                             <input type="hidden" id="ProjectStepId" value="">
 
                             <div class="col-xs-12" style="height: 30px;"></div>
-                            <button class="btn btn-success" style="margin-bottom: 20px" >Perform this Step</button>
+                            <button id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
 
                         </div>
                     </div>

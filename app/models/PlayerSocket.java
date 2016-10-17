@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.libs.Json;
-import play.mvc.Http;
 import play.mvc.WebSocket;
 
 import java.io.IOException;
@@ -38,6 +37,35 @@ public class PlayerSocket{
                     wsdata = new WebSocketData();
                     wsdata.type = "joined";
                     wsdata.joinedUsers = activeUsers;
+                }
+
+                else if(data.type.equals("PerformStep")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "UpdateActivityLog";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                    wsdata.stepName = data.stepName;
+                }
+
+                else if(data.type.equals("Timeout")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "Timeout";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                }
+
+                else if(data.type.equals("Chat")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "Chat";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                    wsdata.message = data.message;
                 }
 
                 else if(data.type.equals("leaving")){

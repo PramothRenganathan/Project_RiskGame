@@ -31,14 +31,17 @@ POST /projectsteps           controllers.GameController.getProjectSteps()
 
 GET     /assets.javascript.ws.js        controllers.Application.wsJs()
 GET     /assets.javascript.hostjs.js        controllers.Application.hostJs()
+GET     /assets.javascript.gamejs.js        controllers.Application.gameJs()
 GET     /wsInterface                    controllers.Application.wsInterface()
 
 
-POST /testing       controllers.DashboardController.HostGame()
+#POST /testing       controllers.DashboardController.HostGame()
 #POST /testing2      controllers.DashboardController.JoinGame()
 #GET /hostgame       controllers.DashboardController.ViewHostGame()
 POST /hostgame       controllers.DashboardController.ViewHostGame()
 GET /dashboard      controllers.DashboardController.ViewDashboard()
+
+POST /performstep  controllers.GameController.performStep()
 
 
 

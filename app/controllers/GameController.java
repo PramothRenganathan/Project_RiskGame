@@ -3,6 +3,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.InitialGameStat;
 import models.Phase;
 import models.ProjectStep;
 import models.SessionManager;
@@ -50,9 +51,8 @@ public class GameController extends Controller {
 
 
 
-            String seed = getSeed();
-            System.out.println("Seed:" + seed);
-            String gameId = userName.split("@")[0] +  seed;
+
+        String gameId = GameUtility.generateGameId();
         //Insert gameId into table
         System.out.println("Inserting into game table");
         if(!insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound))return badRequest("Error while starting a GAME");
@@ -64,17 +64,14 @@ public class GameController extends Controller {
 
         session().put("gameplayerid",gamePlayerId);
         ObjectNode result = play.libs.Json.newObject();
-        //result.put("gamePlayerId",gamePlayerId);
         result.put("gameid",gameId);
         result.put("message","success");
 
         /**
-         * ADD WEB SOCKETS CODE
+         *  WEB SOCKETS CODE
          *
          */
         SessionManager.addUser(gameId,gamePlayerId);
-        //return ok(views.html.HostGame.render());
-        //session().put("gameid",gameId);
         return ok(result);
     }
 
@@ -86,7 +83,7 @@ public class GameController extends Controller {
             return badRequest("Login Required");
         }
         String userName = session().get("username");
-       // String userName = "srijith";
+
         //Check if gameId is sent through the request
         JsonNode json = request().body().asJson();
         String gameId =json.get("gameid").asText();
@@ -112,20 +109,9 @@ public class GameController extends Controller {
         String gamePlayerid = insertIntoGamePlayer(gameId,userName,isObserver);
         session().put("gameplayerid",gamePlayerid);
 
-        //Check if gameId is present in websocket map
-       /* List<String> webSockets = GameUtility.webSocketMapping.get(gameId);
-        if(webSockets == null || webSockets.size() == 0){
-            return badRequest("Game is not hosted");
-        }
-        //add user into the existing sockets
-        GameUtility.webSocketMapping.get(gameId).add(userName);*/
-
         /**
          * CREATE SOCKET FOR THE USER AND REDIRECT TO THE HOSTED PAGE
          */
-        //String gamePlayerid = request().body().asFormUrlEncoded().get("username")[0];
-//        String gamePlayerid = "srijith",
-          //String   gameid = "1";
 
         if(!SessionManager.hasUser(gameId, gamePlayerid)){
             SessionManager.addUser(gameId, gamePlayerid);
@@ -147,30 +133,41 @@ public class GameController extends Controller {
     public static Result startGame(){
         try {
             //Based on the configuration - > load the phases, projectSteps, Risks, MitigationSteps
+            if(!validateSession())return badRequest("Not logged in");
+
             String configId = Play.application().configuration().getString("config_id");
-            String username = session().get("username");
+            InitialGameStat initialGameStat = new InitialGameStat();
+            String userName = session().get("username");
+            initialGameStat.setUserName( userName );
             List<Phase> gamePhases = getPhases(configId);
+            initialGameStat.setPhases(gamePhases);
             List<String> allProjectStepIds = GameUtility.getAllProjectSteps(gamePhases);
             if (gamePhases == null || gamePhases.size() == 0) return badRequest("Error while retrieving phases");
 
-            System.out.println("USer:" + username);
+            System.out.println("User:" + userName);
 
             String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
+            initialGameStat.setGameId(gameId);
+            if(!GameUtility.getResources(initialGameStat)) return badRequest("Error while retrieving resources");
             System.out.println("GAME ID FOUND:" + gameId);
-            //JsonNode playersInTheGame = json.withArray("players");
+
             List<String> playersInTheGame = SessionManager.getAllUsers(gameId);
             System.out.println("Players in the game:" + playersInTheGame.toString());
 
             if (gameId == null || playersInTheGame == null || gameId.isEmpty() || playersInTheGame.size() == 0)
                 return badRequest("Illegal start of the game");
+            //Get TimeforEachMove and No of Steps
+            if(!GameUtility.getTimeBound(initialGameStat,gameId)) return badRequest("Error while getting time bound");
 
+            //Set turn for each player
+            String gamePlayerId = session().get("gameplayerid");
+            initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId));
 
             //If not host, just redirect to the game page.
-
-            if(!GameUtility.isHost(gameId,username)){
-                return ok(views.html.ProjectStep.render(gamePhases));
+            if(!GameUtility.isHost(gameId,userName)){
+                return ok(views.html.ProjectStep.render(initialGameStat));
             }
-            System.out.println("IM HOST ONLY:" + username);
+            System.out.println("IM HOST ONLY:" + userName);
             //update startTime in GAME TABLE
             if(!GameUtility.updateStartTimeInGameTable(gameId))return badRequest("Error while updating start time");
 
@@ -185,12 +182,11 @@ public class GameController extends Controller {
             if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame))
                 return badRequest("Error while inserting order");
 
-
+            if(!GameUtility.insertSnapshots(playersInTheGame,initialGameStat))
+                return badRequest("Error while inserting into Snapshots");
             //Generate Random Risk cards for players
             //if(!generateRandomRiskCardsForPlayer(playersInTheGame))return badRequest("Error while mapping risks to players");
-
-
-            //Send Initial game resources -- USE GET FROM HTML
+            //Enter risk for individual players with status in some table
 
             //Identify whose turn is first
 
@@ -199,41 +195,34 @@ public class GameController extends Controller {
             //Map<Phase,List<ProjectStep>> phaseProjectStepMapping = getProjectSteps(configId,phases);
 
             //Update the game table with start time and list of players
-            return ok(views.html.ProjectStep.render(gamePhases));
+            return ok(views.html.ProjectStep.render(initialGameStat));
         }catch(Exception e){
             System.out.println("Error while starting the game");
             return badRequest("Error while starting the game");
         }
     }
 
-    public static Result getResources(){
-        String configId = Play.application().configuration().getString("config_id");
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        try{
-            String query = "SELECT initial_budget,initial_resources FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1,configId);
-            ResultSet rs = stmt.executeQuery();
-            int resources = 0, budget = 0;
-            while(rs.next()){
-                resources = rs.getInt("initial_resources");
-                budget = rs.getInt("initial_budget");
-            }
-            ObjectNode result = Json.newObject();
-            result.put("resources", resources);
-            result.put("budget",budget);
-            return ok(result);
 
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-            return badRequest("Error while retrieving resources");
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result performStep(){
+
+        if(!validateSession())return badRequest("Login to perform steps in the game");
+        String gamePlayerId = session().get("gameplayerid");
+
+        JsonNode body = request().body().asJson();
+
+        String type = body.get("type").asText();
+        String id = body.get("id").asText();
+        boolean projectStep = false;
+        if(type.equalsIgnoreCase("projectstep")){
+            if(GameUtility.isProjectStepPerformed(id,gamePlayerId))return badRequest("You already performed this step");
+            if(!GameUtility.updateProjectStepStatus(id,gamePlayerId))return badRequest("Error while updating project step status");
+            return ok("success");
         }
 
-    }
 
 
-    public static Result performStep(){
+
 
 
         return ok();
@@ -365,9 +354,7 @@ public class GameController extends Controller {
         return true;
     }
 
-    public static String getSeed(){
-       return String.format("%d%d", (int) System.currentTimeMillis() % 1000, (int) (Math.random() * 1000));
-    }
+
 
     public static boolean insertIntoGame(String gameId, String userName, int timeForEachMove, int stepsForEachPlayer, boolean isTimeBound){
         Connection connection = DB.getConnection();
@@ -413,7 +400,7 @@ public class GameController extends Controller {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String gamePlayerId = userName + getSeed();
+            String gamePlayerId = userName.split("@")[0] + gameId;
             String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
