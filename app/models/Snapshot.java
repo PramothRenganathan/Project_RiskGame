@@ -12,7 +12,8 @@ public class Snapshot {
     private int budget;
     private int personnel;
     private int capabilityBonus;
-    private Date timeTaken;
+    private int capabilityPoints;
+    private int timeTaken;
     private String moveType;
     private boolean moveStatus;
     private boolean skipTurnStatus;
@@ -66,11 +67,11 @@ public class Snapshot {
         this.capabilityBonus = capabilityBonus;
     }
 
-    public Date getTimeTaken() {
+    public int getTimeTaken() {
         return timeTaken;
     }
 
-    public void setTimeTaken(Date timeTaken) {
+    public void setTimeTaken(int timeTaken) {
         this.timeTaken = timeTaken;
     }
 
@@ -160,5 +161,13 @@ public class Snapshot {
 
     public void setProduction(boolean production) {
         isProduction = production;
+    }
+
+    public int getCapabilityPoints() {
+        return capabilityPoints;
+    }
+
+    public void setCapabilityPoints(int capabilityPoints) {
+        this.capabilityPoints = capabilityPoints;
     }
 }

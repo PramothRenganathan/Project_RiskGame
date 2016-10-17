@@ -1,7 +1,10 @@
 package utility;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import models.InitialGameStat;
 import models.Phase;
+import models.ProjectStep;
+import models.Snapshot;
 import play.Play;
 import play.db.DB;
 
@@ -439,5 +442,153 @@ public class GameUtility {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static Snapshot getPreviousSnapshot(String gamePlayerId, int turnNo) {
+        System.out.println("In Getting previous step snapshot");
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        System.out.println("Updating project step status to true");
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT budget,personnel,capability_bonus,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = (SELECT max(turn_no) from GAME_MOVES_SNAPSHOT where game_player_id=?) ";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,gamePlayerId);
+            stmt.setString(2,gamePlayerId);
+            ResultSet rs = stmt.executeQuery();
+            Snapshot step = new Snapshot();
+            while(rs.next()){
+                step.setBudget(rs.getInt("budget"));
+                step.setCapabilityBonus(rs.getInt("capability_bonus"));
+                step.setPersonnel(rs.getInt("personnel"));
+                step.setSkipTurnStatus(rs.getBoolean("skip_turn_status"));
+                step.setProduction(rs.getBoolean("isProduction"));
+            }
+            return step;
+
+        }catch(Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static Snapshot getCurrentDetailsFromTheUser(String gamePlayerId, JsonNode body) {
+
+        String type = body.get("type").asText();
+        String id = body.get("id").asText();
+        int turnNo = body.get("turnno").asInt();
+        int budget = body.get("budget").asInt();
+        int capabilityBonus = body.get("capabilitybonus").asInt();
+        int capabilityPoints = body.get("capabilitypoints").asInt();
+        int personnel = body.get("personnel").asInt();
+        int timeTaken = body.get("timetaken").asInt();
+
+        Snapshot receivedSnapShot = new Snapshot();
+        receivedSnapShot.setBudget(budget);
+        receivedSnapShot.setPersonnel(personnel);
+        receivedSnapShot.setCapabilityBonus(capabilityBonus);
+        receivedSnapShot.setCapabilityPoints(capabilityPoints);
+        receivedSnapShot.setTurnNo(turnNo);
+        receivedSnapShot.setProjectStepId(id);
+        receivedSnapShot.setMoveType(type);
+        receivedSnapShot.setTimeTaken(timeTaken);
+
+        return receivedSnapShot;
+    }
+
+    public static boolean validateStep(Snapshot previousStep, Snapshot currentStep) {
+        if(previousStep.getBudget() != currentStep.getBudget())return false;
+        if(previousStep.getPersonnel() != currentStep.getPersonnel()) return false;
+        if(previousStep.getCapabilityBonus() != currentStep.getCapabilityBonus()) return false;
+        if(previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints()) return false;
+
+        //Try to check turn number if needed
+
+
+        return true;
+    }
+
+    public static boolean performStep(String gamePlayerId, Snapshot currentStep, ProjectStep projectStep) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,gamePlayerId);
+            stmt.setInt(2,0);//Turn number
+            stmt.setInt(3,currentStep.getBudget()-projectStep.getBudget());
+            stmt.setInt(4,currentStep.getPersonnel() - projectStep.getPersonnel());
+            stmt.setInt(5,currentStep.getCapabilityBonus() - projectStep.getCapabilityBonus());
+            stmt.setInt(6,currentStep.getTimeTaken());//time taken
+            stmt.setString(7, currentStep.getMoveType());//move type
+            stmt.setBoolean(8,true);//move Status
+            stmt.setBoolean(9,false);//skip turn status
+            stmt.setString(10,currentStep.getProjectStepId());//project Step Id
+            stmt.setNull(11,Types.VARCHAR);//risk id
+            stmt.setNull(12,Types.VARCHAR);//oops id
+            stmt.setNull(13,Types.VARCHAR);//surprise id
+            stmt.setNull(14,Types.VARCHAR);//oops impact id
+            stmt.setNull(15,Types.VARCHAR);//surprise impact id
+            stmt.setInt(16,currentStep.getLoanAmount());
+            stmt.setNull(17,Types.TINYINT);//Production status
+
+            int result = stmt.executeUpdate();
+            return result > 0 ? true: false;
+
+        }
+        catch(Exception e){
+            System.out.println("Exception while retrieving project step");
+            System.out.println(e.getMessage());
+            return false;
+        }
+
+    }
+
+    public static ProjectStep getProjectStepDetails(String id) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "select P.project_step_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus from PROJECT_STEPS P JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM on P.project_step_id = CPM.project_step_id and config_project_step_mapping_id= ?";
+            stmt = conn.prepareStatement(query);
+
+            stmt.setString(1,id);
+            ResultSet rs = stmt.executeQuery();
+            ProjectStep ps = null;
+            while(rs.next()){
+                ps = new ProjectStep();
+                ps.setBudget(rs.getInt("budget"));
+                ps.setCapabilityPoints(rs.getInt("capability_points"));
+                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
+                ps.setPersonnel(rs.getInt("personnel"));
+                ps.setProjectStepName(rs.getString("project_step_name"));
+                ps.setLevel(rs.getInt("level"));
+                ps.setPreRequisite(rs.getString("pre_requisite"));
+            }
+            return ps;
+
+        }
+        catch(Exception e){
+            System.out.println("Exception while retrieving project step");
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public static boolean canProjectStepBePerformed(Snapshot currentStep, ProjectStep projectStep) {
+        if(currentStep.getBudget() - projectStep.getBudget() < 0) return false;
+        if(currentStep.getCapabilityPoints() - projectStep.getCapabilityPoints() < 0 ) return false;
+        if(currentStep.getCapabilityBonus() - projectStep.getCapabilityBonus() < 0) return false;
+        if(currentStep.getPersonnel() - projectStep.getPersonnel() < 0) return false;
+        //Add pre-requisite step here
+        return true;
     }
 }
