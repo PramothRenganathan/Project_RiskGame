@@ -10,7 +10,7 @@ GET     /config                           controllers.GameController.startGame()
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 POST     /login                  controllers.LoginController.login()
-GET     /logout                controllers.LoginController.logout()
+GET     /logout                  controllers.LoginController.logout()
 
 GET     /playerjoin                controllers.Application.playerJoin()
 

@@ -60,6 +60,7 @@ public class GameController extends Controller {
         System.out.println("Inserted into game player table");
 
         session().put("gameplayerid",gamePlayerId);
+
         ObjectNode result = play.libs.Json.newObject();
         result.put("gameid",gameId);
         result.put("message","success");
@@ -204,18 +205,26 @@ public class GameController extends Controller {
     public static Result performStep(){
 
         if(!validateSession())return badRequest("Login to perform steps in the game");
+
         String gamePlayerId = session().get("gameplayerid");
 
         JsonNode body = request().body().asJson();
+       Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
 
-        String type = body.get("type").asText();
-        String id = body.get("id").asText();
-        int turnNo = body.get("turnno").asInt();
-        boolean projectStep = false;
+        String type = currentStep.getMoveType();
+        String id = currentStep.getProjectStepId();
+        int turnNo = currentStep.getTurnNo();
+
+        //boolean projectStep = false;
+        Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo);
+        if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
         if(type.equalsIgnoreCase("projectstep")){
             if(GameUtility.isProjectStepPerformed(id,gamePlayerId))return badRequest("You already performed this step");
+            ProjectStep projectStep = GameUtility.getProjectStepDetails(id);
+            if(projectStep == null ) return badRequest("Error while retrieving project step detais");
+            if(!GameUtility.canProjectStepBePerformed(currentStep,projectStep))return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
+            if(!GameUtility.performStep(gamePlayerId,currentStep, projectStep))return badRequest("Error while updating status");
             if(!GameUtility.updateProjectStepStatus(id,gamePlayerId))return badRequest("Error while updating project step status");
-            Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo);
             return ok("success");
         }
 
