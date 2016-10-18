@@ -110,7 +110,7 @@ public class GameController extends Controller {
         /**
          * CREATE SOCKET FOR THE USER AND REDIRECT TO THE HOSTED PAGE
          */
-
+        if(SessionManager.getAllUsers(gameId).size()>=5) return badRequest("Already 5 players in the game");
         if(!SessionManager.hasUser(gameId, gamePlayerid)){
             SessionManager.addUser(gameId, gamePlayerid);
         }
@@ -221,18 +221,20 @@ public class GameController extends Controller {
         if(type.equalsIgnoreCase("projectstep")){
             if(GameUtility.isProjectStepPerformed(id,gamePlayerId))return badRequest("You already performed this step");
             ProjectStep projectStep = GameUtility.getProjectStepDetails(id);
-            if(projectStep == null ) return badRequest("Error while retrieving project step detais");
+            if(projectStep == null )return badRequest("Error while retrieving project step detais");
             if(!GameUtility.canProjectStepBePerformed(currentStep,projectStep))return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
             if(!GameUtility.performStep(gamePlayerId,currentStep, projectStep))return badRequest("Error while updating status");
             if(!GameUtility.updateProjectStepStatus(id,gamePlayerId))return badRequest("Error while updating project step status");
-            return ok("success");
+
+            ObjectNode result = play.libs.Json.newObject();
+            result.put("message","success");
+            result.put("budget",currentStep.getBudget());
+            result.put("personnel",currentStep.getPersonnel());
+            result.put("capabilitybonus",currentStep.getCapabilityBonus());
+            result.put("capabilitypoints",currentStep.getCapabilityPoints());
+
+            return ok(result);
         }
-
-
-
-
-
-
         return ok();
     }
 
