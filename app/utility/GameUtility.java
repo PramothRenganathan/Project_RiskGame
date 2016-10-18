@@ -239,12 +239,12 @@ public class GameUtility {
     public static boolean updateStartTimeInGameTable(String gameId) {
         Connection conn = DB.getConnection();
         PreparedStatement stmt = null;
-        java.sql.Date date = new java.sql.Date(new java.util.Date().getTime());
+        java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
         try{
             conn = DB.getConnection();
             String query = "UPDATE GAME SET start_time=?,status=? WHERE game_id = ?";
             stmt = conn.prepareStatement(query);
-            stmt.setDate(1,date);
+            stmt.setTimestamp(1,date);
             stmt.setString(2,Constants.RUNNING_STATUS);
             stmt.setString(3,gameId);
             int updateStatus = stmt.executeUpdate();
@@ -308,7 +308,7 @@ public class GameUtility {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction,capability_points) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             for(String playerId : playersInTheGame){
                 stmt.setString(1,playerId);
@@ -327,7 +327,8 @@ public class GameUtility {
                 stmt.setNull(14,Types.VARCHAR);//oops impact id
                 stmt.setNull(15,Types.VARCHAR);//surprise impact id
                 stmt.setInt(16,initialGameStat.getLoanAmount());
-                stmt.setNull(17,Types.TINYINT);
+                stmt.setNull(17,Types.TINYINT);//Is Production
+                stmt.setInt(18,initialGameStat.getCapabilityPoints());//capability_points
                 stmt.addBatch();
             }
             int[] result = stmt.executeBatch();
@@ -395,7 +396,7 @@ public class GameUtility {
         System.out.println("Checking if the project step is performed");
         try{
             conn = DB.getConnection();
-            String query = "SELECT status FROM GAME_PLAYER_PROJECT_STEP_STATUS WHERE config_project_step_mapping_id = ? and game_player_id = ?";
+            String query = "SELECT `status` FROM GAME_PLAYER_PROJECT_STEP_STATUS WHERE config_project_step_mapping_id = ? and game_player_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,id);
             stmt.setString(2,gamePlayerId);
@@ -520,13 +521,13 @@ public class GameUtility {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction,capability_points) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
             stmt.setInt(2,0);//Turn number
-            stmt.setInt(3,currentStep.getBudget()-projectStep.getBudget());
-            stmt.setInt(4,currentStep.getPersonnel() - projectStep.getPersonnel());
-            stmt.setInt(5,currentStep.getCapabilityBonus() - projectStep.getCapabilityBonus());
+            stmt.setInt(3,currentStep.getBudget());
+            stmt.setInt(4,currentStep.getPersonnel() );
+            stmt.setInt(5,currentStep.getCapabilityBonus());
             stmt.setInt(6,currentStep.getTimeTaken());//time taken
             stmt.setString(7, currentStep.getMoveType());//move type
             stmt.setBoolean(8,true);//move Status
@@ -539,6 +540,7 @@ public class GameUtility {
             stmt.setNull(15,Types.VARCHAR);//surprise impact id
             stmt.setInt(16,currentStep.getLoanAmount());
             stmt.setNull(17,Types.TINYINT);//Production status
+            stmt.setInt(18,currentStep.getCapabilityPoints());
 
             int result = stmt.executeUpdate();
             return result > 0 ? true: false;
@@ -585,9 +587,15 @@ public class GameUtility {
 
     public static boolean canProjectStepBePerformed(Snapshot currentStep, ProjectStep projectStep) {
         if(currentStep.getBudget() - projectStep.getBudget() < 0) return false;
-        if(currentStep.getCapabilityPoints() - projectStep.getCapabilityPoints() < 0 ) return false;
-        if(currentStep.getCapabilityBonus() - projectStep.getCapabilityBonus() < 0) return false;
+        //if(currentStep.getCapabilityPoints() - projectStep.getCapabilityPoints() < 0 ) return false;
+        //if(currentStep.getCapabilityBonus() - projectStep.getCapabilityBonus() < 0) return false;
         if(currentStep.getPersonnel() - projectStep.getPersonnel() < 0) return false;
+
+        currentStep.setCapabilityBonus(currentStep.getCapabilityBonus() + projectStep.getCapabilityBonus());
+        currentStep.setBudget(currentStep.getBudget() - projectStep.getBudget());
+        currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
+        currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
+
         //Add pre-requisite step here
         return true;
     }
