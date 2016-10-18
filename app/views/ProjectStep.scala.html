@@ -108,12 +108,20 @@
 
             function onPerformStep(id){
 
+                alert(document.getElementById('budgetremaining').innerHTML);
                 var test = 'abc';
+//                var budgetRemaining=document.getElementById('budgetremaining').innerHTML.substring()
 //                    var test = $.('#id').val();
 //                    alert(clicked_id);
                 var obj = {
                     'id': id,
-                    'type': 'projectstep'
+                    'type': 'projectstep',
+                    'budget': document.getElementById('budgetremaining').innerHTML,
+                    'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+                    'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+                    'personnel' :document.getElementById('personnelremaining').innerHTML,
+                    'turnno': 1,
+                    'timetaken': 3
                 };
                 $.ajax({
                     type: 'POST',
@@ -123,6 +131,8 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
+
+//                        alert()
                         onPhaseClick(currentPhase);
 
                     },
@@ -306,9 +316,10 @@
                             <h4 class="panel-title">My Status</h4>
                         </div>
                         <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small;">
-                            <div>Budget: @model.getBudget()</div>
-                            <div>Capability Points: @model.getCapabilityPoints()</div>
-                            <div>Capability Bonus: @model.getCapabilityBonus()</div>
+                            <div style=" display: inline-block;">Budget:</div><div style=" display: inline-block;" id="budgetremaining"> @model.getBudget()</div>
+                            <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block;" id="capabilitypoints"> @model.getCapabilityPoints()</div>
+                            <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
+                            <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 
