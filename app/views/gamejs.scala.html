@@ -33,7 +33,7 @@ $(function() {
     var WS = window['MozWebSocket'] ? window['MozWebSocket'] : WebSocket;
 
     // open socket on page load
-    var socket = new WS('@routes.Application.wsInterface().webSocketURL(request)');
+    var socket = new WS('@routes.Application.wsInterface().webSocketURL()');
 
     //this list will be used to append joining players
     var userList = $('#list-active-players');
@@ -107,19 +107,28 @@ $(function() {
         }
     }
 
+    var initConnection = function (event) {
+        registerGameId();
+        publishMyPresence();
+    }
+
     var publishMyPresence = function (event) {
         //push to socket on first page load of any user
-
-        var gameid = $('#gameid').val();
         var data = JSON.stringify({"gameid":gameid, "type": "joined", "player": {"name": "someuser", "team": "somecode"}});
         socket.send(data);
     }
+
+    var registerGameId = function (event) {
+        //push to socket on first page load of any user
+        var data = JSON.stringify({"gameid":gameid, "type": "RegisterGameId"});
+        socket.send(data);
+        }
 
     //read message from socket
     socket.onmessage = writeMessages;
 
     //without this I am getting exception that CONNECTION NOT ESTABLISHED
-    socket.onopen = publishMyPresence;
+    socket.onopen = initConnection;
 
 
     $('#btnJoin').click(function (event) {

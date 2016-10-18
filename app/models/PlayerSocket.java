@@ -8,24 +8,43 @@ import play.mvc.WebSocket;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerSocket{
     private static List<WebSocket.Out<JsonNode>> connections = new ArrayList<WebSocket.Out<JsonNode>>();
-//    private static List<String> socketUsers = new ArrayList<>();
+    private static Map<String, List<WebSocket.Out<JsonNode>>> gameUsersMap = new HashMap<>();
+    private static Map<WebSocket.In<JsonNode>, WebSocket.Out<JsonNode>> inoutMap = new HashMap<>();
 
     public static void start(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out){
 
         connections.add(out);
+        if(!inoutMap.containsKey(in)){
+            inoutMap.put(in, out);
+        }
 
         in.onMessage(new Callback<JsonNode>(){
             public void invoke(JsonNode event) throws IOException {
                 int count = connections.size();
 
+
                 Data data = Json.fromJson(event, Data.class);
                 WebSocketData wsdata = null;
 
-                if(data.type.equals("StartGame")){
+                if(data.type.equals("RegisterGameId")) {
+                    if(gameUsersMap.containsKey(data.gameid)){
+                        gameUsersMap.get(data.gameid).add(inoutMap.get(in));
+                    }
+
+                    else{
+                        List<WebSocket.Out<JsonNode>> list = new ArrayList<>();
+                        gameUsersMap.put(data.gameid, list);
+                        gameUsersMap.get(data.gameid).add(inoutMap.get(in));
+                    }
+                }
+
+                else if(data.type.equals("StartGame")){
                     //push the list of all users so that everyone gets updated
                     wsdata = new WebSocketData();
                     wsdata.type = "redirect";
@@ -82,7 +101,9 @@ public class PlayerSocket{
                 //toJson method was throwing exception
                 //Since class I used was static with non public fields
                 //So i think JsonSerializer was not able to serialize the fields
-                PlayerSocket.notifyAll(Json.toJson(wsdata));
+                if(!data.type.equals("RegisterGameId")) {
+                    PlayerSocket.notifyAll(Json.toJson(wsdata), data.gameid);
+                }
             }
         });
 
@@ -94,9 +115,16 @@ public class PlayerSocket{
     }
 
     // Iterate connection list and write incoming message
-    public static void notifyAll(JsonNode message){
-        for (WebSocket.Out<JsonNode> out : connections) {
-            out.write(message);
+    public static void notifyAll(JsonNode message, String gameId){
+        List<WebSocket.Out<JsonNode>> outnodes = null;
+        if(gameUsersMap.containsKey(gameId)){
+            outnodes = gameUsersMap.get(gameId);
+        }
+
+        if(outnodes!=null){
+            for (WebSocket.Out<JsonNode> out : outnodes) {
+                out.write(message);
+            }
         }
     }
 }
