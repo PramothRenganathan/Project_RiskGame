@@ -60,17 +60,28 @@ $(function() {
         }
     }
 
-    var publishMyPresence = function (event) {
-        //push to socket on first page load of any user
-        var data = JSON.stringify({"gameid":gameid, "type": "joined", "player": {"username": username, "team": "gamer"}});
-        socket.send(data);
-    }
+var initConnection = function (event) {
+registerGameId();
+publishMyPresence();
+}
+
+var publishMyPresence = function (event) {
+//push to socket on first page load of any user
+var data = JSON.stringify({"gameid":gameid, "type": "joined", "player": {"name": "someuser", "team": "somecode"}});
+socket.send(data);
+}
+
+var registerGameId = function (event) {
+//push to socket on first page load of any user
+var data = JSON.stringify({"gameid":gameid, "type": "RegisterGameId"});
+socket.send(data);
+}
 
     //read message from socket
     socket.onmessage = writeMessages;
 
     //without this I am getting exception that CONNECTION NOT ESTABLISHED
-    socket.onopen = publishMyPresence;
+    socket.onopen = initConnection;
 
 
     $('#btnJoin').click(function (event) {
