@@ -428,7 +428,7 @@ public class GameController extends Controller {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String gamePlayerId = userName.split("@")[0] + gameId;
+            String gamePlayerId = userName.split("@")[0] + "-" +  gameId;
             String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
