@@ -31,11 +31,34 @@
             padding-right: 20px;
             padding-bottom: 20px;
         }
+
+        .ProjectStepStyle{
+            background: #F25827;
+            border-color:#F05C2B;
+        }
+
+
+
+        .ProjectStepStyle:hover,
+        .ProjectStepStyle:focus,
+        .ProjectStepStyle:active,
+        .ProjectStepStyle.active,
+        .ProjectStepStyle.disabled,
+        .ProjectStepStyle[disabled] {
+            background: #F53C00 !important;
+            border-color:#F53C00 !important;
+        }
+        .ProjectStepStyle:active,
+        .ProjectStepStyle.active {
+            background: #F53C00 !important;
+            border-color:#F53C00 !important;
+        }
+
         .stepStyle{
             /* BUTTON STYLING */
             border-top: 1px solid #fff;
             box-shadow: 0 5px 8px #002851, 0 8px 0 #002851, -2px 1px 0 #003872, 2px 1px 0 #003872, 0px 8px 10px #000, 0 10px 30px #1b1b1b;
-
+            /*background: red;*/
             /* FONT STYLING */
 
             text-decoration: none;
@@ -108,9 +131,11 @@
 
             function onPerformStep(id){
 //                var isEligibleToPerformStep=true;
+//                alert(id);
 
                 var obj = {
                     'id': id,
+                    'gameid':document.getElementById('gameid').innerHTML,
                     'type': 'projectstep',
                     'budget': document.getElementById('budgetremaining').innerHTML,
                     'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
@@ -131,6 +156,7 @@
                         document.getElementById('capabilitypoints').innerHTML = data.capabilitypoints;
                         document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
                         document.getElementById('personnelremaining').innerHTML = data.personnel;
+
                         onPhaseClick(currentPhase);
                     },
                     error: function (data) {
@@ -173,22 +199,28 @@
 
 
 
-//                            var eligibleBudget=0;
-//                            var eligibleCapabilityBonus=0;
-//                            var eligibleCapabilityPoints=0;
-//                            var eligiblePersonnelRemaining=0;
+                            var eligibleBudget=0;
+                            var eligibleCapabilityBonus=0;
+                            var eligibleCapabilityPoints=0;
+                            var eligiblePersonnelRemaining=0;
 ////                            alert('hereee');
-//                            eligibleBudget= parseInt(document.getElementById('budgetremaining').innerHTML) - obj.budget;
-//                            eligibleCapabilityBonus= parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
-//                            eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
-//                            eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
+                            eligibleBudget= parseInt(document.getElementById('budgetremaining').innerHTML) - obj.budget;
+                            eligibleCapabilityBonus= parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
+                            eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
+                            eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
 ////
-//                            var setColor;
-//                            if(eligibleBudget<0 || eligiblePersonnelRemaining<0){
+                            var setClassColor;
+                            var buttonDisable;
+                            if(eligibleBudget<0 || eligiblePersonnelRemaining<0){
+                                setClassColor="ProjectStepStyle";
+                                buttonDisable="true";
 //                                alert("you cannot perform this step");
-//                            }
+                            }else{
+                                setClassColor=" ";
+                                buttonDisable="false"
+                            }
 //                              alert(document.getElementById('budgetremaining').innerHTML);
-//                            alert("elig"+eligiblePersonnelRemaining);
+//                            alert("elig"+setColor);
 
 //                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
 
@@ -202,8 +234,9 @@
                             result = result + "<button " +obj.status+
                                     " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
                                     " style='white-space: normal; ' " +
-                                    " class='open-EditTodo col-md-3 btn btn-primary stepStyle grad transition'  " +
+                                    " class='open-EditTodo col-md-3 btn btn-primary "+setClassColor+"'" +
                                     " data-toggle='modal'" +
+                                    " data-buttondisable='"+buttonDisable+"'" +
                                     "data-title='" + obj.projectStepName +
                                     "'data-id='" + obj.projectStepId +
                                     "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
@@ -217,6 +250,7 @@
                                     "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
                                     "  id='todolink'>" + obj.projectStepName +
                                     "</button><div class='col-md-1' style='height:90px;'></div>";
+//                                    "</button><div class='col-md-1' style='height:90px;"+setColor+"'"></div>";
 
 
 
@@ -246,12 +280,14 @@
                 var capabilityPointsValue = $(this).data('capabilitypointsvalue');
                 var capabilityBonus = $(this).data('capabilitybonus');
                 var capabilityBonusValue = $(this).data('capabilitybonusvalue');
+                var buttonDisabled= $(this).data('buttondisable');
                 var level = $(this).data('level');
                 var levelValue = $(this).data('levelvalue');
                 var personnel = $(this).data('personnel');
                 var personnelValue = $(this).data('personnelvalue');
                 var projectStepId = $(this).data('id');
                 $(".perform-step").attr("id",projectStepId);
+                $(".perform-step").attr("disabled",buttonDisabled);
                 $("#windowtitle").text(title);
                 $("#Budget").text(budget);
                 $("#BudgetValue").text(budgetValue);
@@ -264,6 +300,10 @@
                 $("#Personnel").text(personnel);
                 $("#PersonnelValue").text(personnelValue);
                 $("#ProjectStepId").val(projectStepId);
+//                alert("<button id='"+projectStepId+"' class='btn btn-success perform-step'  style='margin-bottom: 20px' onclick='onPerformStep("+"\""+projectStepId+"\""+")' >Perform this Step</button>");
+//                document.getElementById("performstep").innerHTML="<button id='"+projectStepId+"' class='btn btn-success perform-step'  style='margin-bottom: 20px' onclick='onPerformStep('"+projectStepId+"')' >Perform this Step</button>";
+
+
             });
 
             function totalGameTimer() {
@@ -295,7 +335,7 @@
 
                 <div class="col-md-4" style="background-color: #CED4BD">RISK-GAME-- LOGONEW</div>
                 @*<div class="col-md-2 " ></div>*@
-                <div class="col-md-3" style="background-color: #CED4BD">Game ID: @model.getGameId()</div>
+                <div class="col-md-3" style="background-color: #CED4BD" id="gameid">Game ID: @model.getGameId()</div>
                 <div class="col-md-3" style="background-color: #CED4BD">
                     Total Game time
                     <span id="minutes">00</span>:<span id="seconds">00</span>
@@ -389,7 +429,8 @@
                             <h4 class="panel-title">Current Action</h4>
                         </div>
                         <div class="panel-body" style="height: 200px; ">
-                            Roll the Dice
+                            <div style=" display: inline-block;">Turn No: </div><div style=" display: inline-block;" id="turnNo">1</div>
+
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0">
 
                             </div>
@@ -428,7 +469,7 @@
                         <div style="height: 20px; "></div>
                         @for(phase <- model.getPhases()) {
 
-                            <button class="phaseStyle col-md-3 btn "
+                            <button class="col-md-3 btn btn-warning"
                             style="background-color: #DB8B00 !important;"
                             onclick="onPhaseClick(id)"
                             id=@phase.getPhaseId>@phase.getPhaseName()</button>
@@ -529,7 +570,8 @@
                             <input type="hidden" id="ProjectStepId" value="">
 
                             <div class="col-xs-12" style="height: 30px;"></div>
-                            <button id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
+                            <div id="performstep"></div>
+                            <button disabled="" id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
 
                         </div>
                     </div>
