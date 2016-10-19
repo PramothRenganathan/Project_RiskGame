@@ -1,9 +1,11 @@
 package controllers;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import controllers.*;
 import play.db.DB;
 import play.mvc.BodyParser;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import java.sql.Connection;
@@ -30,13 +32,17 @@ public class LoginController {
      * Creates a user session and returns a cookie as part of response
      * @return
      */
-   // @BodyParser.Of(BodyParser.Json.class)
+    @BodyParser.Of(BodyParser.Json.class)
     public static Result login(){
 
-        System.out.println(request().body());
+        JsonNode data = request().body().asJson();
+        //System.out.println(data);
+        String userName = data.get("username").asText();
+        String password = data.get("password").asText();
+       // System.out.println(request().body());
 
-        String userName = request().body().asFormUrlEncoded().get("username")[0];
-        String password = request().body().asFormUrlEncoded().get("password")[0];
+  //      String userName = request().body().asFormUrlEncoded().get("username")[0];
+//        String password = request().body().asFormUrlEncoded().get("password")[0];
         System.out.println("Username:" + userName);
         System.out.println("password:" + password);
 
@@ -57,12 +63,15 @@ public class LoginController {
                 boolean login =false;
                 while (rs.next()) {
                     System.out.println("Creating session");
+                    session().put("firstname",rs.getString("first_name"));
                     login = true;
                     session().put("username",userName);
+
                     //change -- to main dashboard page
-                    return redirect(controllers.routes.DashboardController.ViewDashboard());
+                   // return redirect(controllers.routes.DashboardController.ViewDashboard());
+                    return ok("success");
                 }
-                if(!login) return badRequest("Credentials wrong");
+                if(!login) return ok("Credentials wrong");
             } catch (Exception e) {
                 System.out.println("Exception while login :" + e.getMessage());
             }
@@ -79,11 +88,13 @@ public class LoginController {
             String value = session().get("username");
             if(value.equalsIgnoreCase(userName)) {
                 System.out.println("User already logged in");
-                return ok("Already Logged in");
+               // return ok("Already Logged in");
+                return ok("success");
+              //  return redirect(controllers.routes.DashboardController.ViewDashboard());
             }
         }
 
-            return badRequest("Error");
+            return ok("Contact System Admin");
 
         }
 
