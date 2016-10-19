@@ -292,7 +292,7 @@
                 var levelValue = $(this).data('levelvalue');
                 var personnel = $(this).data('personnel');
                 var personnelValue = $(this).data('personnelvalue');
-                alert(buttonDisabled);
+//                alert(buttonDisabled);
                 if(buttonDisabled===true){
                     document.getElementById("isDisabled").innerHTML="Oops! You don't have enough resources!";
                 }
@@ -352,9 +352,9 @@
                     Total Game time
                     <span id="minutes">00</span>:<span id="seconds">00</span>
                 </div>
-                <div class="col-md-2" style="">
-                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome @model.getUserName().split("@")(0)!</div>
-                    <div class="btn-group">
+                <div class="col-md-2" style="display: inline-block;">
+                        <!-- Single button --><div style=" display: inline-block;" class="glyphicon glyphicon-user">Welcome @model.getUserName().split("@")(0)!</div>
+                    <div style=" display: inline-block;" class="btn-group">
                         <button type="button"
                         class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
