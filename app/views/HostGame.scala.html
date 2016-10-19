@@ -42,6 +42,7 @@
 
   </head>
   <body>
+    @header()<br>
     <form id="frmHidden" method="POST" action="/start" hidden>
       <input type="hidden" id = "gameid" name ="gameid" value='@gameId' />
   </form>
@@ -105,7 +106,8 @@
           </ul>
         </div>
       </div>
-    </div>
 
+    </div>
+    @footer()
   </body>
 </html>
