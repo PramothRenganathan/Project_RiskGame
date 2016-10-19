@@ -235,12 +235,14 @@ public class GameController extends Controller {
             if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
                 return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
             if (!GameUtility.performStep(gamePlayerId, currentStep)) return badRequest("Error while updating status");
+
             if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId))
                 return badRequest("Error while updating project step status");
             GameUtility.addReturningResources(currentStep);
         }
             ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
+            currentStep.setTurnNo(currentStep.getTurnNo() + 1);
             result.put("message","success");
             result.put("budget",currentStep.getBudget());
             result.put("personnel",currentStep.getPersonnel());
