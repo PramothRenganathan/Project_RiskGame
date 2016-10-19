@@ -136,6 +136,7 @@
                 var obj = {
                     'id': id,
                     'gameid':document.getElementById('gameid').innerHTML,
+                    'skipturn':'false'
                     'type': 'projectstep',
                     'budget': document.getElementById('budgetremaining').innerHTML,
                     'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
@@ -285,6 +286,9 @@
                 var levelValue = $(this).data('levelvalue');
                 var personnel = $(this).data('personnel');
                 var personnelValue = $(this).data('personnelvalue');
+                if(buttonDisabled="true"){
+                    document.getElementById("isDisabled").innerHTML="You don't have enough resources to perform this step";
+                }
                 var projectStepId = $(this).data('id');
                 $(".perform-step").attr("id",projectStepId);
                 $(".perform-step").attr("disabled",buttonDisabled);
@@ -301,7 +305,7 @@
                 $("#PersonnelValue").text(personnelValue);
                 $("#ProjectStepId").val(projectStepId);
 //                alert("<button id='"+projectStepId+"' class='btn btn-success perform-step'  style='margin-bottom: 20px' onclick='onPerformStep("+"\""+projectStepId+"\""+")' >Perform this Step</button>");
-//                document.getElementById("performstep").innerHTML="<button id='"+projectStepId+"' class='btn btn-success perform-step'  style='margin-bottom: 20px' onclick='onPerformStep('"+projectStepId+"')' >Perform this Step</button>";
+//
 
 
             });
@@ -572,7 +576,7 @@
                             <div class="col-xs-12" style="height: 30px;"></div>
                             <div id="performstep"></div>
                             <button disabled="" id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
-
+                            <div id="isDisabled"></div>
                         </div>
                     </div>
                 </div>
