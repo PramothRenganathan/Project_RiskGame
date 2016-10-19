@@ -26,6 +26,9 @@ public class Snapshot {
     private int loanAmount;
     private boolean isProduction;
 
+    private int oneTurn;
+    private int twoTurn;
+
 
     public String getGamePlayerId() {
         return gamePlayerId;
@@ -169,5 +172,21 @@ public class Snapshot {
 
     public void setCapabilityPoints(int capabilityPoints) {
         this.capabilityPoints = capabilityPoints;
+    }
+
+    public int getOneTurn() {
+        return oneTurn;
+    }
+
+    public void setOneTurn(int oneTurn) {
+        this.oneTurn = oneTurn;
+    }
+
+    public int getTwoTurn() {
+        return twoTurn;
+    }
+
+    public void setTwoTurn(int twoTurn) {
+        this.twoTurn = twoTurn;
     }
 }

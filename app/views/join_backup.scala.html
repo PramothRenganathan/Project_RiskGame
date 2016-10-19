@@ -1,0 +1,31 @@
+@(parameters:List[String])
+@main(null) {
+    <section>
+        <h1>You are connected to game</h1>
+
+        @*<div id="divPlayerStatus">You have Joined!</div>*@
+        @*<input type="text" id="txtName" placeholder="Name"/>*@
+        @*<input type="text" id="txtCode" placeholder="Access Code">*@
+        @*<input type="button" id="btnJoin" value="Join"/>*@
+        <input type="button" id="btnLeave" value="Leave"/>
+        <form id="frmHidden" method="POST" action="/start" hidden>
+            <input type="hidden" value='@parameters.get(0)' id="username" />
+            <input type="hidden" value="@parameters.get(1)" id="gameid" name="gameid">
+        </form>
+
+
+        <script type="text/javascript" charset="utf-8" src="@routes.Application.wsJs()"></script>
+    </section>
+
+    <hr>
+    <section>
+        <h1>Active Players</h1>
+        <div id="divJoined"> </div>
+    </section>
+
+    <hr>
+    @*<section>*@
+        @*<label>Active Players: </label>*@
+        @*<label id="lblCount"/>*@
+    @*</section>*@
+}

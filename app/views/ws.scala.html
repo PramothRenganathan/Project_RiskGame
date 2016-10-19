@@ -17,10 +17,14 @@ $(function() {
         if (model.type == "joined") {
             var users = model.joinedUsers;
             $('#divJoined').html("");
-            $('#divJoined').append('<p><b>' + username + ' (you)' + '</b></p>');
+            $("#grid-joined").empty();
+
+          //  $('#divJoined').append('<p><b>' + username + ' (you)' + '</b></p>');
+
             for (i = 0; i < users.length; i++) {
                 if (users[i] != username) {
                     $('#divJoined').append('<p>' + users[i] + '</p>');
+
                 }
             }
         }
@@ -29,8 +33,10 @@ $(function() {
             var users = model.joinedUsers;
             var leavinguser = model.leavingUser;
             $('#divJoined').html("");
+            $("#grid-joined").empty();
             if (username == leavinguser) {
                 $('#divJoined').append('<p><b>' + username + '(You have left)' + '</b></p>');
+
             }
             else {
                 $('#divJoined').append('<p><b>' + username + '(You)' + '</b></p>');
@@ -39,9 +45,11 @@ $(function() {
                 if (users[i] != username) {
                     if (users[i] === leavinguser) {
                         $('#divJoined').append('<p>' + users[i] + ' left' + '</p>');
+
                     }
                     else {
                         $('#divJoined').append('<p>' + users[i] + '</p>');
+
                     }
                 }
             }
