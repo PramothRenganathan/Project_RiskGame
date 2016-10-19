@@ -131,18 +131,20 @@
 
             function onPerformStep(id){
 //                var isEligibleToPerformStep=true;
-//                alert(id);
+//                alert(document.getElementById('turnNo').innerHTML);
 
                 var obj = {
                     'id': id,
                     'gameid':document.getElementById('gameid').innerHTML,
-                    'skipturn':'false'
+                    'skipturn':'false',
+                    'oneturn':0,
+                    'twoturn':0,
                     'type': 'projectstep',
                     'budget': document.getElementById('budgetremaining').innerHTML,
                     'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
                     'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
                     'personnel' :document.getElementById('personnelremaining').innerHTML,
-                    'turnno': 1,
+                    'turnno': document.getElementById('turnNo').innerHTML,
                     'timetaken': 3
                 };
                 $.ajax({
@@ -157,6 +159,7 @@
                         document.getElementById('capabilitypoints').innerHTML = data.capabilitypoints;
                         document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
                         document.getElementById('personnelremaining').innerHTML = data.personnel;
+                        document.getElementById('turnNo').innerHTML = data.currentturn;
 
                         onPhaseClick(currentPhase);
                     },
@@ -169,6 +172,7 @@
             }
 
             var currentPhase="";
+
             function onPhaseClick(clicked_id) {
 
                 currentPhase=clicked_id;
@@ -187,6 +191,7 @@
                     contentType: 'application/json',
                     success: function (data) {
 //                            alert(Object.prototype.toString.call(data));
+//                        alert('im here');
                         var result = "";
                         for (i = 0; i < data.length; i++) {
                             var obj = data[i];
@@ -209,13 +214,14 @@
                             eligibleCapabilityBonus= parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
                             eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
                             eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
+
 ////
                             var setClassColor;
                             var buttonDisable;
                             if(eligibleBudget<0 || eligiblePersonnelRemaining<0){
                                 setClassColor="ProjectStepStyle";
                                 buttonDisable="true";
-//                                alert("you cannot perform this step");
+//                                alert("you cannot perform this step "+obj.projectStepName );
                             }else{
                                 setClassColor=" ";
                                 buttonDisable="false"
@@ -235,7 +241,7 @@
                             result = result + "<button " +obj.status+
                                     " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
                                     " style='white-space: normal; ' " +
-                                    " class='open-EditTodo col-md-3 btn btn-primary "+setClassColor+"'" +
+                                    " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
                                     " data-toggle='modal'" +
                                     " data-buttondisable='"+buttonDisable+"'" +
                                     "data-title='" + obj.projectStepName +
@@ -286,8 +292,9 @@
                 var levelValue = $(this).data('levelvalue');
                 var personnel = $(this).data('personnel');
                 var personnelValue = $(this).data('personnelvalue');
-                if(buttonDisabled="true"){
-                    document.getElementById("isDisabled").innerHTML="You don't have enough resources to perform this step";
+                alert(buttonDisabled);
+                if(buttonDisabled===true){
+                    document.getElementById("isDisabled").innerHTML="Oops! You don't have enough resources!";
                 }
                 var projectStepId = $(this).data('id');
                 $(".perform-step").attr("id",projectStepId);
@@ -346,7 +353,7 @@
                     <span id="minutes">00</span>:<span id="seconds">00</span>
                 </div>
                 <div class="col-md-2" style="">
-                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome @model.getUserName()!</div>
+                        <!-- Single button --><div class="glyphicon glyphicon-user">Welcome @model.getUserName().split("@")(0)!</div>
                     <div class="btn-group">
                         <button type="button"
                         class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
@@ -576,8 +583,8 @@
 
                             <div class="col-xs-12" style="height: 30px;"></div>
                             <div id="performstep"></div>
-                            <button disabled="" id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
-                            <div id="isDisabled"></div>
+                            <button disabled=""  id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
+                            <div id="isDisabled" style="color: #8b0000;"></div>
                         </div>
                     </div>
                 </div>
