@@ -107,13 +107,17 @@
             }
 
             function onPerformStep(id){
+//                var isEligibleToPerformStep=true;
 
-                var test = 'abc';
-//                    var test = $.('#id').val();
-//                    alert(clicked_id);
                 var obj = {
                     'id': id,
-                    'type': 'projectstep'
+                    'type': 'projectstep',
+                    'budget': document.getElementById('budgetremaining').innerHTML,
+                    'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+                    'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+                    'personnel' :document.getElementById('personnelremaining').innerHTML,
+                    'turnno': 1,
+                    'timetaken': 3
                 };
                 $.ajax({
                     type: 'POST',
@@ -123,8 +127,11 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
+                        document.getElementById('budgetremaining').innerHTML = data.budget;
+                        document.getElementById('capabilitypoints').innerHTML = data.capabilitypoints;
+                        document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
+                        document.getElementById('personnelremaining').innerHTML = data.personnel;
                         onPhaseClick(currentPhase);
-
                     },
                     error: function (data) {
                         alert("error");
@@ -160,10 +167,37 @@
 //                                alert(obj.status);
                             var status;
                             if(obj.status){
-
                                 obj.status="disabled"
                             }
 //                                result= result+"<h1>"+obj.projectStepName+"</h1>";
+
+
+
+//                            var eligibleBudget=0;
+//                            var eligibleCapabilityBonus=0;
+//                            var eligibleCapabilityPoints=0;
+//                            var eligiblePersonnelRemaining=0;
+////                            alert('hereee');
+//                            eligibleBudget= parseInt(document.getElementById('budgetremaining').innerHTML) - obj.budget;
+//                            eligibleCapabilityBonus= parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
+//                            eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
+//                            eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
+////
+//                            var setColor;
+//                            if(eligibleBudget<0 || eligiblePersonnelRemaining<0){
+//                                alert("you cannot perform this step");
+//                            }
+//                              alert(document.getElementById('budgetremaining').innerHTML);
+//                            alert("elig"+eligiblePersonnelRemaining);
+
+//                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
+
+
+
+
+
+
+
 
                             result = result + "<button " +obj.status+
                                     " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
@@ -183,13 +217,16 @@
                                     "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
                                     "  id='todolink'>" + obj.projectStepName +
                                     "</button><div class='col-md-1' style='height:90px;'></div>";
+
+
+
+
+
                         }
 
 //                            alert(result);
                         document.getElementById('results').innerHTML = result;
-                        // $.('#id').val(data);
-                        //setError('Call succedded');
-                        //$('#test1').attr("src", data)
+
                     },
                     error: function (data) {
                         alert("error");
@@ -251,6 +288,7 @@
     totalGameTimer()">
         <input type="hidden" name="phase" id="phase" value="plan"/>
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
+        <input type="hidden" name="gameid" id="gameid" value='@model.getGameId()'/>
         <div class="container" >
 
             <header style="" >
@@ -306,9 +344,10 @@
                             <h4 class="panel-title">My Status</h4>
                         </div>
                         <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small;">
-                            <div>Budget: @model.getBudget()</div>
-                            <div>Capability Points: @model.getCapabilityPoints()</div>
-                            <div>Capability Bonus: @model.getCapabilityBonus()</div>
+                            <div style=" display: inline-block;">Budget:</div><div style=" display: inline-block;" id="budgetremaining"> @model.getBudget()</div>
+                            <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block;" id="capabilitypoints"> @model.getCapabilityPoints()</div>
+                            <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
+                            <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 

@@ -452,7 +452,7 @@ public class GameUtility {
         System.out.println("Updating project step status to true");
         try{
             conn = DB.getConnection();
-            String query = "SELECT budget,personnel,capability_bonus,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = (SELECT max(turn_no) from GAME_MOVES_SNAPSHOT where game_player_id=?) ";
+            String query = "SELECT budget,personnel,capability_bonus,capability_points,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = (SELECT max(turn_no) from GAME_MOVES_SNAPSHOT where game_player_id=?) ";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
             stmt.setString(2,gamePlayerId);
@@ -460,11 +460,13 @@ public class GameUtility {
             Snapshot step = new Snapshot();
             while(rs.next()){
                 step.setBudget(rs.getInt("budget"));
+                step.setCapabilityPoints(rs.getInt("capability_points"));
                 step.setCapabilityBonus(rs.getInt("capability_bonus"));
                 step.setPersonnel(rs.getInt("personnel"));
                 step.setSkipTurnStatus(rs.getBoolean("skip_turn_status"));
                 step.setProduction(rs.getBoolean("isProduction"));
             }
+            System.out.println("Done getting prevous snapshot");
             return step;
 
         }catch(Exception e){
@@ -595,7 +597,7 @@ public class GameUtility {
         currentStep.setBudget(currentStep.getBudget() - projectStep.getBudget());
         currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
         currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
-
+        System.out.println("Im here");
         //Add pre-requisite step here
         return true;
     }
