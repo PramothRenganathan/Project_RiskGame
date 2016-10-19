@@ -17,12 +17,12 @@ $(function() {
         //model is not coming as Json so have to use this jquery json parser
         model = jQuery.parseJSON(model);
 
+
         if (model.type == "joined") {
             var users = model.joinedUsers;
             userList.html("");
-            // userList.append('<li>' + users[i] + '</li>');
             for (i = 0; i < users.length; i++) {
-                userList.append('<li class="list-group-item" id="'+ users[i] +'">' + users[i] + '</li>');
+                userList.append('<li class="list-group-item" id="'+ users[i] +'">' + users[i].split("-")[0] + '</li>');
             }
         }
 

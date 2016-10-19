@@ -70,13 +70,16 @@ $(function() {
     model = jQuery.parseJSON(model);
 
     if (model.type == "joined") {
+
+       var tmp_username = username.split("@@")[0];
+
         var users = model.joinedUsers;
         activePlayersList.html("");
-        activePlayersList.append('<b>' + username + ' (you)' + '</b><br/>');
+        activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
 
         for (i = 0; i < users.length; i++) {
-            if (users[i] != username) {
-                activePlayersList.append('<b>' + users[i] + '</b><br/>');
+            if (users[i].split("-")[0] != tmp_username) {
+                activePlayersList.append(users[i].split("-")[0] + '<br/>');
                 }//if
             }//for
         }//joined
