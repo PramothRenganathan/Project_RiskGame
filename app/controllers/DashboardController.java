@@ -4,6 +4,7 @@ import models.ActiveGames;
 import play.db.DB;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import java.sql.Connection;
