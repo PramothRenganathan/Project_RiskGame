@@ -252,6 +252,7 @@
         <input type="hidden" name="phase" id="phase" value="plan"/>
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
         <input type="hidden" name="gameid" id="gameid" value='@model.getGameId()'/>
+        <input type="hidden" name="turn" id="turn" value='@model.getTurnNo()'/>
         <div class="container" >
 
             <header style="" >
@@ -352,7 +353,7 @@
                         </div>
                         <div class="panel-body" style="height: 200px; ">
                             Roll the Dice
-                            <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0">
+                            <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
 
                             </div>
                         </div>
@@ -364,7 +365,7 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Who's turn? </h4>
                         </div>
-                        <div class="panel-body" style="height: 60px; ">
+                        <div id="activePlayersList" class="panel-body" style="height: 60px;">
                             user1<br/>
                             user2<br/>
                         </div>

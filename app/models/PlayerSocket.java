@@ -28,7 +28,6 @@ public class PlayerSocket{
             public void invoke(JsonNode event) throws IOException {
                 int count = connections.size();
 
-
                 Data data = Json.fromJson(event, Data.class);
                 WebSocketData wsdata = null;
 
@@ -42,6 +41,24 @@ public class PlayerSocket{
                         gameUsersMap.put(data.gameid, list);
                         gameUsersMap.get(data.gameid).add(inoutMap.get(in));
                     }
+                }
+
+                else if(data.type.equals("ChangeTurn")){
+                    //push the list of all users so that everyone gets updated
+                    wsdata = new WebSocketData();
+                    wsdata.type = "ChangeTurn";
+
+                    int turnno = Integer.parseInt(data.turnNumber);
+                    int totalPlayers = SessionManager.getAllUsers(data.gameid).size();
+                    turnno = (turnno==totalPlayers-1)?totalPlayers:(turnno+1)%totalPlayers;
+                    wsdata.turnNumber = String.valueOf(turnno);
+                }
+
+                else if(data.type.equals("TurnUpdate")){
+                    //push the list of all users so that everyone gets updated
+                    wsdata = new WebSocketData();
+                    wsdata.type = "TurnUpdate";
+                    wsdata.currentPlayer = data.player.name;
                 }
 
                 else if(data.type.equals("StartGame")){

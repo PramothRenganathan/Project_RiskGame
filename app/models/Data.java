@@ -10,6 +10,8 @@ public class Data {
     public String stepName;
     public String message;
 
+    public String turnNumber;
+
     //type of message
     public String type;
     //1. push = "joined"

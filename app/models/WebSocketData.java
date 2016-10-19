@@ -12,4 +12,6 @@ public class WebSocketData {
     public String player;
     public String stepName;
     public String message;
+    public String turnNumber;
+    public String currentPlayer;
 }

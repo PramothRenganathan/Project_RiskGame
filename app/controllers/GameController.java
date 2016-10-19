@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.*;
 import play.Play;
 import play.db.DB;
-import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -118,15 +117,8 @@ public class GameController extends Controller {
         //result.put("gamePlayerId",gamePlayerId);
         result.put("gameplayerid",gamePlayerid);
         result.put("message","success");
-        //return ok(views.html.join.render(gamePlayerid));
         return ok(result);
     }
-
-
-
-
-
-
 
     public static Result startGame(){
         try {
@@ -159,7 +151,7 @@ public class GameController extends Controller {
 
             //Set turn for each player
             String gamePlayerId = session().get("gameplayerid");
-            initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId));
+            initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId)+1);
 
             //If not host, just redirect to the game page.
             if(!GameUtility.isHost(gameId,userName)){
@@ -410,7 +402,7 @@ public class GameController extends Controller {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String gamePlayerId = userName.split("@")[0] + gameId;
+            String gamePlayerId = userName.split("@")[0] + "-" + gameId;
             String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
