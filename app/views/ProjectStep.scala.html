@@ -42,9 +42,7 @@
         .ProjectStepStyle:hover,
         .ProjectStepStyle:focus,
         .ProjectStepStyle:active,
-        .ProjectStepStyle.active,
-        .ProjectStepStyle.disabled,
-        .ProjectStepStyle[disabled] {
+        .ProjectStepStyle.active {
             background: #F53C00 !important;
             border-color:#F53C00 !important;
         }
@@ -54,6 +52,16 @@
             border-color:#F53C00 !important;
         }
 
+        .ProjectStepStyle.disabled,
+        .ProjectStepStyle[disabled]{
+            background: #595a5b !important;
+            border-color:#595a5b !important;
+        }
+
+        :disabled {
+            background: #595a5b !important;
+            border-color:#595a5b !important;
+        }
         .stepStyle{
             /* BUTTON STYLING */
             border-top: 1px solid #fff;
@@ -160,6 +168,8 @@
                         document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
                         document.getElementById('personnelremaining').innerHTML = data.personnel;
                         document.getElementById('turnNo').innerHTML = data.currentturn;
+//                        document.getElementById('oneTurn').innerHTML = data.oneturn;
+//                        document.getElementById('twoTurn').innerHTML = data.twoturn;
 
                         onPhaseClick(currentPhase);
                     },
@@ -199,7 +209,7 @@
 //                                alert(obj.status);
                             var status;
                             if(obj.status){
-                                obj.status="disabled"
+                                obj.status="disabled='true'"
                             }
 //                                result= result+"<h1>"+obj.projectStepName+"</h1>";
 
@@ -238,11 +248,11 @@
 
 
 
-                            result = result + "<button " +obj.status+
+                            result = result + "<button " +
                                     " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
                                     " style='white-space: normal; ' " +
                                     " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
-                                    " data-toggle='modal'" +
+                                    " data-toggle='modal' " +obj.status+
                                     " data-buttondisable='"+buttonDisable+"'" +
                                     "data-title='" + obj.projectStepName +
                                     "'data-id='" + obj.projectStepId +
@@ -294,7 +304,9 @@
                 var personnelValue = $(this).data('personnelvalue');
 //                alert(buttonDisabled);
                 if(buttonDisabled===true){
-                    document.getElementById("isDisabled").innerHTML="Oops! You don't have enough resources!";
+                    document.getElementById("isDisabled").innerHTML="Oops! You don't have enough resources to perform this step!";
+                }else{
+                    document.getElementById("isDisabled").innerHTML="";
                 }
                 var projectStepId = $(this).data('id');
                 $(".perform-step").attr("id",projectStepId);
@@ -400,6 +412,9 @@
                             <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block;" id="capabilitypoints"> @model.getCapabilityPoints()</div>
                             <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
                             <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
+                            @*<div>No. of resources who will return after </div>*@
+                            @*<div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn"> </div>*@
+                            @*<div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn"></div>*@
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 
@@ -453,7 +468,7 @@
 
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
-                            <h4 class="panel-title">Who's turn? </h4>
+                            <h4 class="panel-title">Active Players </h4>
                         </div>
                         <div id="activePlayersList" class="panel-body" style="height: 60px;">
                             user1<br/>
@@ -510,7 +525,7 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Chat</h4>
                         </div>
-                        <div id="chatArea" class="panel-body" style="height: 200px;
+                        <div id="chatArea" class="panel-body" style="height: 200px;font-size: 12px;
                             border: 1px solid transparent;
                             background-size: 100% 100%; overflow-wrap: break-word;overflow-y: scroll;">
                         </div>
@@ -528,7 +543,7 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Activity Log </h4>
                         </div>
-                        <div class="panel-body" style="height: 300px; overflow-wrap: break-word;overflow-y: scroll" id="activity-log">
+                        <div class="panel-body" style="height: 300px;font-size: 12px; overflow-wrap: break-word;overflow-y: scroll" id="activity-log">
 
                         </div>
                     </div>
