@@ -452,10 +452,10 @@ public class GameUtility {
         System.out.println("Updating project step status to true");
         try{
             conn = DB.getConnection();
-            String query = "SELECT budget,personnel,capability_bonus,capability_points,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = (SELECT max(turn_no) from GAME_MOVES_SNAPSHOT where game_player_id=?) ";
+            String query = "SELECT budget,personnel,capability_bonus,capability_points,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = ? ";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
-            stmt.setString(2,gamePlayerId);
+            stmt.setInt(2,turnNo);
             ResultSet rs = stmt.executeQuery();
             Snapshot step = new Snapshot();
             while(rs.next()){
@@ -492,6 +492,9 @@ public class GameUtility {
         int capabilityPoints = body.get("capabilitypoints").asInt();
         int personnel = body.get("personnel").asInt();
         int timeTaken = body.get("timetaken").asInt();
+        boolean skipTurn = body.get("skipturn").asBoolean();
+        int oneTurn = body.get("oneturn").asInt();
+        int twoTurn = body.get("twoturn").asInt();
 
         Snapshot receivedSnapShot = new Snapshot();
         receivedSnapShot.setBudget(budget);
@@ -502,6 +505,9 @@ public class GameUtility {
         receivedSnapShot.setProjectStepId(id);
         receivedSnapShot.setMoveType(type);
         receivedSnapShot.setTimeTaken(timeTaken);
+        receivedSnapShot.setSkipTurnStatus(skipTurn);
+        receivedSnapShot.setOneTurn(oneTurn);
+        receivedSnapShot.setTwoTurn(twoTurn);
 
         return receivedSnapShot;
     }
@@ -511,14 +517,13 @@ public class GameUtility {
         if(previousStep.getPersonnel() != currentStep.getPersonnel()) return false;
         if(previousStep.getCapabilityBonus() != currentStep.getCapabilityBonus()) return false;
         if(previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints()) return false;
-
-        //Try to check turn number if needed
+        if(previousStep.getTurnNo() != currentStep.getTurnNo()) return false;
 
 
         return true;
     }
 
-    public static boolean performStep(String gamePlayerId, Snapshot currentStep, ProjectStep projectStep) {
+    public static boolean performStep(String gamePlayerId, Snapshot currentStep) {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
@@ -526,14 +531,14 @@ public class GameUtility {
             String query = "INSERT INTO GAME_MOVES_SNAPSHOT (game_player_id,turn_no,budget,personnel,capability_bonus,time_taken,move_type,move_status,skip_turn_status,project_step_id,risk_id,oops_id,surprise_id,oops_impact_id,surprise_impact_id,loan_amount,isProduction,capability_points) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
-            stmt.setInt(2,0);//Turn number
+            stmt.setInt(2,currentStep.getTurnNo());//Turn number
             stmt.setInt(3,currentStep.getBudget());
             stmt.setInt(4,currentStep.getPersonnel() );
             stmt.setInt(5,currentStep.getCapabilityBonus());
             stmt.setInt(6,currentStep.getTimeTaken());//time taken
             stmt.setString(7, currentStep.getMoveType());//move type
             stmt.setBoolean(8,true);//move Status
-            stmt.setBoolean(9,false);//skip turn status
+            stmt.setBoolean(9,currentStep.isSkipTurnStatus());//skip turn status
             stmt.setString(10,currentStep.getProjectStepId());//project Step Id
             stmt.setNull(11,Types.VARCHAR);//risk id
             stmt.setNull(12,Types.VARCHAR);//oops id
@@ -597,8 +602,34 @@ public class GameUtility {
         currentStep.setBudget(currentStep.getBudget() - projectStep.getBudget());
         currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
         currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
-        System.out.println("Im here");
+        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
+        currentStep.setTurnNo(currentStep.getTurnNo() + 1);
+        //System.out.println("Im here");
         //Add pre-requisite step here
         return true;
+    }
+
+    public static boolean isGameComplete(int turnNo, String gameId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT steps_for_each_player FROM GAME WHERE game_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, gameId);
+            ResultSet rs = stmt.executeQuery();
+            if(rs.next() && rs.getInt("steps_for_each_player") == turnNo)return true;
+
+        }catch (Exception e){
+            System.out.println("Error while checking game complete");
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return false;
+    }
+
+    public static void addReturningResources(Snapshot currentStep) {
+        currentStep.setPersonnel(currentStep.getPersonnel() + currentStep.getOneTurn());//Resource already back
+        currentStep.setOneTurn(currentStep.getTwoTurn());//Resources to be back in one turn
     }
 }

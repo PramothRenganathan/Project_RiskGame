@@ -1,7 +1,5 @@
 package models;
 
-import java.util.Date;
-
 /**
  * Created by srijithkarippure on 10/11/16.
  */
@@ -25,6 +23,9 @@ public class Snapshot {
     private String surpriseImpactId;
     private int loanAmount;
     private boolean isProduction;
+
+    private int oneTurn;
+    private int twoTurn;
 
 
     public String getGamePlayerId() {
@@ -169,5 +170,21 @@ public class Snapshot {
 
     public void setCapabilityPoints(int capabilityPoints) {
         this.capabilityPoints = capabilityPoints;
+    }
+
+    public int getOneTurn() {
+        return oneTurn;
+    }
+
+    public void setOneTurn(int oneTurn) {
+        this.oneTurn = oneTurn;
+    }
+
+    public int getTwoTurn() {
+        return twoTurn;
+    }
+
+    public void setTwoTurn(int twoTurn) {
+        this.twoTurn = twoTurn;
     }
 }

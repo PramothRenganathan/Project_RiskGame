@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.*;
 import play.Play;
 import play.db.DB;
-import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -60,6 +59,8 @@ public class GameController extends Controller {
         System.out.println("Inserted into game player table");
 
         session().put("gameplayerid",gamePlayerId);
+
+
 
         ObjectNode result = play.libs.Json.newObject();
         result.put("gameid",gameId);
@@ -159,8 +160,10 @@ public class GameController extends Controller {
 
             //Set turn for each player
             String gamePlayerId = session().get("gameplayerid");
-            initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId));
-
+            initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId) + 1);
+            initialGameStat.setSkipTurn(false);
+            initialGameStat.setOneTurn(0);//Resources to be back after one turn
+            initialGameStat.setTwoTurn(0);//Resources to be back after one turn
             //If not host, just redirect to the game page.
             if(!GameUtility.isHost(gameId,userName)){
                 return ok(views.html.ProjectStep.render(initialGameStat));
@@ -209,33 +212,48 @@ public class GameController extends Controller {
         String gamePlayerId = session().get("gameplayerid");
 
         JsonNode body = request().body().asJson();
-       Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
+        String gameId = body.get("gameid").asText();
+        Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
 
         String type = currentStep.getMoveType();
-        String id = currentStep.getProjectStepId();
+        String projectStepId = currentStep.getProjectStepId();
         int turnNo = currentStep.getTurnNo();
 
-        //boolean projectStep = false;
-        Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo);
+        Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
         if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
-        if(type.equalsIgnoreCase("projectstep")){
-            if(GameUtility.isProjectStepPerformed(id,gamePlayerId))return badRequest("You already performed this step");
-            ProjectStep projectStep = GameUtility.getProjectStepDetails(id);
-            if(projectStep == null )return badRequest("Error while retrieving project step detais");
-            if(!GameUtility.canProjectStepBePerformed(currentStep,projectStep))return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
-            if(!GameUtility.performStep(gamePlayerId,currentStep, projectStep))return badRequest("Error while updating status");
-            if(!GameUtility.updateProjectStepStatus(id,gamePlayerId))return badRequest("Error while updating project step status");
 
+        //In case of skip step, just update the database and return
+        if(type.equalsIgnoreCase("skipstep")) {
+            if(!GameUtility.performStep(gamePlayerId,currentStep))return badRequest("Error while updating status");
+            GameUtility.addReturningResources(currentStep);
+        }
+        else if(type.equalsIgnoreCase("projectstep")) {
+            if (GameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
+                return badRequest("You already performed this step");
+            ProjectStep projectStep = GameUtility.getProjectStepDetails(projectStepId);
+            if (projectStep == null) return badRequest("Error while retrieving project step detais");
+            if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
+                return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
+            if (!GameUtility.performStep(gamePlayerId, currentStep)) return badRequest("Error while updating status");
+            if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId))
+                return badRequest("Error while updating project step status");
+            GameUtility.addReturningResources(currentStep);
+        }
             ObjectNode result = play.libs.Json.newObject();
+            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
             result.put("message","success");
             result.put("budget",currentStep.getBudget());
             result.put("personnel",currentStep.getPersonnel());
             result.put("capabilitybonus",currentStep.getCapabilityBonus());
             result.put("capabilitypoints",currentStep.getCapabilityPoints());
+            result.put("currentturn",currentStep.getTurnNo());
+            result.put("skipturn",currentStep.isSkipTurnStatus());
+            result.put("oneturn",currentStep.getOneTurn());
+            result.put("twoturn",currentStep.getTwoTurn());
 
             return ok(result);
-        }
-        return ok();
+
+
     }
 
 
@@ -410,7 +428,7 @@ public class GameController extends Controller {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String gamePlayerId = userName.split("@")[0] + gameId;
+            String gamePlayerId = userName.split("@")[0] + "-" +  gameId;
             String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);

@@ -15,6 +15,9 @@ public class InitialGameStat {
     private String gameId;
     private String userName;
     private int loanAmount;
+    private boolean skipTurn;
+    private int oneTurn;
+    private int twoTurn;
 
     public int getTimeForEachMove() {
         return timeForEachMove;
@@ -110,5 +113,29 @@ public class InitialGameStat {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public boolean isSkipTurn() {
+        return skipTurn;
+    }
+
+    public void setSkipTurn(boolean skipTurn) {
+        this.skipTurn = skipTurn;
+    }
+
+    public int getOneTurn() {
+        return oneTurn;
+    }
+
+    public void setOneTurn(int oneTurn) {
+        this.oneTurn = oneTurn;
+    }
+
+    public int getTwoTurn() {
+        return twoTurn;
+    }
+
+    public void setTwoTurn(int twoTurn) {
+        this.twoTurn = twoTurn;
     }
 }
