@@ -1,28 +1,18 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import play.Routes;
-
-import play.mvc.Http;
-import play.mvc.Result;
-
-import play.Play;
+import models.ActiveGames;
 import play.db.DB;
-import play.libs.Json;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utility.Constants;
-import utility.GameUtility;
-import models.ActiveGames;
 
-import java.sql.Date;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
