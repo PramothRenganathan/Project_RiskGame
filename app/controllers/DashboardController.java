@@ -26,7 +26,10 @@ public class DashboardController extends Controller {
     public static Result ViewDashboard(){
        System.out.println("im here");
        // response().setContentType("text/html");
-
+        String firstname = session().get("firstname");
+        Http.Context.current().args.put("firstname", firstname);
+        String userName = session().get("username");
+        Http.Context.current().args.put("username", userName);
         //return ok(views.html.ProjectDashbard.render());
         return ok(views.html.ProjectDashbard.render());
     }

@@ -45,7 +45,7 @@ public class RegisterController {
             System.out.print("Im here");
             if(rs!=null && rs.next()){
 
-                return badRequest("User already present with this username");
+                return ok("User already present with this username");
             }
             else{ // User not present, insert into the users database
                 PreparedStatement stmt = null;
@@ -62,12 +62,12 @@ public class RegisterController {
 
                 int success = stmt.executeUpdate(); // Returns 1 if successfully inserted
                 if(success > 0)return ok("success");
-                else return badRequest("Error while inserting in the db");
+                else return ok("Error while inserting in the db");
             }
         }
         catch(Exception e){
             System.out.println(e.getMessage());
-            return badRequest("Enter all the required fields");
+            return ok("Enter all the required fields");
         }
         finally {
             try {
