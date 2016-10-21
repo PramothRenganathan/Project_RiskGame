@@ -235,6 +235,7 @@ public class GameController extends Controller {
             if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
                 return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
             if (!GameUtility.performStep(gamePlayerId, currentStep)) return badRequest("Error while updating status");
+
             if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId))
                 return badRequest("Error while updating project step status");
             GameUtility.addReturningResources(currentStep);
@@ -242,6 +243,7 @@ public class GameController extends Controller {
         }
             ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
+            currentStep.setTurnNo(currentStep.getTurnNo() + 1);
             result.put("message","success");
             result.put("budget",currentStep.getBudget());
             result.put("personnel",currentStep.getPersonnel());
@@ -429,7 +431,7 @@ public class GameController extends Controller {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String gamePlayerId = userName.split("@")[0] + gameId;
+            String gamePlayerId = userName.split("@")[0] + "-" +  gameId;
             String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);

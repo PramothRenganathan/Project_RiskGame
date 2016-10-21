@@ -19,11 +19,13 @@ $(function() {
             $('#divJoined').html("");
             $("#grid-joined").empty();
 
-          //  $('#divJoined').append('<p><b>' + username + ' (you)' + '</b></p>');
+            var tmp_username = username.split("@@")[0];
+
+          //  $('#divJoined').append('<p><b>' + tmp_username + ' (you)' + '</b></p>');
 
             for (i = 0; i < users.length; i++) {
-                if (users[i] != username) {
-                    $('#divJoined').append('<p>' + users[i] + '</p>');
+                if (users[i].split("-")[0] != tmp_username) {
+                    $('#divJoined').append('<p>' + users[i].split("-")[0] + '</p>');
 
                 }
             }

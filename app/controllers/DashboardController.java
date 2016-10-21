@@ -1,28 +1,19 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import play.Routes;
-
+import models.ActiveGames;
+import play.db.DB;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 
-import play.Play;
-import play.db.DB;
-import play.libs.Json;
-import play.mvc.BodyParser;
-import play.mvc.Controller;
-import play.mvc.Result;
-import utility.Constants;
-import utility.GameUtility;
-import models.ActiveGames;
-
-import java.sql.Date;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +27,10 @@ public class DashboardController extends Controller {
     public static Result ViewDashboard(){
        System.out.println("im here");
        // response().setContentType("text/html");
-
+        String firstname = session().get("firstname");
+        Http.Context.current().args.put("firstname", firstname);
+        String userName = session().get("username");
+        Http.Context.current().args.put("username", userName);
         //return ok(views.html.ProjectDashbard.render());
         return ok(views.html.ProjectDashbard.render());
     }

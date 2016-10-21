@@ -452,7 +452,7 @@ public class GameUtility {
         System.out.println("Updating project step status to true");
         try{
             conn = DB.getConnection();
-            String query = "SELECT budget,personnel,capability_bonus,capability_points,skip_turn_status,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = ? ";
+            String query = "SELECT budget,personnel,capability_bonus,capability_points,skip_turn_status,turn_no,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = ? ";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
             stmt.setInt(2,turnNo);
@@ -465,8 +465,10 @@ public class GameUtility {
                 step.setPersonnel(rs.getInt("personnel"));
                 step.setSkipTurnStatus(rs.getBoolean("skip_turn_status"));
                 step.setProduction(rs.getBoolean("isProduction"));
+                step.setTurnNo(turnNo);
             }
             System.out.println("Done getting prevous snapshot");
+            System.out.println(step.getBudget() + " "+ step.getPersonnel());
             return step;
 
         }catch(Exception e){
@@ -514,10 +516,14 @@ public class GameUtility {
 
     public static boolean validateStep(Snapshot previousStep, Snapshot currentStep) {
         if(previousStep.getBudget() != currentStep.getBudget())return false;
-        if(previousStep.getPersonnel() != currentStep.getPersonnel()) return false;
+        if(previousStep.getPersonnel() != currentStep.getPersonnel()){
+            System.out.println("Previous Resource:" + previousStep.getPersonnel());
+            System.out.println("Previous Resource:" + currentStep.getPersonnel());
+            return false;
+        }
         if(previousStep.getCapabilityBonus() != currentStep.getCapabilityBonus()) return false;
         if(previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints()) return false;
-        if(previousStep.getTurnNo() != currentStep.getTurnNo()) return false;
+        if(previousStep.getTurnNo() != currentStep.getTurnNo()-1) return false;
 
 
         return true;
@@ -557,6 +563,12 @@ public class GameUtility {
             System.out.println("Exception while retrieving project step");
             System.out.println(e.getMessage());
             return false;
+        }finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+
+            }
         }
 
     }
@@ -589,6 +601,12 @@ public class GameUtility {
             System.out.println("Exception while retrieving project step");
             System.out.println(e.getMessage());
             return null;
+        }finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -603,7 +621,7 @@ public class GameUtility {
         currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
         currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
         currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
-        currentStep.setTurnNo(currentStep.getTurnNo() + 1);
+
         //System.out.println("Im here");
         //Add pre-requisite step here
         return true;
@@ -619,13 +637,19 @@ public class GameUtility {
             stmt.setString(1, gameId);
             ResultSet rs = stmt.executeQuery();
             if(rs.next() && rs.getInt("steps_for_each_player") == turnNo)return true;
-
+            return false;
         }catch (Exception e){
             System.out.println("Error while checking game complete");
             System.out.println(e.getMessage());
             return false;
+        }finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-        return false;
+
     }
 
     public static void addReturningResources(Snapshot currentStep) {

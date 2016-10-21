@@ -56,6 +56,20 @@
             }
         });
 
+        $('#loginsubmit').click(function(){
+            // alert("inside reg submit")
+            if($("#loginform")[0].checkValidity()) {
+                login();
+                return false;
+                // alert("fully validated");
+                //register();
+                //your form execution code
+            }else {
+
+                // alert("invalid form");
+            }
+        });
+
     });
 
 
@@ -139,7 +153,7 @@
                     }
                     else
                     {
-                        swal("OOPS!", "Registration not successful", "error");
+                        swal("OOPS!",data, "error");
                     }
                     // alert(data);
                     // $.('#id').val(data);
@@ -156,8 +170,53 @@
 
     function login()
     {
+       // $("#errormsg").hide();
+        //debugger;
 
+        var password = $('#password').val();
+        var username = $('#username').val();
+
+        var obj = {
+
+            "username": username,
+            "password": password
+        };
+
+
+        $.ajax({
+            type: 'POST',
+            url: '@routes.LoginController.login()',
+            // data : JSON.stringify(obj),
+            data: JSON.stringify(obj),
+            async: false,
+            cache: false,
+            // dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+                // alert(data);
+                if(data=="success") {
+                   // resetForm($('#registerform'));
+                    $("#dashform").submit()
+                    //$('#dashlink').click();
+                    //swal("Registration Successful!", "Now you can login!", "success");
+                    //window.location.href = "#tologin";
+                }
+                else
+                {
+                    swal("OOPS!",data, "error");
+                }
+                // alert(data);
+                // $.('#id').val(data);
+                //setError('Call succedded');
+                //$('#test1').attr("src", data)
+            },
+            error: function (data) {
+                alert("error");
+                //setError('Make call failed');
+            }
+        });
     }
+
 
 
 
@@ -167,12 +226,15 @@
 </head>
 <body>
     <div class="container">
+        <form  id="dashform" hidden method ="GET"  action="@routes.DashboardController.ViewDashboard()">
+            </form>
             <!-- Codrops top bar -->
         <div class="codrops-top">
 
             <div class="clr"></div>
         </div><!--/ Codrops top bar -->
         <header>
+            <a id='dashlink' style="visibility: hidden" href='/dashboard' > aaa </a>
             <h1>RISK GAME - <span style="color:red;">Carnegie Mellon University</span></h1>
             <nav class="codrops-demos">
                 <span><strong>"Give small description about the game"</strong></span>
@@ -198,7 +260,7 @@
                             </p>
 
                             <p class="login button">
-                                <input type="submit" value="Login" />
+                                <input type="submit" id="loginsubmit" value="Login" />
                             </p>
                             <p class="change_link">
 									Not a member yet ?
