@@ -238,6 +238,7 @@ public class GameController extends Controller {
             if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId))
                 return badRequest("Error while updating project step status");
             GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(projectStep.getPersonnel());
         }
             ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
