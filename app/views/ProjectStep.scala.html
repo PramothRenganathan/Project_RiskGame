@@ -168,8 +168,8 @@
                         document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
                         document.getElementById('personnelremaining').innerHTML = data.personnel;
                         document.getElementById('turnNo').innerHTML = data.currentturn;
-//                        document.getElementById('oneTurn').innerHTML = data.oneturn;
-//                        document.getElementById('twoTurn').innerHTML = data.twoturn;
+                        document.getElementById('oneTurn').innerHTML = data.oneturn;
+                        document.getElementById('twoTurn').innerHTML = data.twoturn;
 
                         onPhaseClick(currentPhase);
                     },
@@ -412,9 +412,9 @@
                             <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block;" id="capabilitypoints"> @model.getCapabilityPoints()</div>
                             <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
                             <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
-                            @*<div>No. of resources who will return after </div>*@
-                            @*<div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn"> </div>*@
-                            @*<div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn"></div>*@
+                            <div>No. of resources who will return after </div>
+                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn"> </div>
+                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn"></div>
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 
@@ -470,7 +470,7 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Active Players </h4>
                         </div>
-                        <div id="activePlayersList" class="panel-body" style="height: 60px;">
+                        <div id="activePlayersList" class="panel-body" style="height: 60px;overflow-wrap: break-word;overflow-y: scroll">
                             user1<br/>
                             user2<br/>
                         </div>
