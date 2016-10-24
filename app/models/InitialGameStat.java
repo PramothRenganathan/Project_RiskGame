@@ -18,6 +18,15 @@ public class InitialGameStat {
     private boolean skipTurn;
     private int oneTurn;
     private int twoTurn;
+    private boolean observer=false;
+
+    public boolean isObserver() {
+        return observer;
+    }
+
+    public void setObserver(boolean observer) {
+        this.observer = observer;
+    }
 
     public int getTimeForEachMove() {
         return timeForEachMove;

@@ -139,14 +139,14 @@
 
             function onPerformStep(id){
 //                var isEligibleToPerformStep=true;
-//                alert(document.getElementById('turnNo').innerHTML);
+//                alert(document.getElementById('oneTurn').innerHTML);
 
                 var obj = {
                     'id': id,
                     'gameid':document.getElementById('gameid').innerHTML,
                     'skipturn':'false',
-                    'oneturn':0,
-                    'twoturn':0,
+                    'oneturn':document.getElementById('oneTurn').innerHTML,
+                    'twoturn':document.getElementById('twoTurn').innerHTML,
                     'type': 'projectstep',
                     'budget': document.getElementById('budgetremaining').innerHTML,
                     'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
@@ -163,6 +163,8 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
+//                        alert(data.oneturn+" "+data.twoturn);
+
                         document.getElementById('budgetremaining').innerHTML = data.budget;
                         document.getElementById('capabilitypoints').innerHTML = data.capabilitypoints;
                         document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
@@ -185,6 +187,7 @@
 
             function onPhaseClick(clicked_id) {
 
+//                alert(clicked_id);
                 currentPhase=clicked_id;
                 var test = 'abc';
 //                    var test = $.('#id').val();
@@ -212,7 +215,7 @@
                                 obj.status="disabled='true'"
                             }
 //                                result= result+"<h1>"+obj.projectStepName+"</h1>";
-
+//                            alert();
 
 
                             var eligibleBudget=0;
@@ -225,6 +228,7 @@
                             eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
                             eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
 
+//                            alert(eligibleBudget+" "+eligiblePersonnelRemaining);
 ////
                             var setClassColor;
                             var buttonDisable;
@@ -240,12 +244,6 @@
 //                            alert("elig"+setColor);
 
 //                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
-
-
-
-
-
-
 
 
                             result = result + "<button " +
@@ -268,10 +266,6 @@
                                     "  id='todolink'>" + obj.projectStepName +
                                     "</button><div class='col-md-1' style='height:90px;'></div>";
 //                                    "</button><div class='col-md-1' style='height:90px;"+setColor+"'"></div>";
-
-
-
-
 
                         }
 
@@ -353,7 +347,9 @@
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
         <input type="hidden" name="gameid" id="gameid" value='@model.getGameId()'/>
         <input type="hidden" name="turn" id="turn" value='@model.getTurnNo()'/>
+
         <div class="container" >
+
 
             <header style="" >
 
@@ -384,24 +380,19 @@
             </header>
 
 
+
+
             <div class="col-xs-12" style="height: 30px;"></div>
-            @*<header>*@
-            @*<div class="col-md-12" style="background-color: #E09D87" >*@
-            @*<div class="col-md-2" style="border: 1px solid transparent">Time Remaining: 4:00</div>*@
-            @*<div class="col-md-3" style="border: 1px solid transparent">Budget Left: 50000</div>*@
-            @*<div class="col-md-3" style="border: 1px solid transparent">Capability Points : 15</div>*@
-            @*<div class="col-md-2" style="border: 1px solid transparent">Capability Bonus : 30%</div>*@
-
-            @*<div class="col-md-2" style="border: 1px solid transparent">*@
-            @*<button class="btn btn-info" >Help</button>*@
-            @*<button class="btn btn-danger" > Exit Game</button>*@
-
-            @*</div>*@
-            @*</div>*@
-            @*</header>*@
+            @if(model.isObserver()){
+                <div style="visibility: hidden">
+                }
             <header>
+
+                    <!--// start of big1 div -->
                 <div class="col-md-2" style="border-right: 1px dashed #969C9E">
 
+
+                        <!-- //first div -->
 
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
@@ -413,8 +404,8 @@
                             <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
                             <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
                             <div>No. of resources who will return after </div>
-                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn"> </div>
-                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn"></div>
+                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn">0</div>
+                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn">0</div>
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
 
 
@@ -451,6 +442,9 @@
                             </div>
                         </div>
                     </div>
+                        <!-- //end  of first div -->
+
+                        <!-- //second div -->
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Current Action</h4>
@@ -465,7 +459,9 @@
 
                     </div>
 
+                        <!-- \\ end of second div -->
 
+                        <!-- \\ start of third div -->
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Active Players </h4>
@@ -482,6 +478,9 @@
 
 
                 </div>
+                    <!-- \\ end of big1 div -->
+
+                    <!-- \\ start of center div - phases and steps -->
                 <div class="col-md-8" style="border: 1px solid transparent">
 
                     @*<div class="col-md-12">*@
@@ -518,8 +517,13 @@
 
 
                 </div>
+
+                    <!-- \\ end of center div - phases and steps -->
+
+
                 <div class="col-md-2" style="border-left: 1px Dashed #969C9E;
                     border-width: thin">
+
 
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
@@ -539,6 +543,7 @@
                         <input id="btnSend" style="width: inherit;" type="button" value="send"/>
                     </div>
 
+
                     <div class="panel panel-default">
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Activity Log </h4>
@@ -550,12 +555,39 @@
                 </div>
 
             </header>
-            <div class="clearfix"></div>
-            <div class="clearfix"></div>
-            <div class="clearfix"></div>
-            <header>
+            @if(model.isObserver()){
+                </div>
+                }
 
-            </header>
+            <!-- This will be displayed if he is the observer -->
+
+            @if(model.isObserver()){
+
+
+
+                <div class="col-md-offset-2 col-md-6">
+                    <div class="panel panel-default" >
+                        <div class="panel-heading" style="background-color: #A8A2A3">
+                            <h4 class="panel-title">Activity Log </h4>
+                        </div>
+                        <div class="panel-body" style="height: 300px;font-size: 12px; overflow-wrap: break-word;overflow-y: scroll" id="activity-log">
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+        }
+
+            <div class="clearfix"></div>
+            <div class="clearfix"></div>
+            <div class="clearfix"></div>
+
+
 
 
             <div class="modal fade" tabindex="-1" role="dialog" style="margin-top: 150px;" id="editTodoDialog">

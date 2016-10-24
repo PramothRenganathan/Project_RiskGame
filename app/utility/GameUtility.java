@@ -516,11 +516,11 @@ public class GameUtility {
 
     public static boolean validateStep(Snapshot previousStep, Snapshot currentStep) {
         if(previousStep.getBudget() != currentStep.getBudget())return false;
-        if(previousStep.getPersonnel() != currentStep.getPersonnel()){
-            System.out.println("Previous Resource:" + previousStep.getPersonnel());
-            System.out.println("Previous Resource:" + currentStep.getPersonnel());
-            return false;
-        }
+//        if(previousStep.getPersonnel() != currentStep.getPersonnel()){
+//            System.out.println("Previous Resource:" + previousStep.getPersonnel());
+//            System.out.println("Previous Resource:" + currentStep.getPersonnel());
+//            return false;
+//        }
         if(previousStep.getCapabilityBonus() != currentStep.getCapabilityBonus()) return false;
         if(previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints()) return false;
         if(previousStep.getTurnNo() != currentStep.getTurnNo()-1) return false;
@@ -620,7 +620,7 @@ public class GameUtility {
         currentStep.setBudget(currentStep.getBudget() - projectStep.getBudget());
         currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
         currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
-        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
+//        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
 
         //System.out.println("Im here");
         //Add pre-requisite step here
