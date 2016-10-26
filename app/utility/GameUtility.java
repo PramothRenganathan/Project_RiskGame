@@ -1,18 +1,13 @@
 package utility;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import models.InitialGameStat;
-import models.Phase;
-import models.ProjectStep;
-import models.Snapshot;
+import models.*;
 import play.Play;
 import play.db.DB;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.logging.Level;
 
 /**
  * Created by srijithkarippure on 9/5/16.
@@ -573,6 +568,41 @@ public class GameUtility {
 
     }
 
+    public static String insertIntoGamePlayer(String gameId, String userName, boolean isObserver) {
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String gamePlayerId = userName.split("@")[0] + "-" +  gameId;
+            String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,gamePlayerId);
+            stmt.setString(2,gameId);
+            stmt.setString(3,userName);
+            stmt.setBoolean(4,isObserver);
+
+            Calendar cal = Calendar.getInstance();
+            stmt.setNull(5,Types.DATE);
+            stmt.setNull(6,Types.DATE);
+            int rs = stmt.executeUpdate();
+            if(rs > 0)return gamePlayerId;
+            else return null;
+
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static ProjectStep getProjectStepDetails(String id) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -655,5 +685,263 @@ public class GameUtility {
     public static void addReturningResources(Snapshot currentStep) {
         currentStep.setPersonnel(currentStep.getPersonnel() + currentStep.getOneTurn());//Resource already back
         currentStep.setOneTurn(currentStep.getTwoTurn());//Resources to be back in one turn
+    }
+
+    public static boolean generateRandomRiskCardsForPlayer(List<String> playersInTheGame, String configId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        PreparedStatement insertStmt = null;
+        try {
+            conn = DB.getConnection();
+            for (String player : playersInTheGame) {
+
+                String query = "SELECT config_risk_mapping_id FROM CONFIG_RISK_MAPPING WHERE game_config_id = ? ORDER BY RAND() LIMIT 5";
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, configId);
+                ResultSet rs = stmt.executeQuery();
+                String insertQuery = "INSERT INTO GAME_PLAYER_RISK_STATUS (game_player_id,risk_id,`status`) VALUES (?,?,?)";
+                insertStmt = conn.prepareStatement(insertQuery);
+                while (rs.next()) {
+                    insertStmt.setString(1, player);
+                    insertStmt.setString(2, rs.getString("config_risk_mapping_id"));
+                    insertStmt.setBoolean(3, false);
+                    insertStmt.addBatch();
+                }
+                int[] result = insertStmt.executeBatch();
+                for (int i : result) {
+                    if (i <= 0) return false;//Error while inserting
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return true;
+    }
+
+    public static List<RiskCard> getRisks(String gamePlayerId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        List<RiskCard> risks = new ArrayList<>();
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT gprs.risk_id,description,budget_to_mitigate,personnel_to_mitigate,gprs.status from RISKS r JOIN CONFIG_RISK_MAPPING crm on r.risk_id = crm.risk_id" +
+                    "JOIN GAME_PLAYER_RISK_STATUS gprs ON gprs.risk_id = crm.config_risk_mapping_id and gprs.game_player_id = ?";
+            stmt = conn.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            RiskCard rc = null;
+            while(rs.next()){
+                rc = new RiskCard();
+                rc.setBudget(rs.getInt("budget_to_mitigate"));
+                rc.setPersonnel(rs.getInt("personnel_to_mitigate"));
+                rc.setComplete(rs.getBoolean("status"));
+                rc.setRiskId(rs.getString("risk_id"));
+                rc.setRiskDescription(rs.getString("description"));
+                risks.add(rc);
+            }
+            return risks;
+
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static List<ProjectStep> getProjectSteps(String phaseId, String gamePlayerId  ){
+
+
+
+        String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM" +
+                " JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id" +
+                " JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id and CPM.config_phase_mapping_id = ? and GPS.game_player_id = ?";
+
+        Connection connection = DB.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs;
+
+        try {
+            stmt = connection.prepareStatement(query);
+            //stmt.setString(1, configId);
+            stmt.setString(1,phaseId);
+            stmt.setString(2,gamePlayerId);
+            System.out.println("In Project Steps");
+
+            rs = stmt.executeQuery();
+            System.out.print("DONE QUERY");
+
+            List<ProjectStep> projectSteps = new ArrayList<>();
+            //System.out.println(rs.getRow());
+            while (rs.next()) {
+                //String phaseName = rs.getString("phase_name");
+                ProjectStep ps = new ProjectStep();
+                ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
+                ps.setProjectStepName(rs.getString("project_step_name"));
+                //ps.setProjectStepDescription(rs.getString("description"));
+                ps.setBudget(rs.getInt("budget"));
+                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
+                ps.setCapabilityPoints(rs.getInt("capability_points"));
+                ps.setLevel(rs.getInt("level"));
+                ps.setPersonnel(rs.getInt("personnel"));
+                ps.setPreRequisite(rs.getString("pre_requisite"));
+                ps.setStatus(rs.getBoolean("status"));
+                projectSteps.add(ps);
+
+
+            }
+            System.out.println(projectSteps.toString());
+            return projectSteps;
+    }
+    catch (Exception e){
+        System.out.println(e.getMessage());
+        return null;
+    }
+    finally {
+            try {
+                connection.close();
+            }catch (Exception e){
+                System.out.println(e.getMessage());
+            }
+
+        }
+        }
+
+    public static boolean insertIntoGame(String gameId, String userName, int timeForEachMove, int stepsForEachPlayer, boolean isTimeBound){
+        Connection connection = DB.getConnection();
+        PreparedStatement stmt = null;
+
+        try{
+            String query = "INSERT INTO GAME (game_id,status,start_time,end_time,host,time_for_each_move,steps_for_each_player,isTimeBound,company_id,product_id) values (?,?,?,?,?,?,?,?,?,?)";
+            stmt = connection.prepareStatement(query);
+            stmt.setString(1,gameId);
+            stmt.setString(2, Constants.HOSTED_STATUS);
+            stmt.setNull(3, Types.DATE);
+            stmt.setNull(4, Types.DATE);
+            stmt.setString(5,userName);
+            stmt.setInt(6,timeForEachMove);
+            stmt.setInt(7,stepsForEachPlayer);
+            stmt.setBoolean(8,isTimeBound);
+            stmt.setInt(9,1);
+            stmt.setInt(10,1);
+
+            int res = stmt.executeUpdate();
+            return res > 0; // Query success result
+
+
+
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+            return false;
+        }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+
+    public static List<Phase> getPhases(String configId){
+
+        String query = "SELECT C.config_phase_mapping_id, P.phase_id,phase_name,description from PHASES P JOIN CONFIG_PHASE_MAPPING C where P.phase_id=C.phase_id and C.game_config_id = ?";
+
+        System.out.println(configId);
+
+        Connection connection = DB.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs;
+        List<Phase> gamePhases = null;
+        try {
+            stmt = connection.prepareStatement(query);
+            stmt.setString(1,configId);
+            rs = stmt.executeQuery();
+            Phase phase;
+            gamePhases = new ArrayList<>();
+            while(rs.next()){
+                phase = new Phase();
+                //phase.setId(rs.getInt("id"));
+                phase.setPhaseId(rs.getString("config_phase_mapping_id"));
+                phase.setPhaseName(rs.getString("phase_name"));
+                phase.setPhaseDescription(rs.getString("description"));
+                gamePhases.add(phase);
+            }
+
+            return gamePhases;
+        }
+        catch(Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+        finally{
+            try {
+                connection.close();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static List<ProjectStep> getMitigationCards(String riskId, String gamePlayerId){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id,phase_name, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_RISK_MITIGATION_MAPPING CRMM " +
+                    "JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM ON CRMM.project_step_id = CPM.config_project_step_mapping_id and CRMM.config_risk_mapping_id = ? " +
+                    "JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id and GPS.game_player_id = ? " +
+                    "JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id " +
+                    "JOIN CONFIG_PHASE_MAPPING PM ON CPM.config_phase_mapping_id = PM.config_phase_mapping_id " +
+                    "JOIN PHASES PH ON PH.phase_id = PM.phase_id";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,riskId);
+            stmt.setString(2,gamePlayerId);
+            ResultSet rs = stmt.executeQuery();
+            ProjectStep ps = null;
+            List<ProjectStep> mititgationSteps = new ArrayList<>();
+            while(rs.next()){
+                ps = new ProjectStep();
+                ps.setPhaseName(rs.getString("phase_name"));
+                ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
+                ps.setProjectStepName(rs.getString("project_step_name"));
+                ps.setBudget(rs.getInt("budget"));
+                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
+                ps.setCapabilityPoints(rs.getInt("capability_points"));
+                ps.setLevel(rs.getInt("level"));
+                ps.setPersonnel(rs.getInt("personnel"));
+                ps.setPreRequisite(rs.getString("pre_requisite"));
+                ps.setStatus(rs.getBoolean("status"));
+                mititgationSteps.add(ps);
+            }
+            return mititgationSteps;
+
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    return null;
     }
 }

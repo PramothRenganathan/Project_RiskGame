@@ -15,6 +15,16 @@ public class ProjectStep {
     int capabilityBonus;
     private boolean status;
 
+    public String getPhaseName() {
+        return phaseName;
+    }
+
+    public void setPhaseName(String phaseName) {
+        this.phaseName = phaseName;
+    }
+
+    private String phaseName;
+
 
     public String getProjectStepId() {
         return projectStepId;

@@ -51,7 +51,8 @@ public class GameController extends Controller {
         String gameId = GameUtility.generateGameId();
         //Insert gameId into table
         System.out.println("Inserting into game table");
-        if(!insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound)) {
+        //if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound))return badRequest("Error while starting a GAME");
+        if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound)) {
        // if(1==1){
         result.put("errormsg","Error while starting the game. Contact system admin");
             result.put("message","failure");
@@ -60,7 +61,7 @@ public class GameController extends Controller {
         }
         System.out.println("Inserted into game table");
         System.out.println("Inserting into game player table");
-        String gamePlayerId = insertIntoGamePlayer(gameId,userName,false);//Host cannot be observer
+        String gamePlayerId = GameUtility.insertIntoGamePlayer(gameId,userName,false);//Host cannot be observer
         if( gamePlayerId == null  || gamePlayerId.isEmpty()) {
             // if(1==1){
             result.put("errormsg","Error while hosting the game. Contact system admin");
@@ -136,7 +137,7 @@ public class GameController extends Controller {
         }
 
         //INSERT ENTRY INTO GAME_PLAYER TABLE
-        String gamePlayerid = insertIntoGamePlayer(gameId,userName,isObserver);
+        String gamePlayerid = GameUtility.insertIntoGamePlayer(gameId,userName,isObserver);
         session().put("gameplayerid",gamePlayerid);
 
         /**
@@ -175,7 +176,7 @@ public class GameController extends Controller {
             InitialGameStat initialGameStat = new InitialGameStat();
             String userName = session().get("username");
             initialGameStat.setUserName( userName );
-            List<Phase> gamePhases = getPhases(configId);
+            List<Phase> gamePhases = GameUtility.getPhases(configId);
             initialGameStat.setPhases(gamePhases);
             List<String> allProjectStepIds = GameUtility.getAllProjectSteps(gamePhases);
             if (gamePhases == null || gamePhases.size() == 0){
@@ -264,7 +265,7 @@ public class GameController extends Controller {
             }
 
             //Generate Random Risk cards for players
-            //if(!generateRandomRiskCardsForPlayer(playersInTheGame))return badRequest("Error while mapping risks to players");
+            if(!GameUtility.generateRandomRiskCardsForPlayer(playersInTheGame,configId))return badRequest("Error while mapping risks to players");
             //Enter risk for individual players with status in some table
 
             //Identify whose turn is first
@@ -359,124 +360,13 @@ public class GameController extends Controller {
 
     }
 
-
-
-    public static List<Phase> getPhases(String configId){
-//
-        //String configId = Play.application().configuration().getString("config_id");
-        String query = "SELECT C.config_phase_mapping_id, P.phase_id,phase_name,description from PHASES P JOIN CONFIG_PHASE_MAPPING C where P.phase_id=C.phase_id and C.game_config_id = ?";
-        //String query = "SELECT C.id,P.phaseId,phaseName,description from PHASES P,CONFIG_PHASE_MAPPING C where game_config_id = ? and P.phaseId = C.phaseId)";
-        System.out.println(configId);
-
-        Connection connection = DB.getConnection();
-        PreparedStatement stmt = null;
-        ResultSet rs;
-        List<Phase> gamePhases = null;
-        try {
-            stmt = connection.prepareStatement(query);
-            stmt.setString(1,configId);
-            rs = stmt.executeQuery();
-            Phase phase;
-             gamePhases = new ArrayList<>();
-            while(rs.next()){
-                phase = new Phase();
-                //phase.setId(rs.getInt("id"));
-                phase.setPhaseId(rs.getString("config_phase_mapping_id"));
-                phase.setPhaseName(rs.getString("phase_name"));
-                phase.setPhaseDescription(rs.getString("description"));
-                gamePhases.add(phase);
-            }
-            logger.log(Level.FINE,"Phases retrieved and populated");
-           // return ok(views.html.ProjectStep.render(gamePhases));
-            return gamePhases;
-        }
-        catch(Exception e) {
-            System.out.println(e.getMessage());
-            logger.log(Level.SEVERE,"Error while retrieving phases");
-            //Level.{
-           // logger.log(Level.SEVERE,"Error while inserting into Snapshots");
-            // System.out.println("Error while retrieving phases.");
-          //  return ok(views.html.error.render());
-
-
-            //return badRequest();
-            return null;
-        }
-        finally{
-            try {
-                connection.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     @BodyParser.Of(BodyParser.Json.class)
     public static Result getProjectSteps(){
-        //String configId = Play.application().configuration().getString("config_id");
+
         String phaseId = request().body().asJson().get("phaseId").asText();
         String gamePlayerId = session().get("gameplayerid");
-
-        //Make sure to add player status table and return the status along with the project Steps
-
-
-        //String query =  "SELECT P.project_step_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus  from PROJECT_STEPS P " +
-          //      "JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPS on P.project_step_id = CPS.project_step_id " +
-           //     "JOIN CONFIG_PHASE_MAPPING CPM on CPS.config_phase_mapping_id = CPM.config_phase_mapping_id and game_config_id = ? and phase_id=?";
-
-        String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM" +
-                " JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id" +
-                " JOIN PROJECT_STEPS P where CPM.project_step_id = P.project_step_id and CPM.config_phase_mapping_id = ? and GPS.game_player_id = ?";
-
-        Connection connection = DB.getConnection();
-        PreparedStatement stmt = null;
-        ResultSet rs;
-
-        try {
-            stmt = connection.prepareStatement(query);
-            //stmt.setString(1, configId);
-            stmt.setString(1,phaseId);
-            stmt.setString(2,gamePlayerId);
-            System.out.println("In Project Steps");
-
-            rs = stmt.executeQuery();
-            System.out.print("DONE QUERY");
-
-            List<ProjectStep> projectSteps = new ArrayList<>();
-            //System.out.println(rs.getRow());
-            while (rs.next()) {
-                //String phaseName = rs.getString("phase_name");
-                ProjectStep ps = new ProjectStep();
-                ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
-                ps.setProjectStepName(rs.getString("project_step_name"));
-                //ps.setProjectStepDescription(rs.getString("description"));
-                ps.setBudget(rs.getInt("budget"));
-                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
-                ps.setCapabilityPoints(rs.getInt("capability_points"));
-                ps.setLevel(rs.getInt("level"));
-                ps.setPersonnel(rs.getInt("personnel"));
-                ps.setPreRequisite(rs.getString("pre_requisite"));
-                ps.setStatus(rs.getBoolean("status"));
-                projectSteps.add(ps);
-
-
-            }
-            System.out.println(projectSteps.toString());
+        List<ProjectStep> projectSteps = GameUtility.getProjectSteps(phaseId,gamePlayerId);
             return ok(play.libs.Json.toJson(projectSteps));
-        }catch(Exception e){
-            logger.log(Level.SEVERE,"Error while retrieving projectSteps");
-            System.out.println(e.getMessage());
-            return ok(views.html.error.render());
-        }
-        finally{
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
 
     }
 
@@ -492,77 +382,20 @@ public class GameController extends Controller {
     }
 
 
-
-    public static boolean insertIntoGame(String gameId, String userName, int timeForEachMove, int stepsForEachPlayer, boolean isTimeBound){
-        Connection connection = DB.getConnection();
-        PreparedStatement stmt = null;
-
-        try{
-            String query = "INSERT INTO GAME (game_id,status,start_time,end_time,host,time_for_each_move,steps_for_each_player,isTimeBound,company_id,product_id) values (?,?,?,?,?,?,?,?,?,?)";
-            stmt = connection.prepareStatement(query);
-            stmt.setString(1,gameId);
-            stmt.setString(2, Constants.HOSTED_STATUS);
-            stmt.setNull(3, Types.DATE);
-            stmt.setNull(4, Types.DATE);
-            stmt.setString(5,userName);
-            stmt.setInt(6,timeForEachMove);
-            stmt.setInt(7,stepsForEachPlayer);
-            stmt.setBoolean(8,isTimeBound);
-            stmt.setInt(9,1);
-            stmt.setInt(10,1);
-
-            int res = stmt.executeUpdate();
-            return res > 0; // Query success result
-
-
-
-        }
-        catch(Exception e){
-            logger.log(Level.SEVERE,e.getMessage());
-            return false;
-        }
-        finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                logger.log(Level.SEVERE, e.getMessage());
-            }
-        }
+    public static Result getRiskCards(){
+        String gamePlayerId = session().get("gameplayerid");
+        List<RiskCard> risks = GameUtility.getRisks(gamePlayerId);
+        if(risks == null || risks.size()==0) return badRequest("Error while retrieving risk cards");
+        System.out.println("RISKS:" + risks.toString());
+        return ok(play.libs.Json.toJson(risks));
     }
 
-
-    private static String insertIntoGamePlayer(String gameId, String userName, boolean isObserver) {
-
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        try{
-            conn = DB.getConnection();
-            String gamePlayerId = userName.split("@")[0] + "-" +  gameId;
-            String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1,gamePlayerId);
-            stmt.setString(2,gameId);
-            stmt.setString(3,userName);
-            stmt.setBoolean(4,isObserver);
-
-            Calendar cal = Calendar.getInstance();
-            stmt.setNull(5,Types.DATE);
-            stmt.setNull(6,Types.DATE);
-            int rs = stmt.executeUpdate();
-            if(rs > 0)return gamePlayerId;
-            else return null;
-
-
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-            return null;
-        }
-        finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result getMitigationSteps(){
+        String riskId = request().body().asJson().get("riskid").asText();
+        String gamePlayerId = session().get("gameplayerid");
+        List<ProjectStep> mitigationCards = GameUtility.getMitigationCards(riskId,gamePlayerId);
+        System.out.println("Mitigation Cards:"+ mitigationCards);
+        return ok(play.libs.Json.toJson(mitigationCards));
     }
 }
