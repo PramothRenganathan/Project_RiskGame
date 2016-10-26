@@ -14,13 +14,9 @@
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
-
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/flipclock.css")" />
-
         <script src="@routes.Assets.at("javascripts/flipclock.js")"></script>
-
         <script type="text/javascript" charset="utf-8" src="@routes.Application.gameJs()"></script>
-
         <style type="text/css">
         .container > header {
             padding: 0px 30px 10px 30px !important;
@@ -124,6 +120,10 @@
             background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(114,184,255,1)), color-stop(100%,rgba(64,150,238,1)));
             background: linear-gradient(to bottom, rgba(114,184,255,1) 0%,rgba(64,150,238,1) 100%);
         }
+
+
+
+
         </style>
 
 
@@ -131,10 +131,56 @@
     <script>
 
 
-            function myfunc(clicked_id) {
+            function myfunc() {
 
+                alert("aaaaaaaa");
+            }
 
-                alert("aaaaaaaa" + clicked_id);
+            function onRiskDashboardClick(id){
+//                var isEligibleToPerformStep=true;
+//                alert(document.getElementById('oneTurn').innerHTML);
+
+//                var obj = {
+//                    'id': id,
+//                    'gameid':document.getElementById('gameid').innerHTML,
+//                    'skipturn':'false',
+//                    'oneturn':document.getElementById('oneTurn').innerHTML,
+//                    'twoturn':document.getElementById('twoTurn').innerHTML,
+//                    'type': 'projectstep',
+//                    'budget': document.getElementById('budgetremaining').innerHTML,
+//                    'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+//                    'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+//                    'personnel' :document.getElementById('personnelremaining').innerHTML,
+//                    'turnno': document.getElementById('turnNo').innerHTML,
+//                    'timetaken': 3
+//                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@routes.GameController.performStep()',
+                    // data : JSON.stringify(obj),
+//                    data: JSON.stringify(obj),
+                    // dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+//                        alert(data.oneturn+" "+data.twoturn);
+
+                        document.getElementById('budgetremaining').innerHTML = data.budget;
+                        document.getElementById('capabilitypoints').innerHTML = data.capabilitypoints;
+                        document.getElementById('capabilitybonus').innerHTML = data.capabilitybonus;
+                        document.getElementById('personnelremaining').innerHTML = data.personnel;
+                        document.getElementById('turnNo').innerHTML = data.currentturn;
+                        document.getElementById('oneTurn').innerHTML = data.oneturn;
+                        document.getElementById('twoTurn').innerHTML = data.twoturn;
+
+                        onPhaseClick(currentPhase);
+                    },
+                    error: function (data) {
+                        alert("error");
+                        //setError('Make call failed');
+                    }
+                });
+
             }
 
             function onPerformStep(id){
@@ -398,16 +444,15 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">My Status</h4>
                         </div>
-                        <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small;">
-                            <div style=" display: inline-block;">Budget:</div><div style=" display: inline-block;" id="budgetremaining"> @model.getBudget()</div>
-                            <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block;" id="capabilitypoints"> @model.getCapabilityPoints()</div>
-                            <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
-                            <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
+                        <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small; text-align: left">
+                            <div style=" display: inline-block;">Budget:</div><div style=" display: inline-block; float: right " id="budgetremaining"> @model.getBudget()</div>
+                            <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block; float: right" id="capabilitypoints"> @model.getCapabilityPoints()</div>
+                            <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block; float: right" id="capabilitybonus"> @model.getCapabilityBonus()</div>
+                            <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block; float: right" id="personnelremaining"> @model.getResources</div>
                             <div>No. of resources who will return after </div>
-                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn">0</div>
-                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn">0</div>
+                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block; float: right" id="oneTurn">0</div><br/>
+                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block; float: right" id="twoTurn">0</div>
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
-
 
                         </div>
                         <div class="modal fade" id="myAssetModal" role="dialog">
@@ -480,40 +525,53 @@
                 </div>
                     <!-- \\ end of big1 div -->
 
+
+
+
                     <!-- \\ start of center div - phases and steps -->
-                <div class="col-md-8" style="border: 1px solid transparent">
+                <div class="col-md-8 card" style="border: 1px solid transparent">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#projectSteps">Project Steps</a></li>
+                        <li><a data-toggle="tab" href="#riskDashboard" onclick="myfunc()">Risk Dashboard</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="projectSteps" class="tab-pane fade in active">
+                            <div class="col-md-12" style="border: 1px solid transparent">
 
-                    @*<div class="col-md-12">*@
-                    @*<div class="col-md-4" style="border: 1px solid black">Budget left</div>*@
-                    @*<div class="col-md-4" style="border: 1px solid black">Capability points</div>*@
-                    @*<div class="col-md-4" style="border: 1px solid black">Time Remaining</div>*@
-                    @*<div class="col-md-4" style="border: 1px solid black">60000</div>*@
-                    @*<div class="col-md-4" style="border: 1px solid black">5%</div>*@
-                    @*<div class="col-md-4" style="border: 1px solid black">3:30</div>*@
-                    @*</div>*@
-                    <div class="col-md-12" style="border: 1px solid transparent">
-                        <div style="height: 20px; "></div>
-                        @for(phase <- model.getPhases()) {
+                                <div style="height: 20px; "></div>
 
-                            <button class="col-md-3 btn btn-warning"
-                            style="background-color: #DB8B00 !important;"
-                            onclick="onPhaseClick(id)"
-                            id=@phase.getPhaseId>@phase.getPhaseName()</button>
-                            <div class="col-md-1" style="height: 60px;"> </div>
 
-                        }
+                                @for(phase <- model.getPhases()) {
 
+                                    <button class="col-md-3 btn btn-warning"
+                                    style="background-color: #DB8B00 !important;"
+                                    onclick="onPhaseClick(id)"
+                                    id=@phase.getPhaseId>@phase.getPhaseName()</button>
+                                    <div class="col-md-1" style="height: 60px;"> </div>
+
+                                }
+
+                            </div>
+
+                            <div class="col-md-12" style="border: 1px solid transparent;
+                                height: 400px">
+                                <hr style="width: 100%;
+                                    color: black;
+                                    height: 1px;
+                                    background-color: black;" />
+                                <div class="col-md-12" style="height: 50px;"> </div>
+                                <div id="results"></div>
+                            </div>
+
+
+
+                        </div>
+                        <div id="riskDashboard" class="tab-pane fade">
+                            <h3>Risk Dashboard</h3>
+                            <p></p>
+                        </div>
                     </div>
 
-                    <div class="col-md-12" style="border: 1px solid transparent;
-                        height: 400px">
-                        <hr style="width: 100%;
-                            color: black;
-                            height: 1px;
-                            background-color: black;" />
-                        <div class="col-md-12" style="height: 50px;"> </div>
-                        <div id="results"></div>
-                    </div>
 
 
                 </div>
