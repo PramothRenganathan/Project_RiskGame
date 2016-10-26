@@ -51,7 +51,7 @@ public class GameController extends Controller {
         String gameId = GameUtility.generateGameId();
         //Insert gameId into table
         System.out.println("Inserting into game table");
-        //if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound))return badRequest("Error while starting a GAME");
+
         if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound)) {
        // if(1==1){
         result.put("errormsg","Error while starting the game. Contact system admin");
@@ -265,7 +265,12 @@ public class GameController extends Controller {
             }
 
             //Generate Random Risk cards for players
-            if(!GameUtility.generateRandomRiskCardsForPlayer(playersInTheGame,configId))return badRequest("Error while mapping risks to players");
+            if(!GameUtility.generateRandomRiskCardsForPlayer(playersInTheGame,configId)){
+                logger.log(Level.SEVERE,"Error while mapping risks to players");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
             //Enter risk for individual players with status in some table
 
             //Identify whose turn is first
@@ -385,7 +390,12 @@ public class GameController extends Controller {
     public static Result getRiskCards(){
         String gamePlayerId = session().get("gameplayerid");
         List<RiskCard> risks = GameUtility.getRisks(gamePlayerId);
-        if(risks == null || risks.size()==0) return badRequest("Error while retrieving risk cards");
+        if(risks == null || risks.size()==0) {
+            logger.log(Level.SEVERE,"Error while retrieving risk cards");
+            // System.out.println("Error while retrieving phases.");
+            return ok(views.html.error.render());
+
+        }
         System.out.println("RISKS:" + risks.toString());
         return ok(play.libs.Json.toJson(risks));
     }
