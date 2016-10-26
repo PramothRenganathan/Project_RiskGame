@@ -898,13 +898,38 @@ public class GameUtility {
         }
     }
 
-    public static List<MitigationCard> getMitigationCards(String riskId, String gamePlayerId){
+    public static List<ProjectStep> getMitigationCards(String riskId, String gamePlayerId){
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String query = "SELECT project_step_name,`status` from FROM CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id" +
-                    "JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id";
+            String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id,phase_name, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_RISK_MITIGATION_MAPPING CRMM " +
+                    "JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM ON CRMM.project_step_id = CPM.config_project_step_mapping_id and CRMM.config_risk_mapping_id = ? " +
+                    "JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id and GPS.game_player_id = ? " +
+                    "JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id " +
+                    "JOIN CONFIG_PHASE_MAPPING PM ON CPM.config_phase_mapping_id = PM.config_phase_mapping_id " +
+                    "JOIN PHASES PH ON PH.phase_id = PM.phase_id";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,riskId);
+            stmt.setString(2,gamePlayerId);
+            ResultSet rs = stmt.executeQuery();
+            ProjectStep ps = null;
+            List<ProjectStep> mititgationSteps = new ArrayList<>();
+            while(rs.next()){
+                ps = new ProjectStep();
+                ps.setPhaseName(rs.getString("phase_name"));
+                ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
+                ps.setProjectStepName(rs.getString("project_step_name"));
+                ps.setBudget(rs.getInt("budget"));
+                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
+                ps.setCapabilityPoints(rs.getInt("capability_points"));
+                ps.setLevel(rs.getInt("level"));
+                ps.setPersonnel(rs.getInt("personnel"));
+                ps.setPreRequisite(rs.getString("pre_requisite"));
+                ps.setStatus(rs.getBoolean("status"));
+                mititgationSteps.add(ps);
+            }
+            return mititgationSteps;
 
         }
         catch (Exception e){

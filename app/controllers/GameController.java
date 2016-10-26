@@ -293,7 +293,7 @@ public class GameController extends Controller {
     public static Result getMitigationSteps(){
         String riskId = request().body().asJson().get("riskid").asText();
         String gamePlayerId = session().get("gameplayerid");
-        List<MitigationCard> mitigationCards = GameUtility.getMitigationCards(riskId,gamePlayerId);
+        List<ProjectStep> mitigationCards = GameUtility.getMitigationCards(riskId,gamePlayerId);
         System.out.println("Mitigation Cards:"+ mitigationCards);
         return ok(play.libs.Json.toJson(mitigationCards));
     }
