@@ -11,7 +11,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utility.Constants;
 import utility.GameUtility;
-
+import utility.Constants;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -293,6 +293,9 @@ public class GameController extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result performStep(){
 
+
+
+        String steptype = "projectstep";
         if(!validateSession()) return ok(views.html.index.render());
 
         String gamePlayerId = session().get("gameplayerid");
@@ -300,6 +303,8 @@ public class GameController extends Controller {
         JsonNode body = request().body().asJson();
         String gameId = body.get("gameid").asText();
         Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
+        OOPS currentOOPS = new OOPS();
+        SURPRISE currentSurprise = new SURPRISE();
 
         String type = currentStep.getMoveType();
         String projectStepId = currentStep.getProjectStepId();
@@ -310,7 +315,7 @@ public class GameController extends Controller {
 
         //In case of skip step, just update the database and return
         if(type.equalsIgnoreCase("skipstep")) {
-            if(!GameUtility.performStep(gamePlayerId,currentStep)){
+            if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
                 logger.log(Level.SEVERE,"Error while updating status");
                 // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
@@ -319,34 +324,78 @@ public class GameController extends Controller {
             GameUtility.addReturningResources(currentStep);
         }
         else if(type.equalsIgnoreCase("projectstep")) {
+
+
             if (GameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
                 return badRequest("You already performed this step");
             ProjectStep projectStep = GameUtility.getProjectStepDetails(projectStepId);
             if (projectStep == null){
-                logger.log(Level.SEVERE,"Error while retrieving project step detais");
-                // System.out.println("Error while retrieving phases.");
-                return ok(views.html.error.render());
-
-            }
-            if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
-                return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
-            if (!GameUtility.performStep(gamePlayerId, currentStep)) {
-                logger.log(Level.SEVERE,"Error while updating status");
+                logger.log(Level.SEVERE,"Error while retrieving project step details");
                 // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
 
-            if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId)){
-                logger.log(Level.SEVERE,"Error while updating project step status");
-                // System.out.println("Error while retrieving phases.");
-                return ok(views.html.error.render());
 
+
+            Constants.PerformStep performAction = GameUtility.getActiontobeTaken(projectStep.getLevel(),currentStep.getCapabilityBonus());
+
+            if(performAction == Constants.PerformStep.OOPS)
+            {
+                steptype = "oops";
+
+                GameUtility.performOOPS(currentStep,currentOOPS);
+                if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
+                    logger.log(Level.SEVERE,"Error while updating status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(currentStep.getCurrentStepResource());
+            }
+            else if(performAction == Constants.PerformStep.SURPRISE){
+                steptype = "surprise";
+                GameUtility.performSurprise(currentStep,currentSurprise);
+                if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
+                    logger.log(Level.SEVERE,"Error while updating status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(currentStep.getCurrentStepResource());
+            }
+            else{
+                if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
+                    return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
+
+                if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
+                    logger.log(Level.SEVERE,"Error while updating status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId)){
+                    logger.log(Level.SEVERE,"Error while updating project step status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(projectStep.getPersonnel());
             }
 
-            GameUtility.addReturningResources(currentStep);
-            currentStep.setTwoTurn(projectStep.getPersonnel());
+
+          //  GameUtility.addReturningResources(currentStep);
+           // currentStep.setTwoTurn(projectStep.getPersonnel());
         }
+
+
             ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
@@ -359,6 +408,17 @@ public class GameController extends Controller {
             result.put("skipturn",currentStep.isSkipTurnStatus());
             result.put("oneturn",currentStep.getOneTurn());
             result.put("twoturn",currentStep.getTwoTurn());
+            result.put("steptype",currentStep.getMoveType());
+
+        result.put("oops_resource",currentOOPS.getResources());
+        result.put("oops_budget",currentOOPS.getBudget());
+        result.put("oops_points",currentOOPS.getCapabilityPoints());
+        result.put("oops_bonus",currentOOPS.getCapabilityBonus());
+
+        result.put("surprise_resource",currentSurprise.getResources());
+        result.put("surprise_budget",currentSurprise.getBudget());
+        result.put("surprise_points",currentSurprise.getCapabilityPoints());
+        result.put("surprise_bonus",currentSurprise.getCapabilityBonus());
 
             return ok(result);
 

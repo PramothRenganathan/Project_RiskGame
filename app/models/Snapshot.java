@@ -26,7 +26,7 @@ public class Snapshot {
 
     private int oneTurn;
     private int twoTurn;
-
+    private int currentStepResource;
 
     public String getGamePlayerId() {
         return gamePlayerId;
@@ -42,6 +42,14 @@ public class Snapshot {
 
     public void setTurnNo(int turnNo) {
         this.turnNo = turnNo;
+    }
+
+    public int getCurrentStepResource() {
+        return currentStepResource;
+    }
+
+    public void setCurrentStepResource(int currentStepResource) {
+        this.currentStepResource = currentStepResource;
     }
 
     public int getBudget() {

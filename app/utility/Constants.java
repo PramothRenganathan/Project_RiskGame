@@ -9,7 +9,11 @@ public class Constants {
     public static final String RUNNING_STATUS = "RUNNING";
     public static final String COMPLETE_STATUS = "COMPLETE";
 
-
+    public enum PerformStep {
+        PROJECTSTEP,
+        OOPS,
+        SURPRISE
+    }
 
     //GAME RELATED CONSTANTS
     public static final int INITIAL_BUDGET = 35000;
