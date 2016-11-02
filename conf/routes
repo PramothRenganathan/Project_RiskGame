@@ -42,6 +42,8 @@ POST /hostgame       controllers.DashboardController.ViewHostGame()
 GET /dashboard      controllers.DashboardController.ViewDashboard()
 
 POST /performstep  controllers.GameController.performStep()
+POST /riskdashboard  controllers.GameController.getRiskCards()
+POST /risk  controllers.GameController.getMitigationSteps()
 
 
 
