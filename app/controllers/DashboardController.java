@@ -24,9 +24,21 @@ public class DashboardController extends Controller {
 
     public static final Logger logger = Logger.getLogger(DashboardController.class.getName());
 
+    public static boolean validateSession(){
+
+        if(session().isEmpty() || session().get("username") == null || session().get("username").isEmpty() ){
+
+            return false;
+        }
+
+        return true;
+    }
+
     public static Result ViewDashboard(){
        System.out.println("im here");
        // response().setContentType("text/html");
+        if(!validateSession()) return ok(views.html.index.render());
+
         String firstname = session().get("firstname");
         Http.Context.current().args.put("firstname", firstname);
         String userName = session().get("username");

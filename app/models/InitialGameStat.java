@@ -18,6 +18,8 @@ public class InitialGameStat {
     private boolean skipTurn;
     private int oneTurn;
     private int twoTurn;
+    private int level2Bonus;
+    private int level3Bonus;
     private boolean observer=false;
 
     public boolean isObserver() {
@@ -146,5 +148,21 @@ public class InitialGameStat {
 
     public void setTwoTurn(int twoTurn) {
         this.twoTurn = twoTurn;
+    }
+
+    public int getLevel2Bonus() {
+        return level2Bonus;
+    }
+
+    public void setLevel2Bonus(int level2Bonus) {
+        this.level2Bonus = level2Bonus;
+    }
+
+    public int getLevel3Bonus() {
+        return level3Bonus;
+    }
+
+    public void setLevel3Bonus(int level3Bonus) {
+        this.level3Bonus = level3Bonus;
     }
 }

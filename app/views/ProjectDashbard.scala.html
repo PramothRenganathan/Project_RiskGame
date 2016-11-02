@@ -86,9 +86,11 @@
       function Showmodel(gameid,status,istimebound)
       {
          // alert(gameid + status + istimebound);
-          gameid
+         // gameid
           $( "#mgameid" ).val(gameid);
           $("#mgameid").prop("readonly", true);
+
+          $("#errorspan2").html("");
 
           if(status != "HOSTED" && istimebound == "Yes") {
               $("#isobserver").hide();
@@ -106,12 +108,13 @@
 
     function hostgame() {
        // debugger;
-        var istimebound = $('input[name=TimeBound]:checked').val();
+      //  var istimebound = $('input[name=TimeBound]:checked').val();
         var timeforstep = $( "#selecttime" ).val();
         var noofsteps = $( "#selectsteps" ).val();
 
         var obj = {
-            'istimebound': istimebound == "1" ? true : false,
+            'istimebound': true,
+           // 'istimebound': istimebound == "1" ? true : false,
             'timeforeachmove': timeforstep,
             'stepsforeachplayer': noofsteps
         };
@@ -134,6 +137,11 @@
                   //  $form.submit();
                     $("#hgameid").val(data.gameid);
                     $("#hostgameform").submit();
+                }
+                else
+                {
+                  //  alert(data.errormsg);
+                    $("#errorspan").html(data.errormsg);
                 }
                // $.('#id').val(data);
                 //setError('Call succedded');
@@ -174,6 +182,11 @@
                     $("#joingameform").submit();
 
                 }
+                else
+                {
+                    // alert(data.errormsg);
+                    $("#errorspan2").html(data.errormsg);
+                }
 
             },
             error : function(data) {
@@ -210,7 +223,7 @@
                   <input type="hidden" id = "jgameid" name ="jgameid" value="0"  />
               </form>
                   <!-- Button trigger modal -->
-              <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+              <button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
   Host Game
               </button>
 
@@ -227,7 +240,7 @@
                               <h4 class="modal-title" id="myModalLabel">HOST GAME</h4>
                           </div>
                           <div class="modal-body">
-
+                                    <span style="color:red;" id="errorspan" ></span>
                                   <form class="form-horizontal">
                                       <fieldset>
 
@@ -235,23 +248,23 @@
                                           <legend>Game Settings</legend>
 
                                               <!-- Multiple Radios -->
-                                          <div class="form-group">
-                                              <label class="col-md-4 control-label" for="TimeBound">Is the game timebound</label>
-                                              <div class="col-md-4">
-                                                  <div class="radio">
-                                                      <label for="TimeBound-0">
-                                                          <input type="radio" name="TimeBound" id="TimeBound-0" value="1" checked="checked">
-                                                          Yes
-                                                      </label>
-                                                  </div>
-                                                  <div class="radio">
-                                                      <label for="TimeBound-1">
-                                                          <input type="radio" name="TimeBound" id="TimeBound-1" value="0">
-                                                          No
-                                                      </label>
-                                                  </div>
-                                              </div>
-                                          </div>
+                                          @*<div class="form-group">*@
+                                              @*<label class="col-md-4 control-label" for="TimeBound">Is the game timebound</label>*@
+                                              @*<div class="col-md-4">*@
+                                                  @*<div class="radio">*@
+                                                      @*<label for="TimeBound-0">*@
+                                                          @*<input type="radio" name="TimeBound" id="TimeBound-0" value="1" checked="checked">*@
+                                                          @*Yes*@
+                                                      @*</label>*@
+                                                  @*</div>*@
+                                                  @*<div class="radio">*@
+                                                      @*<label for="TimeBound-1">*@
+                                                          @*<input type="radio" name="TimeBound" id="TimeBound-1" value="0">*@
+                                                          @*No*@
+                                                      @*</label>*@
+                                                  @*</div>*@
+                                              @*</div>*@
+                                          @*</div>*@
 
                                               <!-- Select Basic -->
                                           <div class="form-group">
@@ -303,6 +316,7 @@
                               <h4 class="modal-title" id="myModalLabel2">JOIN GAME AS PLAYER OR OBSERVER</h4>
                           </div>
                           <div class="modal-body">
+                              <span style="color:red;" id="errorspan2" ></span>
         <div class="form-group">
 
                               <label for="mgameid">

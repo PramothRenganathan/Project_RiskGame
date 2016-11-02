@@ -509,6 +509,8 @@ public class GameUtility {
         return receivedSnapShot;
     }
 
+   // public static int
+
     public static boolean validateStep(Snapshot previousStep, Snapshot currentStep) {
         if(previousStep.getBudget() != currentStep.getBudget())return false;
 //        if(previousStep.getPersonnel() != currentStep.getPersonnel()){
@@ -524,7 +526,7 @@ public class GameUtility {
         return true;
     }
 
-    public static boolean performStep(String gamePlayerId, Snapshot currentStep) {
+    public static boolean performStep(String gamePlayerId, Snapshot currentStep,Constants.PerformStep moveType) {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
@@ -540,10 +542,33 @@ public class GameUtility {
             stmt.setString(7, currentStep.getMoveType());//move type
             stmt.setBoolean(8,true);//move Status
             stmt.setBoolean(9,currentStep.isSkipTurnStatus());//skip turn status
-            stmt.setString(10,currentStep.getProjectStepId());//project Step Id
+            if(moveType == Constants.PerformStep.PROJECTSTEP){
+                stmt.setString(10,currentStep.getProjectStepId());//project Step Id
+            }
+            else
+            {
+                stmt.setNull(10,Types.VARCHAR);//risk id
+            }
+
+            if(moveType == Constants.PerformStep.OOPS){
+                stmt.setString(12,currentStep.getOopsId());//project Step Id
+            }
+            else
+            {
+                stmt.setNull(12,Types.VARCHAR);//oops id
+            }
+
+            if(moveType == Constants.PerformStep.SURPRISE){
+                stmt.setString(13,currentStep.getSurpriseId());//surprise id
+            }
+            else
+            {
+                stmt.setNull(13,Types.VARCHAR);//surprise id
+            }
+
             stmt.setNull(11,Types.VARCHAR);//risk id
-            stmt.setNull(12,Types.VARCHAR);//oops id
-            stmt.setNull(13,Types.VARCHAR);//surprise id
+
+
             stmt.setNull(14,Types.VARCHAR);//oops impact id
             stmt.setNull(15,Types.VARCHAR);//surprise impact id
             stmt.setInt(16,currentStep.getLoanAmount());
@@ -567,6 +592,8 @@ public class GameUtility {
         }
 
     }
+
+
 
     public static String insertIntoGamePlayer(String gameId, String userName, boolean isObserver) {
 
@@ -601,6 +628,91 @@ public class GameUtility {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static boolean getGameRules(InitialGameStat gameStat)
+    {
+
+        String configId = Play.application().configuration().getString("config_id");
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT level2bonus,level3bonus FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,configId);
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()){
+                gameStat.setLevel2Bonus(rs.getInt("level2bonus"));
+                gameStat.setLevel3Bonus(rs.getInt("level3bonus"));
+
+            }
+            return true;
+
+
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return false;
+
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static Constants.PerformStep getActiontobeTaken(int level,int capabilityBonus)
+    {
+
+        InitialGameStat gamerules = new InitialGameStat();
+        Random rand = new Random();
+        int randomnumber = rand.nextInt(100) + 1;
+        //randomnumber = 21;
+        getGameRules(gamerules);
+        if(level == 2) {
+            if((randomnumber + capabilityBonus) > gamerules.getLevel2Bonus()){
+                return Constants.PerformStep.PROJECTSTEP;
+            }
+            else if (randomnumber + capabilityBonus > (gamerules.getLevel2Bonus() - 10)){
+                return Constants.PerformStep.SURPRISE;
+            }
+            else
+            {
+                return Constants.PerformStep.OOPS;
+            }
+
+        }
+        else if(level == 3){
+
+            if((randomnumber + capabilityBonus) > gamerules.getLevel3Bonus()){
+                return Constants.PerformStep.PROJECTSTEP;
+            }
+            else if (randomnumber + capabilityBonus > (gamerules.getLevel2Bonus() - 10)){
+                return Constants.PerformStep.SURPRISE;
+            }
+            else
+            {
+                return Constants.PerformStep.OOPS;
+            }
+        }
+        else{
+            if(randomnumber > 40){
+                return Constants.PerformStep.PROJECTSTEP;
+            }
+            else if (randomnumber > 30){
+                return Constants.PerformStep.SURPRISE;
+            }
+            else{
+                return Constants.PerformStep.OOPS;
+            }
+
+        }
+
+
+
     }
 
     public static ProjectStep getProjectStepDetails(String id) {
@@ -657,6 +769,61 @@ public class GameUtility {
         return true;
     }
 
+
+
+    public static boolean performOOPS(Snapshot currentStep,OOPS currentOOPS) {
+
+        OOPS oops = new OOPS();
+        List<OOPS> oopsList = new ArrayList<>();
+        oopsList = generateOOPSCard();
+
+        for(int i=0;i<oopsList.size();i++){
+
+            if(currentStep.getBudget() - oopsList.get(i).getBudget() < 0) continue;
+            if(currentStep.getCapabilityPoints() - oopsList.get(i).getCapabilityPoints() < 0 ) continue;
+            if(currentStep.getCapabilityBonus() - oopsList.get(i).getCapabilityBonus() < 0) continue;
+            if(currentStep.getPersonnel() - oopsList.get(i).getResources() < 0) continue;
+            oops = oopsList.get(i);
+            break;
+        }
+
+
+        currentStep.setCapabilityBonus(currentStep.getCapabilityBonus() - oops.getCapabilityBonus());
+        currentStep.setBudget(currentStep.getBudget() - oops.getBudget());
+        currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() - oops.getCapabilityPoints());
+        currentStep.setPersonnel(currentStep.getPersonnel() - oops.getResources());
+        currentStep.setCurrentStepResource(oops.getResources());
+        currentStep.setMoveType("OOPS");
+        currentStep.setOopsId(oops.getId());
+        currentOOPS = oops;
+//        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
+
+        //System.out.println("Im here");
+        //Add pre-requisite step here
+        return true;
+    }
+
+    public static boolean performSurprise(Snapshot currentStep,SURPRISE currentSurprise) {
+
+        SURPRISE surprise = new SURPRISE();
+        surprise = generateSurpriseCard();
+
+        currentStep.setCapabilityBonus(currentStep.getCapabilityBonus() + surprise.getCapabilityBonus());
+        currentStep.setBudget(currentStep.getBudget() + surprise.getBudget());
+        currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + surprise.getCapabilityPoints());
+        currentStep.setPersonnel(currentStep.getPersonnel() + surprise.getResources());
+        currentStep.setMoveType("SURPRISE");
+        currentStep.setSurpriseId(surprise.getId());
+        currentStep.setCurrentStepResource(surprise.getResources());
+        currentSurprise = surprise;
+//        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
+
+        //System.out.println("Im here");
+        //Add pre-requisite step here
+        return true;
+    }
+
+
     public static boolean isGameComplete(int turnNo, String gameId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -685,6 +852,77 @@ public class GameUtility {
     public static void addReturningResources(Snapshot currentStep) {
         currentStep.setPersonnel(currentStep.getPersonnel() + currentStep.getOneTurn());//Resource already back
         currentStep.setOneTurn(currentStep.getTwoTurn());//Resources to be back in one turn
+    }
+
+    public static List<OOPS> generateOOPSCard()
+    {
+        List<OOPS> oopslist = new ArrayList<>();
+        OOPS oopsobj = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        PreparedStatement insertStmt = null;
+        try {
+            conn = DB.getConnection();
+
+
+                String query = "SELECT * FROM OOPS ORDER BY RAND()";
+                stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    oopsobj = new OOPS();
+                    oopsobj.setId(rs.getString("oops_id"));
+                    oopsobj.setBudget(rs.getInt("budget"));
+                    oopsobj.setCapabilityBonus(rs.getInt("capability_bonus"));
+                    oopsobj.setCapabilityPoints(rs.getInt("capability_points"));
+                    oopsobj.setResources(rs.getInt("personnel"));
+                    oopslist.add(oopsobj);
+                }
+
+                return oopslist;
+
+        } catch (Exception e) {
+            return oopslist;
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static SURPRISE generateSurpriseCard()
+    {
+        SURPRISE surpriseobj = new SURPRISE();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        PreparedStatement insertStmt = null;
+        try {
+            conn = DB.getConnection();
+
+
+            String query = "SELECT * FROM SURPRISE  ORDER BY RAND() LIMIT 1";
+            stmt = conn.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                surpriseobj.setId(rs.getString("surprise_id"));
+                surpriseobj.setBudget(rs.getInt("budget"));
+                surpriseobj.setCapabilityBonus(rs.getInt("capability_bonus"));
+                surpriseobj.setCapabilityPoints(rs.getInt("capability_points"));
+                surpriseobj.setResources(rs.getInt("personnel"));
+            }
+
+            return surpriseobj;
+
+        } catch (Exception e) {
+            return surpriseobj;
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static boolean generateRandomRiskCardsForPlayer(List<String> playersInTheGame, String configId) {

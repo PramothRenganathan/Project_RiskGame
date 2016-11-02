@@ -11,7 +11,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utility.Constants;
 import utility.GameUtility;
-
+import utility.Constants;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,8 +33,8 @@ public class GameController extends Controller {
         //Number of players to be invited, number of turns, etc
         // Insert the details into the db
 
-
-        if(!validateSession()) return badRequest("Login Required for this action");
+        ObjectNode result = play.libs.Json.newObject();
+        if(!validateSession()) return ok(views.html.index.render());
         String userName = session().get("username");
 
         //Get all the necessary request parameters
@@ -51,18 +51,31 @@ public class GameController extends Controller {
         String gameId = GameUtility.generateGameId();
         //Insert gameId into table
         System.out.println("Inserting into game table");
-        if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound))return badRequest("Error while starting a GAME");
+
+        if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound)) {
+       // if(1==1){
+        result.put("errormsg","Error while starting the game. Contact system admin");
+            result.put("message","failure");
+            return ok(result);
+
+        }
         System.out.println("Inserted into game table");
         System.out.println("Inserting into game player table");
         String gamePlayerId = GameUtility.insertIntoGamePlayer(gameId,userName,false);//Host cannot be observer
-        if( gamePlayerId == null  || gamePlayerId.isEmpty()) return badRequest("Error while hosting a game");
+        if( gamePlayerId == null  || gamePlayerId.isEmpty()) {
+            // if(1==1){
+            result.put("errormsg","Error while hosting the game. Contact system admin");
+            result.put("message","failure");
+            return ok(result);
+
+        }
         System.out.println("Inserted into game player table");
 
         session().put("gameplayerid",gamePlayerId);
 
 
 
-        ObjectNode result = play.libs.Json.newObject();
+      //  ObjectNode result = play.libs.Json.newObject();
         result.put("gameid",gameId);
         result.put("message","success");
 
@@ -79,8 +92,9 @@ public class GameController extends Controller {
     public static Result joinGame(){
         //Check if user is logged in
         if(!validateSession()){
-            return badRequest("Login Required");
+            ok(views.html.index.render());
         }
+        ObjectNode result = play.libs.Json.newObject();
         String userName = session().get("username");
 
         //Check if gameId is sent through the request
@@ -88,7 +102,13 @@ public class GameController extends Controller {
         String gameId =json.get("gameid").asText();
         System.out.println("GameId:" + gameId);
         boolean isObserver = json.get("isobserver").asBoolean();
-        if(gameId == null || gameId.isEmpty())return badRequest("Error with the request, gameId not found");
+        if(gameId == null || gameId.isEmpty()){
+            // if(1==1){
+            result.put("errormsg","Error with the request, gameId not found. Contact system admin");
+            result.put("message","failure");
+            return ok(result);
+
+        }
 
         //CHECK IF THE GAME EXISTS
         System.out.println("Checking of game Id :" + gameId + " exists");
@@ -98,11 +118,23 @@ public class GameController extends Controller {
         ELSE DONT ALLOW
          */
 
-        if(!GameUtility.gameExists(gameId))return badRequest("Game Id doesnt exist");
+        if(!GameUtility.gameExists(gameId)){
+         //    if(1==1){
+            result.put("errormsg","Game Id doesnt exist. Contact system admin");
+            result.put("message","failure");
+            return ok(result);
+
+        }
         System.out.println("Game Id exists");
         //If host of the game tries to join the game, REJECT THE request
         System.out.println("Checking if requested person is host again");
-        if(GameUtility.isHost(gameId,userName))return badRequest("You cannot do that as host");
+        if(GameUtility.isHost(gameId,userName)){
+            // if(1==1){
+            result.put("errormsg","You cannot do that as host. Contact system admin");
+            result.put("message","failure");
+            return ok(result);
+
+        }
 
         //INSERT ENTRY INTO GAME_PLAYER TABLE
         String gamePlayerid = GameUtility.insertIntoGamePlayer(gameId,userName,isObserver);
@@ -111,11 +143,17 @@ public class GameController extends Controller {
         /**
          * CREATE SOCKET FOR THE USER AND REDIRECT TO THE HOSTED PAGE
          */
-        if(SessionManager.getAllUsers(gameId).size()>=5) return badRequest("Already 5 players in the game");
+        if(SessionManager.getAllUsers(gameId).size()>=5){
+            // if(1==1){
+            result.put("errormsg","Already 5 players in the game.");
+            result.put("message","failure");
+            return ok(result);
+
+        }
         if(!SessionManager.hasUser(gameId, gamePlayerid)){
             SessionManager.addUser(gameId, gamePlayerid);
         }
-        ObjectNode result = play.libs.Json.newObject();
+
         //result.put("gamePlayerId",gamePlayerId);
         result.put("gameplayerid",gamePlayerid);
         result.put("message","success");
@@ -132,7 +170,7 @@ public class GameController extends Controller {
     public static Result startGame(){
         try {
             //Based on the configuration - > load the phases, projectSteps, Risks, MitigationSteps
-            if(!validateSession())return badRequest("Not logged in");
+            if(!validateSession())return ok(views.html.index.render());
 
             String configId = Play.application().configuration().getString("config_id");
             InitialGameStat initialGameStat = new InitialGameStat();
@@ -141,22 +179,43 @@ public class GameController extends Controller {
             List<Phase> gamePhases = GameUtility.getPhases(configId);
             initialGameStat.setPhases(gamePhases);
             List<String> allProjectStepIds = GameUtility.getAllProjectSteps(gamePhases);
-            if (gamePhases == null || gamePhases.size() == 0) return badRequest("Error while retrieving phases");
+            if (gamePhases == null || gamePhases.size() == 0){
+                logger.log(Level.SEVERE,"Error while retrieving phases");
+               // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
+
 
             System.out.println("User:" + userName);
 
             String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
             initialGameStat.setGameId(gameId);
-            if(!GameUtility.getResources(initialGameStat)) return badRequest("Error while retrieving resources");
+            if(!GameUtility.getResources(initialGameStat)) {
+                logger.log(Level.SEVERE,"Error while retrieving resources");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
             System.out.println("GAME ID FOUND:" + gameId);
 
             List<String> playersInTheGame = SessionManager.getAllUsers(gameId);
             System.out.println("Players in the game:" + playersInTheGame.toString());
 
-            if (gameId == null || playersInTheGame == null || gameId.isEmpty() || playersInTheGame.size() == 0)
-                return badRequest("Illegal start of the game");
+            if (gameId == null || playersInTheGame == null || gameId.isEmpty() || playersInTheGame.size() == 0){
+                logger.log(Level.SEVERE,"Illegal start of the game");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
+
             //Get TimeforEachMove and No of Steps
-            if(!GameUtility.getTimeBound(initialGameStat,gameId)) return badRequest("Error while getting time bound");
+            if(!GameUtility.getTimeBound(initialGameStat,gameId)) {
+                logger.log(Level.SEVERE,"Error while getting time bound");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
 
             //Set turn for each player
             String gamePlayerId = session().get("gameplayerid");
@@ -170,23 +229,48 @@ public class GameController extends Controller {
             }
             System.out.println("IM HOST ONLY:" + userName);
             //update startTime in GAME TABLE
-            if(!GameUtility.updateStartTimeInGameTable(gameId))return badRequest("Error while updating start time");
+            if(!GameUtility.updateStartTimeInGameTable(gameId)){
+                logger.log(Level.SEVERE,"Error while updating start time");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
 
 
             //Get List of Observers
 
             //Insert Player Project Steps Status into table
-            if (!GameUtility.insertIntoPlayerProjectStepStatus(playersInTheGame, allProjectStepIds))
-                return badRequest("Error while entering project step status");
+            if (!GameUtility.insertIntoPlayerProjectStepStatus(playersInTheGame, allProjectStepIds)){
+                logger.log(Level.SEVERE,"Error while entering project step status");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
+
 
             //Enter players with their specific order for taking turns during the game
-            if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame))
-                return badRequest("Error while inserting order");
+            if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame)){
+                logger.log(Level.SEVERE,"Error while inserting order");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
 
-            if(!GameUtility.insertSnapshots(playersInTheGame,initialGameStat))
-                return badRequest("Error while inserting into Snapshots");
+            }
+
+
+            if(!GameUtility.insertSnapshots(playersInTheGame,initialGameStat)){
+                logger.log(Level.SEVERE,"Error while inserting into Snapshots");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
+
             //Generate Random Risk cards for players
-            if(!GameUtility.generateRandomRiskCardsForPlayer(playersInTheGame,configId))return badRequest("Error while mapping risks to players");
+            if(!GameUtility.generateRandomRiskCardsForPlayer(playersInTheGame,configId)){
+                logger.log(Level.SEVERE,"Error while mapping risks to players");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
             //Enter risk for individual players with status in some table
 
             //Identify whose turn is first
@@ -199,7 +283,9 @@ public class GameController extends Controller {
             return ok(views.html.ProjectStep.render(initialGameStat));
         }catch(Exception e){
             System.out.println("Error while starting the game");
-            return badRequest("Error while starting the game");
+            logger.log(Level.SEVERE,"Error while starting the game");
+            return ok(views.html.error.render());
+
         }
     }
 
@@ -207,13 +293,18 @@ public class GameController extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result performStep(){
 
-        if(!validateSession())return badRequest("Login to perform steps in the game");
+
+
+        String steptype = "projectstep";
+        if(!validateSession()) return ok(views.html.index.render());
 
         String gamePlayerId = session().get("gameplayerid");
 
         JsonNode body = request().body().asJson();
         String gameId = body.get("gameid").asText();
         Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
+        OOPS currentOOPS = new OOPS();
+        SURPRISE currentSurprise = new SURPRISE();
 
         String type = currentStep.getMoveType();
         String projectStepId = currentStep.getProjectStepId();
@@ -224,23 +315,87 @@ public class GameController extends Controller {
 
         //In case of skip step, just update the database and return
         if(type.equalsIgnoreCase("skipstep")) {
-            if(!GameUtility.performStep(gamePlayerId,currentStep))return badRequest("Error while updating status");
+            if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
+                logger.log(Level.SEVERE,"Error while updating status");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
+
+            }
             GameUtility.addReturningResources(currentStep);
         }
         else if(type.equalsIgnoreCase("projectstep")) {
+
+
             if (GameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
                 return badRequest("You already performed this step");
             ProjectStep projectStep = GameUtility.getProjectStepDetails(projectStepId);
-            if (projectStep == null) return badRequest("Error while retrieving project step detais");
-            if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
-                return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
-            if (!GameUtility.performStep(gamePlayerId, currentStep)) return badRequest("Error while updating status");
+            if (projectStep == null){
+                logger.log(Level.SEVERE,"Error while retrieving project step details");
+                // System.out.println("Error while retrieving phases.");
+                return ok(views.html.error.render());
 
-            if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId))
-                return badRequest("Error while updating project step status");
-            GameUtility.addReturningResources(currentStep);
-            currentStep.setTwoTurn(projectStep.getPersonnel());
+            }
+
+
+
+            Constants.PerformStep performAction = GameUtility.getActiontobeTaken(projectStep.getLevel(),currentStep.getCapabilityBonus());
+
+            if(performAction == Constants.PerformStep.OOPS)
+            {
+                steptype = "oops";
+
+                GameUtility.performOOPS(currentStep,currentOOPS);
+                if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
+                    logger.log(Level.SEVERE,"Error while updating status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(currentStep.getCurrentStepResource());
+            }
+            else if(performAction == Constants.PerformStep.SURPRISE){
+                steptype = "surprise";
+                GameUtility.performSurprise(currentStep,currentSurprise);
+                if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
+                    logger.log(Level.SEVERE,"Error while updating status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(currentStep.getCurrentStepResource());
+            }
+            else{
+                if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
+                    return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
+
+                if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
+                    logger.log(Level.SEVERE,"Error while updating status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId)){
+                    logger.log(Level.SEVERE,"Error while updating project step status");
+                    // System.out.println("Error while retrieving phases.");
+                    return ok(views.html.error.render());
+
+                }
+
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(projectStep.getPersonnel());
+            }
+
+
+          //  GameUtility.addReturningResources(currentStep);
+           // currentStep.setTwoTurn(projectStep.getPersonnel());
         }
+
+
             ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
@@ -253,6 +408,17 @@ public class GameController extends Controller {
             result.put("skipturn",currentStep.isSkipTurnStatus());
             result.put("oneturn",currentStep.getOneTurn());
             result.put("twoturn",currentStep.getTwoTurn());
+            result.put("steptype",currentStep.getMoveType());
+
+        result.put("oops_resource",currentOOPS.getResources());
+        result.put("oops_budget",currentOOPS.getBudget());
+        result.put("oops_points",currentOOPS.getCapabilityPoints());
+        result.put("oops_bonus",currentOOPS.getCapabilityBonus());
+
+        result.put("surprise_resource",currentSurprise.getResources());
+        result.put("surprise_budget",currentSurprise.getBudget());
+        result.put("surprise_points",currentSurprise.getCapabilityPoints());
+        result.put("surprise_bonus",currentSurprise.getCapabilityBonus());
 
             return ok(result);
 
@@ -284,7 +450,12 @@ public class GameController extends Controller {
     public static Result getRiskCards(){
         String gamePlayerId = session().get("gameplayerid");
         List<RiskCard> risks = GameUtility.getRisks(gamePlayerId);
-        if(risks == null || risks.size()==0) return badRequest("Error while retrieving risk cards");
+        if(risks == null || risks.size()==0) {
+            logger.log(Level.SEVERE,"Error while retrieving risk cards");
+            // System.out.println("Error while retrieving phases.");
+            return ok(views.html.error.render());
+
+        }
         System.out.println("RISKS:" + risks.toString());
         return ok(play.libs.Json.toJson(risks));
     }
