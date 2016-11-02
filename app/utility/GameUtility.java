@@ -670,7 +670,7 @@ public class GameUtility {
         InitialGameStat gamerules = new InitialGameStat();
         Random rand = new Random();
         int randomnumber = rand.nextInt(100) + 1;
-        randomnumber = 31;
+        //randomnumber = 31;
         getGameRules(gamerules);
         if(level == 2) {
             if((randomnumber + capabilityBonus) > gamerules.getLevel2Bonus()){
