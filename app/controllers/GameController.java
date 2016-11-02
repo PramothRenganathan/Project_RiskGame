@@ -304,6 +304,7 @@ public class GameController extends Controller {
         String gameId = body.get("gameid").asText();
         Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
         OOPS currentOOPS = new OOPS();
+        ObjectNode result = play.libs.Json.newObject();
         SURPRISE currentSurprise = new SURPRISE();
 
         String type = currentStep.getMoveType();
@@ -352,6 +353,11 @@ public class GameController extends Controller {
 
                 }
 
+                result.put("oops_resource",currentOOPS.getResources());
+                result.put("oops_budget",currentOOPS.getBudget());
+                result.put("oops_points",currentOOPS.getCapabilityPoints());
+                result.put("oops_bonus",currentOOPS.getCapabilityBonus());
+
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(currentStep.getCurrentStepResource());
             }
@@ -364,6 +370,11 @@ public class GameController extends Controller {
                     return ok(views.html.error.render());
 
                 }
+
+                result.put("surprise_resource",currentSurprise.getResources());
+                result.put("surprise_budget",currentSurprise.getBudget());
+                result.put("surprise_points",currentSurprise.getCapabilityPoints());
+                result.put("surprise_bonus",currentSurprise.getCapabilityBonus());
 
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(currentStep.getCurrentStepResource());
@@ -396,7 +407,7 @@ public class GameController extends Controller {
         }
 
 
-            ObjectNode result = play.libs.Json.newObject();
+            //ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
             result.put("message","success");
@@ -410,15 +421,9 @@ public class GameController extends Controller {
             result.put("twoturn",currentStep.getTwoTurn());
             result.put("steptype",currentStep.getMoveType());
 
-        result.put("oops_resource",currentOOPS.getResources());
-        result.put("oops_budget",currentOOPS.getBudget());
-        result.put("oops_points",currentOOPS.getCapabilityPoints());
-        result.put("oops_bonus",currentOOPS.getCapabilityBonus());
 
-        result.put("surprise_resource",currentSurprise.getResources());
-        result.put("surprise_budget",currentSurprise.getBudget());
-        result.put("surprise_points",currentSurprise.getCapabilityPoints());
-        result.put("surprise_bonus",currentSurprise.getCapabilityBonus());
+
+
 
             return ok(result);
 

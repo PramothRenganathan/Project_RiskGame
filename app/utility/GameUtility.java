@@ -670,7 +670,7 @@ public class GameUtility {
         InitialGameStat gamerules = new InitialGameStat();
         Random rand = new Random();
         int randomnumber = rand.nextInt(100) + 1;
-        //randomnumber = 21;
+        randomnumber = 31;
         getGameRules(gamerules);
         if(level == 2) {
             if((randomnumber + capabilityBonus) > gamerules.getLevel2Bonus()){
@@ -795,7 +795,10 @@ public class GameUtility {
         currentStep.setCurrentStepResource(oops.getResources());
         currentStep.setMoveType("OOPS");
         currentStep.setOopsId(oops.getId());
-        currentOOPS = oops;
+        currentOOPS.setResources(oops.getResources());
+        currentOOPS.setBudget(oops.getBudget());
+        currentOOPS.setCapabilityPoints(oops.getCapabilityPoints());
+        currentOOPS.setCapabilityBonus(oops.getCapabilityBonus());
 //        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
 
         //System.out.println("Im here");
@@ -815,7 +818,10 @@ public class GameUtility {
         currentStep.setMoveType("SURPRISE");
         currentStep.setSurpriseId(surprise.getId());
         currentStep.setCurrentStepResource(surprise.getResources());
-        currentSurprise = surprise;
+        currentSurprise.setResources(surprise.getResources());
+        currentSurprise.setBudget(surprise.getBudget());
+        currentSurprise.setCapabilityPoints(surprise.getCapabilityPoints());
+        currentSurprise.setCapabilityBonus(surprise.getCapabilityBonus());
 //        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
 
         //System.out.println("Im here");
