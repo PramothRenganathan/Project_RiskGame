@@ -731,9 +731,11 @@ public class GameUtility {
         List<RiskCard> risks = new ArrayList<>();
         try{
             conn = DB.getConnection();
-            String query = "SELECT gprs.risk_id,description,budget_to_mitigate,personnel_to_mitigate,gprs.status from RISKS r JOIN CONFIG_RISK_MAPPING crm on r.risk_id = crm.risk_id" +
+            String query = "SELECT gprs.risk_id,description,budget_to_mitigate,personnel_to_mitigate,gprs.status from RISKS r" +
+                    " JOIN CONFIG_RISK_MAPPING crm on r.risk_id = crm.risk_id " +
                     "JOIN GAME_PLAYER_RISK_STATUS gprs ON gprs.risk_id = crm.config_risk_mapping_id and gprs.game_player_id = ?";
             stmt = conn.prepareStatement(query);
+            stmt.setString(1,gamePlayerId);
             ResultSet rs = stmt.executeQuery();
             RiskCard rc = null;
             while(rs.next()){
@@ -765,7 +767,9 @@ public class GameUtility {
 
 
 
-        String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM" +
+        String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id, project_step_name, `level`," +
+                " pre_requisite,budget, personnel, capability_points, capability_bonus,`status`" +
+                " FROM CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM" +
                 " JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id" +
                 " JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id and CPM.config_phase_mapping_id = ? and GPS.game_player_id = ?";
 
@@ -859,7 +863,8 @@ public class GameUtility {
 
     public static List<Phase> getPhases(String configId){
 
-        String query = "SELECT C.config_phase_mapping_id, P.phase_id,phase_name,description from PHASES P JOIN CONFIG_PHASE_MAPPING C where P.phase_id=C.phase_id and C.game_config_id = ?";
+        String query = "SELECT C.config_phase_mapping_id, P.phase_id,phase_name,description from PHASES P" +
+                " JOIN CONFIG_PHASE_MAPPING C where P.phase_id=C.phase_id and C.game_config_id = ?";
 
         System.out.println(configId);
 
