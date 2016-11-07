@@ -12,6 +12,8 @@
         @*<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jquery.bootgrid.css")" />*@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
         <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/sweetalert.css")" />
+        <script src="@routes.Assets.at("javascripts/sweetalert.min.js")" type="text/javascript"></script>
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
@@ -304,12 +306,12 @@
 
                         if(data.steptype == "OOPS")
                         {
-                            var alertmsg = "You lost" + data.oops_resource + "resource " + data.oops_points + "capability points " + data.oops_bonus + "capability bonus " + data.oops_budget + "dollars.";
+                            var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
                             //alert(alertmsg);
                             swal("YOU GOT AN OOPS CARD!",alertmsg, "error");
                         }
                         else if(data.steptype == "SURPRISE"){
-                            var alertmsg = "You gained" + data.surprise_resource + "resource " + data.surprise_points + "capability points " + data.surprise_bonus + "capability bonus " + data.surprise_budget + "dollars.";
+                            var alertmsg = "You gained" + data.surprise_resource + " resource, " + data.surprise_points + "capability points, " + data.surprise_bonus + "capability bonus and " + data.surprise_budget + " dollars.";
                             //alert(alertmsg);
                             swal("YOU GOT A SURPRISE CARD!",alertmsg, "error");
                         }
