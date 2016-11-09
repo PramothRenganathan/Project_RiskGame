@@ -8,16 +8,18 @@ public class RiskCard {
     private String riskDescription;
     private int personnel;
     private int budget;
+    private int totalMitigationSteps;
+    private int performedMitigationSteps;
 
     public boolean isComplete() {
-        return isComplete;
+        return complete;
     }
 
     public void setComplete(boolean complete) {
-        isComplete = complete;
+        this.complete = complete;
     }
 
-    private boolean isComplete;
+    private boolean complete;
 
     public String getRiskId() {
         return riskId;
@@ -49,5 +51,21 @@ public class RiskCard {
 
     public void setBudget(int budget) {
         this.budget = budget;
+    }
+
+    public int getTotalMitigationSteps() {
+        return totalMitigationSteps;
+    }
+
+    public void setTotalMitigationSteps(int totalMitigationSteps) {
+        this.totalMitigationSteps = totalMitigationSteps;
+    }
+
+    public int getPerformedMitigationSteps() {
+        return performedMitigationSteps;
+    }
+
+    public void setPerformedMitigationSteps(int performedMitigationSteps) {
+        this.performedMitigationSteps = performedMitigationSteps;
     }
 }
