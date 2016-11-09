@@ -9,6 +9,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" hredef="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        @*<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jquery.bootgrid.css")" />*@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
         <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/sweetalert.css")" />
@@ -16,13 +17,14 @@
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
-
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/flipclock.css")" />
-
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/sweetalert.css")" />
+        @*<script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>*@
+        <script src="@routes.Assets.at("javascripts/sweetalert.min.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/flipclock.js")"></script>
-
         <script type="text/javascript" charset="utf-8" src="@routes.Application.gameJs()"></script>
-
+        @*<script src="@routes.Assets.at("javascripts/jquery.bootgrid.fa.js.js")" type="text/javascript"></script>*@
+        @*<script src="@routes.Assets.at("javascripts/jquery.bootgrid.js")" type="text/javascript"></script>*@
         <style type="text/css">
         .container > header {
             padding: 0px 30px 10px 30px !important;
@@ -126,6 +128,10 @@
             background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(114,184,255,1)), color-stop(100%,rgba(64,150,238,1)));
             background: linear-gradient(to bottom, rgba(114,184,255,1) 0%,rgba(64,150,238,1) 100%);
         }
+
+
+
+
         </style>
 
 
@@ -133,10 +139,140 @@
     <script>
 
 
-            function myfunc(clicked_id) {
+            function myfunc() {
+
+                alert("aaaaaaaa");
+            }
+
+            function onRiskDashboardClick(){
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@routes.GameController.getRiskCards()',
+//                     data : '',
+                    data: JSON.stringify(''),
+                    // dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+//                        alert(data);
+                        var result = " ";
+                        $("#grid-basic tbody") .empty();
+                        var firstRisk=data[0].riskId;
+                        for (i = 0; i < data.length; i++) {
+
+                            var obj = data[i];
+//                            obj.isComplete = obj.isComplete === 'false' ? "Not Completed" : "Completed";
+                            var isComplete="";
+                            if(obj.isComplete){
+//                                alert('object is true')
+                                isComplete="Completed"
+                            }else{
+                                isComplete="Pending"
+                            }
+
+//                            result=result+"<button id='"+obj.riskId+"' onclick='onRiskClick(id)'>"+obj.riskDescription+"</button><br/>";
+                            appendquery = "<tr><td style='text-align:left'><a id='"+obj.riskId+"' href='#' onclick='onRiskClick(id)' >"+obj.riskDescription+"</a></td><td>" + isComplete + "</td><td><button>Mitigate</button></td></tr>";
+                            //$('#grid-basic tr:last').after(appendquery);
+                            //$('#grid-basic').find(tbody).append(appendquery);
+                            $("#grid-basic tbody").append(appendquery);
+
+                        }
+                        document.getElementById('risks').innerHTML = result;
+                        onRiskClick(firstRisk);
+                    },
+                    error: function (data) {
+                        alert("error");
+                        //setError('Make call failed');
+                    }
+                });
+
+            }
+
+            var riskClicked="";
+            function onRiskClick(id){
+//                alert("fghjh "+id);
+                riskClicked=id;
+                var obj = {
+                    'riskid': id
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: '@routes.GameController.getMitigationSteps()',
+//                     data : '',
+                    data: JSON.stringify(obj),
+                    contentType: 'application/json',
+                    success: function (data) {
+
+                        var result = "";
+                        for (i = 0; i < data.length; i++) {
+                            var obj = data[i];
+
+                            var status;
+                            if(obj.status){
+                                obj.status="disabled='true'"
+                            }
+//                                result= result+"<h1>"+obj.projectStepName+"</h1>";
+//                            alert();
 
 
-                alert("aaaaaaaa" + clicked_id);
+                            var eligibleBudget=0;
+                            var eligibleCapabilityBonus=0;
+                            var eligibleCapabilityPoints=0;
+                            var eligiblePersonnelRemaining=0;
+////                            alert('hereee');
+                            eligibleBudget= parseInt(document.getElementById('budgetremaining').innerHTML) - obj.budget;
+                            eligibleCapabilityBonus= parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
+                            eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
+                            eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
+
+//                            alert(eligibleBudget+" "+eligiblePersonnelRemaining);
+////
+                            var setClassColor;
+                            var buttonDisable;
+                            if(eligibleBudget<0 || eligiblePersonnelRemaining<0){
+                                setClassColor="ProjectStepStyle";
+                                buttonDisable="true";
+//                                alert("you cannot perform this step "+obj.projectStepName );
+                            }else{
+                                setClassColor=" ";
+                                buttonDisable="false"
+                            }
+//                              alert(document.getElementById('budgetremaining').innerHTML);
+//                            alert("elig"+setColor);
+
+//                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
+
+                            result = result + "<button " +
+                                    " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
+                                    " style='white-space: normal; ' " +
+                                    " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
+                                    " data-toggle='modal' " +obj.status+
+                                    " data-buttondisable='"+buttonDisable+"'" +
+                                    "data-title='" + obj.projectStepName +
+                                    "'data-id='" + obj.projectStepId +
+                                    "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
+                                    "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
+                                    "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
+                                    "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
+                                    "'data-level='Level:' data-levelvalue='" + obj.level +
+                                    "'data-id='" + obj.projectStepId +
+                                    "'" +
+//                                            "data-todo='{'id':12,'todo':'xyz'}'"+
+                                    "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
+                                    "  id='todolink'>" + obj.projectStepName +
+                                    "</button><div class='col-md-1' style='height:90px;'></div>";
+//                                    "</button><div class='col-md-1' style='height:90px;"+setColor+"'"></div>";
+
+                        }
+
+                        document.getElementById('risksteps').innerHTML = result;
+                    },
+                    error: function (data) {
+                        alert("error");
+                        //setError('Make call failed');
+                    }
+                });
+
             }
 
             function onPerformStep(id){
@@ -167,6 +303,7 @@
                     success: function (data) {
 //                        alert(data.oneturn+" "+data.twoturn);
 
+
                         if(data.steptype == "OOPS")
                         {
                             var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
@@ -189,9 +326,9 @@
                         document.getElementById('turnNo').innerHTML = data.currentturn;
                         document.getElementById('oneTurn').innerHTML = data.oneturn;
                         document.getElementById('twoTurn').innerHTML = data.twoturn;
-
                         onPhaseClick(currentPhase);
-                        onRiskClick(riskClicked);
+                        onRiskClick(riskClicked)
+
                     },
                     error: function (data) {
                         alert("error");
@@ -262,7 +399,6 @@
 //                            alert("elig"+setColor);
 
 //                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
-
 
                             result = result + "<button " +
                                     " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
@@ -416,16 +552,15 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">My Status</h4>
                         </div>
-                        <div class="panel-body" style="height: 100px; overflow-wrap: break-word;overflow-y: scroll;font-size:small;">
-                            <div style=" display: inline-block;">Budget:</div><div style=" display: inline-block;" id="budgetremaining"> @model.getBudget()</div>
-                            <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block;" id="capabilitypoints"> @model.getCapabilityPoints()</div>
-                            <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block;" id="capabilitybonus"> @model.getCapabilityBonus()</div>
-                            <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block;" id="personnelremaining"> @model.getResources</div>
+                        <div class="panel-body" style="height: 200px; overflow-wrap: break-word;overflow-y: scroll;font-size:small; text-align: left">
+                            <div style=" display: inline-block;">Budget:</div><div style=" display: inline-block; float: right " id="budgetremaining"> @model.getBudget()</div>
+                            <div style=" display: inline-block;">Capability Points:</div><div style=" display: inline-block; float: right" id="capabilitypoints"> @model.getCapabilityPoints()</div>
+                            <div style=" display: inline-block;">Capability Bonus:</div><div style=" display: inline-block; float: right" id="capabilitybonus"> @model.getCapabilityBonus()</div>
+                            <div style=" display: inline-block;">Personnel:</div><div style=" display: inline-block; float: right" id="personnelremaining"> @model.getResources</div>
                             <div>No. of resources who will return after </div>
-                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block;" id="oneTurn">0</div>
-                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block;" id="twoTurn">0</div>
+                            <div style=" display: inline-block;">One Step:</div><div style=" display: inline-block; float: right" id="oneTurn">0</div><br/>
+                            <div style=" display: inline-block;">Two Steps:</div><div style=" display: inline-block; float: right" id="twoTurn">0</div>
                             @*<a data-toggle="modal" data-target="#myAssetModal" style="color: blue">More info >></a>*@
-
 
                         </div>
                         <div class="modal fade" id="myAssetModal" role="dialog">
@@ -467,7 +602,7 @@
                         <div class="panel-heading" style="background-color: #A8A2A3">
                             <h4 class="panel-title">Current Action</h4>
                         </div>
-                        <div class="panel-body" style="height: 200px; ">
+                        <div class="panel-body" style="height: 150px; ">
                             <div style=" display: inline-block;">Turn No: </div><div style=" display: inline-block;" id="turnNo">1</div>
 
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
@@ -497,6 +632,9 @@
 
                 </div>
                     <!-- \\ end of big1 div -->
+
+
+
 
                     <!-- \\ start of center div - phases and steps -->
                 <div class="col-md-8 card" style="border: 1px solid transparent">
@@ -546,6 +684,7 @@
                                     <tr>
                                         <th style="font-weight: bold; background-color: #7cbcd6" data-column-id="riskcolumn" data-formatter="link" data-order="desc">Risk Description</th>
                                         <th style="font-weight: bold;background-color: #7cbcd6" data-column-id="statuscolumn">Status</th>
+                                        <th style="font-weight: bold;background-color: #7cbcd6" data-column-id="mitigatecolumn"></th>
 
                                     </tr>
                                 </thead>
@@ -565,8 +704,7 @@
 
                 </div>
 
-
-                <!-- \\ end of center div - phases and steps -->
+                    <!-- \\ end of center div - phases and steps -->
 
 
                 <div class="col-md-2" style="border-left: 1px Dashed #969C9E;
@@ -604,10 +742,10 @@
 
             </header>
             @if(model.isObserver()){
-                </div>
-                }
+            </div>
+            }
 
-            <!-- This will be displayed if he is the observer -->
+                <!-- This will be displayed if he is the observer -->
 
             @if(model.isObserver()){
 
@@ -629,7 +767,7 @@
 
 
 
-        }
+            }
 
             <div class="clearfix"></div>
             <div class="clearfix"></div>

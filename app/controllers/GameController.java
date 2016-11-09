@@ -279,6 +279,7 @@ public class GameController extends Controller {
 
             //Map<Phase,List<ProjectStep>> phaseProjectStepMapping = getProjectSteps(configId,phases);
 
+
             //Update the game table with start time and list of players
             return ok(views.html.ProjectStep.render(initialGameStat));
         }catch(Exception e){
