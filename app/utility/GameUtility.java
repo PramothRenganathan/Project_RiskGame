@@ -492,6 +492,8 @@ public class GameUtility {
         boolean skipTurn = body.get("skipturn").asBoolean();
         int oneTurn = body.get("oneturn").asInt();
         int twoTurn = body.get("twoturn").asInt();
+        int performedSteps = body.get("performedsteps").asInt();
+        int totalSteps = body.get("totalsteps").asInt();
 
         Snapshot receivedSnapShot = new Snapshot();
         receivedSnapShot.setBudget(budget);
@@ -505,6 +507,8 @@ public class GameUtility {
         receivedSnapShot.setSkipTurnStatus(skipTurn);
         receivedSnapShot.setOneTurn(oneTurn);
         receivedSnapShot.setTwoTurn(twoTurn);
+        receivedSnapShot.setPerformedSteps(performedSteps);
+        receivedSnapShot.setTotalSteps(totalSteps);
 
         return receivedSnapShot;
     }
@@ -1192,5 +1196,74 @@ public class GameUtility {
             }
         }
     return null;
+    }
+
+    public static boolean updateRiskStatus(String gamePlayerId, String riskId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "UPDATE GAME_PLAYER_RISK_STATUS SET `status` = ? WHERE game_player_id = ? and risk_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setBoolean(1,true);
+            stmt.setString(2,gamePlayerId);
+            stmt.setString(3,riskId);
+            int result = stmt.executeUpdate();
+            return result > 0;
+
+        }
+        catch(Exception e){
+            System.out.println("Error while updating risk status");
+            return false;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static RiskCard getRiskDetails(String riskId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT budget_to_mitigate,personnel_to_mitigate FROM RISKS R JOIN CONFIG_RISK_MAPPING CRM ON CRM.risk_id = R.risk_id and CRM.config_risk_mapping_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1,riskId);
+            ResultSet rs  = stmt.executeQuery();
+            RiskCard rc = null;
+            while(rs.next()){
+                rc = new RiskCard();
+                rc.setBudget(rs.getInt("budget_to_mitigate"));
+                rc.setPersonnel(rs.getInt("personnel_to_mitigate"));
+            }
+            return rc;
+
+
+        }
+        catch(Exception e){
+            System.out.println("Error while retrieving risk status");
+            return null;
+        }
+        finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static boolean mitigateRisk(Snapshot currentStep, RiskCard rc) {
+        if(currentStep.getBudget() < rc.getBudget())return false;
+        if(currentStep.getPersonnel() < rc.getPersonnel()) return false;
+
+        //perform risk mitigation
+        currentStep.setBudget(currentStep.getBudget() - rc.getBudget());
+        currentStep.setPersonnel(currentStep.getPersonnel() - rc.getPersonnel());
+        return true;
     }
 }

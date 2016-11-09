@@ -311,6 +311,7 @@ public class GameController extends Controller {
         String type = currentStep.getMoveType();
         String projectStepId = currentStep.getProjectStepId();
         int turnNo = currentStep.getTurnNo();
+        RiskCard rc = null;
 
         Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
         if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
@@ -335,7 +336,6 @@ public class GameController extends Controller {
                 logger.log(Level.SEVERE,"Error while retrieving project step details");
                 // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
-
             }
 
 
@@ -398,6 +398,8 @@ public class GameController extends Controller {
 
                 }
 
+
+
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(projectStep.getPersonnel());
             }
@@ -405,6 +407,39 @@ public class GameController extends Controller {
 
           //  GameUtility.addReturningResources(currentStep);
            // currentStep.setTwoTurn(projectStep.getPersonnel());
+        }
+        else if(type.equalsIgnoreCase("risk")){
+            String riskId = body.get("riskid").asText();
+            double performedSteps = currentStep.getPerformedSteps();
+            double totalSteps = currentStep.getTotalSteps();
+            double successProbability = performedSteps/totalSteps;
+            System.out.println("Probability:" + successProbability);
+
+            boolean success = false;
+
+            if(successProbability > 0.67){
+                success = true;
+            }
+
+            if(success){
+
+                //Get Risk details
+                rc = GameUtility.getRiskDetails(riskId);
+                //Mitigate the risk
+                if(!GameUtility.mitigateRisk(currentStep,rc)){
+
+                    return badRequest("Error while mitigating risk");
+                }
+
+                //update risk status for the player
+                if(!GameUtility.updateRiskStatus(gamePlayerId,riskId)){
+                    return badRequest("Error while updating risk status");
+                }
+            }
+
+            GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(rc.getPersonnel());
+
         }
 
 
