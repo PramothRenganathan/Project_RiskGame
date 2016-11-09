@@ -162,18 +162,19 @@
 
                             var obj = data[i];
 //                            obj.isComplete = obj.isComplete === 'false' ? "Not Completed" : "Completed";
-                            var isComplete="";
-                            if(obj.isComplete){
+                            var isCompleted="";
+//                            alert(obj.complete);
+                            if(obj.complete){
 //                                alert('object is true')
-                                isComplete="Completed"
+                                isCompleted="Completed"
                             }else{
-                                isComplete="Pending"
+                                isCompleted="Pending"
                             }
 
 //                            result=result+"<button id='"+obj.riskId+"' onclick='onRiskClick(id)'>"+obj.riskDescription+"</button><br/>";
 //                            alert(obj.riskId);
-                            appendquery = "<tr><td style='text-align:left'><a id='"+obj.riskId+"' href='#' onclick='onRiskClick(id)' >"+obj.riskDescription+"</a></td><td>" + isComplete + "</td>" +
-                                    "<td><button onclick=onPerformStep('"+obj.riskId+"')>Mitigate</button></td></tr>";
+                            appendquery = "<tr><td style='text-align:left'><a id='"+obj.riskId+"' href='#' onclick='onRiskClick(id)' >"+obj.riskDescription+"</a></td><td>" + isCompleted + "</td>" +
+                                    "<td><button onclick=onMitigateRisk('"+obj.riskId+"')>Mitigate</button></td></tr>";
                             //$('#grid-basic tr:last').after(appendquery);
                             //$('#grid-basic').find(tbody).append(appendquery);
                             $("#grid-basic tbody").append(appendquery);
@@ -190,7 +191,16 @@
 
             }
 
+            function onMitigateRisk(id){
+                alert(id);
+                onRiskClick(id);
+                onPerformStep(id);
+            }
+
+
             var riskClicked="";
+            var totalSteps=0;
+            var stepsDone=0;
             function onRiskClick(id){
 //                alert("fghjh "+id);
                 riskClicked=id;
@@ -205,14 +215,18 @@
                     contentType: 'application/json',
                     success: function (data) {
 
+                        totalSteps=data.length;
+                        stepsDone=0;
                         var result = "";
                         for (i = 0; i < data.length; i++) {
                             var obj = data[i];
 
                             var status;
                             if(obj.status){
+                                stepsDone++;
                                 obj.status="disabled='true'"
                             }
+
 //                                result= result+"<h1>"+obj.projectStepName+"</h1>";
 //                            alert();
 
@@ -266,6 +280,7 @@
 //                                    "</button><div class='col-md-1' style='height:90px;"+setColor+"'"></div>";
 
                         }
+                        alert(stepsDone+"/"+totalSteps);
 
                         document.getElementById('risksteps').innerHTML = result;
                     },
@@ -280,12 +295,13 @@
             function onPerformStep(id){
 //                var isEligibleToPerformStep=true;
 //                alert(document.getElementById('oneTurn').innerHTML);
-                    alert(typeof id);
+//                    alert(typeof id);
 
                 if(id.indexOf("CRM") !==-1){
 
                     var obj = {
-                        'id': id,
+                        'id': 'null',
+                        'riskid' : id,
                         'gameid':document.getElementById('gameid').innerHTML,
                         'skipturn':'false',
                         'oneturn':document.getElementById('oneTurn').innerHTML,
@@ -296,11 +312,14 @@
                         'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
                         'personnel' :document.getElementById('personnelremaining').innerHTML,
                         'turnno': document.getElementById('turnNo').innerHTML,
-                        'timetaken': 3
+                        'timetaken': 3,
+                        'performedsteps': stepsDone,
+                        'totalsteps':totalSteps
                     };
                 } else{
                     var obj = {
                         'id': id,
+                        'riskid' : 'null',
                         'gameid':document.getElementById('gameid').innerHTML,
                         'skipturn':'false',
                         'oneturn':document.getElementById('oneTurn').innerHTML,
@@ -311,7 +330,9 @@
                         'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
                         'personnel' :document.getElementById('personnelremaining').innerHTML,
                         'turnno': document.getElementById('turnNo').innerHTML,
-                        'timetaken': 3
+                        'timetaken': 3,
+                        'performedsteps': 0,
+                        'totalsteps':1
                     };
                 }
 
@@ -349,7 +370,10 @@
                         document.getElementById('oneTurn').innerHTML = data.oneturn;
                         document.getElementById('twoTurn').innerHTML = data.twoturn;
                         onPhaseClick(currentPhase);
-                        onRiskClick(riskClicked)
+                        onRiskClick(riskClicked);
+                        if(id.indexOf("CRM") !==-1){
+                            onRiskDashboardClick();
+                        }
 
                     },
                     error: function (data) {
