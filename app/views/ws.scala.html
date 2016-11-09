@@ -58,15 +58,21 @@ $(function() {
         }
 
         else if (model.type == "redirect") {
-        $('#frmHidden').submit();
-             //window.location.replace("/game");
+
+        alert($('#isobserver').val());
+        var isObserver = $('#isobserver').val()=="true"?true:false;
+            if(isObserver){
+                $('#frmObserver').submit();
+            }
+            else{
+                $('#frmHidden').submit();
+            }
         }
 
         else {
             var name = model.name;
             $('#lblCount').text(count);
             $('#divJoined').prepend('<p>' + name + '</p>');
-
         }
     }
 

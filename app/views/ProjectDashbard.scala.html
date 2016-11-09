@@ -158,6 +158,8 @@
         @*});*@
     }
 
+    var observer;
+
     function joingame() {
         // debugger;var gameid = $('input[name=TimeBound]:checked').val();
         //debugger;
@@ -168,6 +170,7 @@
             'gameid': gameid,
             'isobserver': isobserver == "1" ? true : false
         };
+
         $.ajax({
             type : 'POST',
             url : '@routes.GameController.joinGame()',
@@ -179,6 +182,7 @@
                 if(data.message == "success")
                 {
                     $("#jgameid").val(gameid);
+                    $('#hdn_observer').val(isobserver);
                     $("#joingameform").submit();
 
                 }
@@ -203,11 +207,6 @@
 
   </script>
 
-
-
-
-
-
   </head>
   <body>
       @header()<br>
@@ -221,6 +220,7 @@
                   </form>
               <form style="display: hidden" action="/joingame" method="POST" id="joingameform">
                   <input type="hidden" id = "jgameid" name ="jgameid" value="0"  />
+                  <input type="hidden" id = "hdn_observer" name ="hdn_observer" value="0" />
               </form>
                   <!-- Button trigger modal -->
               <button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
@@ -295,9 +295,6 @@
 
                                       </fieldset>
                                   </form>
-
-
-
                           </div>
                           <div class="modal-footer">
                               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

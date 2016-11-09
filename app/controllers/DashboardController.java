@@ -127,10 +127,7 @@ public class DashboardController extends Controller {
                 e.printStackTrace();
             }
         }
-
     }
-
-
 
     @BodyParser.Of(BodyParser.Json.class)
     public static Result HostGame()
@@ -146,11 +143,14 @@ public class DashboardController extends Controller {
     {
         String userName = session().get("username");
         String gameId = request().body().asFormUrlEncoded().get("jgameid")[0];
+        String observer = request().body().asFormUrlEncoded().get("hdn_observer")[0];
+        boolean isObserver = observer.equals("1")? true: false;
+
         List<String> parameters = new ArrayList<>();
         parameters.add(userName);
         parameters.add(gameId);
+        parameters.add(String.valueOf(isObserver));
 
         return ok(views.html.join.render(parameters));
     }
-
 }
