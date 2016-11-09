@@ -171,7 +171,9 @@
                             }
 
 //                            result=result+"<button id='"+obj.riskId+"' onclick='onRiskClick(id)'>"+obj.riskDescription+"</button><br/>";
-                            appendquery = "<tr><td style='text-align:left'><a id='"+obj.riskId+"' href='#' onclick='onRiskClick(id)' >"+obj.riskDescription+"</a></td><td>" + isComplete + "</td><td><button>Mitigate</button></td></tr>";
+//                            alert(obj.riskId);
+                            appendquery = "<tr><td style='text-align:left'><a id='"+obj.riskId+"' href='#' onclick='onRiskClick(id)' >"+obj.riskDescription+"</a></td><td>" + isComplete + "</td>" +
+                                    "<td><button onclick=onPerformStep('"+obj.riskId+"')>Mitigate</button></td></tr>";
                             //$('#grid-basic tr:last').after(appendquery);
                             //$('#grid-basic').find(tbody).append(appendquery);
                             $("#grid-basic tbody").append(appendquery);
@@ -278,21 +280,41 @@
             function onPerformStep(id){
 //                var isEligibleToPerformStep=true;
 //                alert(document.getElementById('oneTurn').innerHTML);
+                    alert(typeof id);
 
-                var obj = {
-                    'id': id,
-                    'gameid':document.getElementById('gameid').innerHTML,
-                    'skipturn':'false',
-                    'oneturn':document.getElementById('oneTurn').innerHTML,
-                    'twoturn':document.getElementById('twoTurn').innerHTML,
-                    'type': 'projectstep',
-                    'budget': document.getElementById('budgetremaining').innerHTML,
-                    'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
-                    'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
-                    'personnel' :document.getElementById('personnelremaining').innerHTML,
-                    'turnno': document.getElementById('turnNo').innerHTML,
-                    'timetaken': 3
-                };
+                if(id.indexOf("CRM") !==-1){
+
+                    var obj = {
+                        'id': id,
+                        'gameid':document.getElementById('gameid').innerHTML,
+                        'skipturn':'false',
+                        'oneturn':document.getElementById('oneTurn').innerHTML,
+                        'twoturn':document.getElementById('twoTurn').innerHTML,
+                        'type': 'risk',
+                        'budget': document.getElementById('budgetremaining').innerHTML,
+                        'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+                        'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+                        'personnel' :document.getElementById('personnelremaining').innerHTML,
+                        'turnno': document.getElementById('turnNo').innerHTML,
+                        'timetaken': 3
+                    };
+                } else{
+                    var obj = {
+                        'id': id,
+                        'gameid':document.getElementById('gameid').innerHTML,
+                        'skipturn':'false',
+                        'oneturn':document.getElementById('oneTurn').innerHTML,
+                        'twoturn':document.getElementById('twoTurn').innerHTML,
+                        'type': 'projectstep',
+                        'budget': document.getElementById('budgetremaining').innerHTML,
+                        'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+                        'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+                        'personnel' :document.getElementById('personnelremaining').innerHTML,
+                        'turnno': document.getElementById('turnNo').innerHTML,
+                        'timetaken': 3
+                    };
+                }
+
                 $.ajax({
                     type: 'POST',
                     url: '@routes.GameController.performStep()',
