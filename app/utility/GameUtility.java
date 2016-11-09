@@ -570,7 +570,12 @@ public class GameUtility {
                 stmt.setNull(13,Types.VARCHAR);//surprise id
             }
 
-            stmt.setNull(11,Types.VARCHAR);//risk id
+            if(moveType == Constants.PerformStep.RISK){
+                stmt.setString(11,currentStep.getRiskId());
+
+            }else {
+                stmt.setNull(11, Types.VARCHAR);//risk id
+            }
 
 
             stmt.setNull(14,Types.VARCHAR);//oops impact id
