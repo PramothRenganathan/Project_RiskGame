@@ -12,7 +12,8 @@ public class Constants {
     public enum PerformStep {
         PROJECTSTEP,
         OOPS,
-        SURPRISE
+        SURPRISE,
+        RISK
     }
 
     //GAME RELATED CONSTANTS

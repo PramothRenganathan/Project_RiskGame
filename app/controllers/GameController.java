@@ -314,7 +314,10 @@ public class GameController extends Controller {
         RiskCard rc = null;
 
         Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
+
+
         if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
+
 
         //In case of skip step, just update the database and return
         if(type.equalsIgnoreCase("skipstep")) {
@@ -410,6 +413,7 @@ public class GameController extends Controller {
         }
         else if(type.equalsIgnoreCase("risk")){
             String riskId = body.get("riskid").asText();
+            currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
             double successProbability = performedSteps/totalSteps;
@@ -430,13 +434,15 @@ public class GameController extends Controller {
 
                     return badRequest("Error while mitigating risk");
                 }
-
                 //update risk status for the player
                 if(!GameUtility.updateRiskStatus(gamePlayerId,riskId)){
                     return badRequest("Error while updating risk status");
                 }
-            }
 
+
+            }
+            //Add step to project snapshot
+            GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
             GameUtility.addReturningResources(currentStep);
             currentStep.setTwoTurn(rc.getPersonnel());
 
