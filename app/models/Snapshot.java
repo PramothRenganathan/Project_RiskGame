@@ -28,6 +28,9 @@ public class Snapshot {
     private int twoTurn;
     private int currentStepResource;
 
+    private int performedSteps;
+    private int totalSteps;
+
     public String getGamePlayerId() {
         return gamePlayerId;
     }
@@ -194,5 +197,21 @@ public class Snapshot {
 
     public void setTwoTurn(int twoTurn) {
         this.twoTurn = twoTurn;
+    }
+
+    public int getPerformedSteps() {
+        return performedSteps;
+    }
+
+    public void setPerformedSteps(int performedSteps) {
+        this.performedSteps = performedSteps;
+    }
+
+    public int getTotalSteps() {
+        return totalSteps;
+    }
+
+    public void setTotalSteps(int totalSteps) {
+        this.totalSteps = totalSteps;
     }
 }
