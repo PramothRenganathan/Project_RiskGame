@@ -1,0 +1,71 @@
+@(parameters:List[String])
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Project Steps</title>
+        <link rel="shortcut icon" href="">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" hredef="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
+    </head>
+
+    <input type="hidden" id="gameid" name="gameid" value='@parameters.get(0)'>
+
+    <script type="text/javascript">
+        $(function(){
+
+            var gameid = $('#gameid').val();
+            var obj = {'gameid': gameid};
+            $('#btnShow').on('click', function(){
+                @*$.ajax({*@
+                    @*type: 'POST',*@
+                    @*url: '@routes.GameController.getSnapshotDetails()',*@
+                    @*data: JSON.stringify(obj),*@
+                    @*contentType: 'application/json',*@
+                    @*success: function (data) {*@
+                        @*alert(data);*@
+                    @*}*@
+                @*});*@
+                var url = '@routes.Assets.at("images/802575/dmkhan/1.png")';
+                $("#imgContainer").html("<img src='" + url + "' alt='turn snap'/>");
+            });
+
+            $('li').on('click', function(){
+                @*var url = '@routes.Assets.at("images/88073/dmkhan/2.png")';*@
+                @*alert(url);*@
+@*//                $('#imgContainer').html("hello");*@
+                @*$("#imgContainer").html("<img src='" + url + "' alt='turn snap'/>");*@
+
+            });
+        });
+
+    </script>
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" >
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-2">
+                    <button id="btnShow">Show All</button>
+                <div>
+                    <div class="panel-body" id="panel">Available Snapshots</div>
+                    <ul class="list-snapshots">
+                        <li>Snap 1</li>
+                        <li>Snap 2</li>
+                        <li>Snap 3</li>
+                        <li>Snap 4</li>
+                        <li>Snap 5</li>
+                    </ul>
+                </div>
+		        </div>
+                <div class="col-md-10" id="imgContainer" style="height:200px">
+
+                </div>
+		</div>
+        </div>
+    </body>
+</html>

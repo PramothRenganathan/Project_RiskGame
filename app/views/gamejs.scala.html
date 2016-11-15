@@ -12,6 +12,9 @@ $(function() {
                  timeout = true;
                  sendTimeoutMessage();
 
+                setTimer(240);
+                resetTimer();
+                timer.hide();
                 //In case of timeout, next player should get his turn
                 publishTurnNumber();
             }
@@ -231,6 +234,11 @@ $(function() {
         socket.send(data);
     });
 
+    //take snapshot only when modal is closed
+    $('#editTodoDialog').on('hidden.bs.modal', function () {
+        takeSnapshot();
+    });
+
     //Perform step button event handler
     $('.perform-step').on("click", function(){
 
@@ -250,6 +258,29 @@ $(function() {
         resetTimer();
         timer.hide();
     });
+
+    var takeSnapshot = function(){
+        html2canvas(document.body, {
+        onrendered: function(canvas) {
+        //@*document.body.appendChild(canvas);*@
+        uploadImage(canvas.toDataURL());
+        }
+        });
+    }
+
+var uploadImage = function(url){
+var turnNo = $('#turnNo').html();
+var obj = {'image-data' : url, 'username' : username, 'gameid' : gameid, 'turnNo' : turnNo};
+$.ajax({
+type: 'POST',
+url: '@routes.GameController.saveImageSnapshot()',
+data: JSON.stringify(obj),
+contentType: 'application/json',
+success: function (data) {
+//alert("Image uploaded");
+}
+});//ajax call ends here
+}
 
     var publishTurnNumber = function(){
         var turnNumber = $('#turn').val();
