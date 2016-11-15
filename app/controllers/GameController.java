@@ -12,13 +12,19 @@ import play.mvc.Result;
 import utility.Constants;
 import utility.GameUtility;
 import utility.Constants;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 
 public class GameController extends Controller {
@@ -43,10 +49,6 @@ public class GameController extends Controller {
         boolean isTimeBound = json.get("istimebound").asBoolean();
         int timeForEachMove = json.get("timeforeachmove").asInt();
         int stepsForEachPlayer = json.get("stepsforeachplayer").asInt();
-
-
-
-
 
         String gameId = GameUtility.generateGameId();
         //Insert gameId into table
@@ -85,6 +87,71 @@ public class GameController extends Controller {
          */
         SessionManager.addUser(gameId,gamePlayerId);
         return ok(result);
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result getSnapshotDetails() throws IOException {
+        String gameid = request().body().asJson().get("gameid").asText();
+        //String playerid = request().body().asJson().get("playerid").asText();
+
+        File file = new File("/public/images/" + gameid);
+        String[] playerDirectories = file.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File current, String name) {
+                return new File(current, name).isDirectory();
+            }
+        });
+
+        String[] snapshots = null;
+        if(playerDirectories!=null && playerDirectories.length!=0) {
+            for (String directory : playerDirectories) {
+                file = new File("/public/images/" + gameid + "/" + directory);
+                snapshots = file.list(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File current, String name) {
+                        return new File(current, name).isFile();
+                    }
+                });
+            }
+        }
+
+        return ok(play.libs.Json.toJson(snapshots));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result saveImageSnapshot() throws IOException {
+        String image_data = request().body().asJson().get("image-data").asText();
+        String username = request().body().asJson().get("username").asText();
+        String gameid = request().body().asJson().get("gameid").asText();
+        String turn = request().body().asJson().get("turnNo").asText();
+
+        String base64Image = image_data.split(",")[1];
+
+        // Convert the image code to bytes.
+        byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
+
+        BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("public/images/");
+        sb.append(gameid + "/");
+        sb.append(username.split("@")[0] + "/");
+        File imageDirectory = new File(sb.toString());
+
+        if(!imageDirectory.exists()){
+            imageDirectory.mkdirs();
+        }
+
+        sb = new StringBuilder();
+        sb.append("public/images/");
+        sb.append(gameid + "/" + username.split("@")[0] + "/" + turn);
+        sb.append(".png");
+
+        File imageFile = new File(sb.toString());
+
+        ImageIO.write(bufferedImage, "png", imageFile);
+
+        return ok("hello");
     }
 
 
@@ -161,11 +228,17 @@ public class GameController extends Controller {
         return ok(result);
     }
 
+    public static Result observeGame()
+    {
+        String userName = session().get("username");
+        String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
 
+        List<String> parameters = new ArrayList<>();
+        parameters.add(userName);
+        parameters.add(gameId);
 
-
-
-
+        return ok(views.html.observer.render(parameters));
+    }
 
     public static Result startGame(){
         try {

@@ -34,11 +34,17 @@
           Leave Game
         </button>
 
+        <input type="hidden" value="@parameters.get(2)" id="isobserver" name="isobserver">
+
         <form id="frmHidden" method="POST" action="/start" hidden>
           <input type="hidden" value='@parameters.get(0)' id="username" />
           <input type="hidden" value="@parameters.get(1)" id="gameid" name="gameid">
         </form>
 
+        <form id="frmObserver" method="POST" action="/observegame" hidden>
+          <input type="hidden" value='@parameters.get(0)' id="username" />
+          <input type="hidden" value="@parameters.get(1)" id="gameid" name="gameid">
+        </form>
 
 
         @*<table id="grid-joined" class="table table-condensed table-hover table-striped">*@
