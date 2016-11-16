@@ -1,5 +1,4 @@
-
-
+@(parameters:List[String])
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -16,72 +15,81 @@
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
     </head>
 
-    <input type="hidden" id="gameid" name="gameid" value='1111'>
+    <input type="hidden" id="gameid" name="gameid" value='@parameters.get(1)'>
 
     <script type="text/javascript">
-        $(function(){
+            $(function(){
 
-            var gameid = $('#gameid').val();
-            var obj = {'gameid': gameid};
-            $('#btnShow').on('click', function(){
-                @*$.ajax({*@
-                    @*type: 'POST',*@
-                    @*url: '@routes.GameController.getSnapshotDetails()',*@
-                    @*data: JSON.stringify(obj),*@
-                    @*contentType: 'application/json',*@
-                    @*success: function (data) {*@
-                        @*alert(data);*@
-                    @*}*@
-                @*});*@
-                var url = '@routes.Assets.at("images/802575/dmkhan/1.png")';
-                $("#imgContainer").html("<img src='" + url + "' alt='turn snap'/>");
+                //load images on page load
+//                refresh();
+
+                var gameid = $('#gameid').val();
+                var refresh = function(){
+                    var obj = {'gameid': gameid};
+                    $.ajax({
+                        type: 'POST',
+                        url: '@routes.GameController.getSnapshotDetails()',
+                        data: JSON.stringify(obj),
+                        contentType: 'application/json',
+                        success: function (data) {
+
+                            if(data.length>0){
+                                var container = $('#container-image-list');
+                                container.html("");
+                                for(i=0;i<data.length;i++){
+                                    var ul = "<ul id='" + data[i].name + "'>";
+                                    ul += "<li><b>" + data[i].name + "</b></li><br>"
+                                    for(j=0;j<data[i].images.length;j++){
+                                        var stepNum = data[i].images[j].split(".")[0];
+                                        ul += "<li data-image='" + data[i].images[j] +"'><a href='#'>" + "Step " + stepNum + "</a></li>";
+                                    }
+                                    ul += "</ul>";
+                                    container.append(ul);
+                                    container.append("<br><br>");
+                                }
+                            }
+                        }
+                    });
+                }
+
+                $('#btnShow').on('click', function(){
+                   refresh();
+                });
+
+                $('#container-image-list').on('click', 'a', function(){
+                    var gameid = $('#gameid').val(),
+                            playerid = $(this).closest('ul').attr('id'),
+                            image = $(this).closest('li').attr('data-image');
+
+                    var path = "images/" + gameid + "/" + playerid + "/" + image;
+
+                    var url = "/assets/" + path;
+
+//              alert(url);
+                    $("#imgContainer").html("<img src='" + url + "' alt='turn capture'/>");
+
+                });
+
+                setInterval(refresh, 10000);
             });
-
-            $('li').on('click', function(){
-                @*var url = '@routes.Assets.at("images/88073/dmkhan/2.png")';*@
-                @*alert(url);*@
-@*//                $('#imgContainer').html("hello");*@
-                @*$("#imgContainer").html("<img src='" + url + "' alt='turn snap'/>");*@
-
-            });
-        });
-
-        function leftColumnLoad(){
-
-            document.getElementById('drop').innerHTML="<button class='btn btn-default dropdown-toggle'" +
-                    " data-toggle='dropdown' type='button'>" +
-                    " Tutorials" +
-                    "<span class='caret'></span></button>"+
-            "<ul class='dropdown-menu'>"+
-            "<li><a href='#' onclick='loadPlayerSteps()'>HTML</a></li>"+
-            "<li><a href='#'>CSS</a></li></ul>";
-        }
-        function loadPlayerSteps(){
-            alert("im here");
-        }
 
     </script>
-    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="leftColumnLoad()">
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" >
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-2">
                     <button id="btnShow">Show All</button>
-                    <div class="dropdown" >
-                        Steps done by
-                        <div id="drop">
-
+                    <div>
+                        <div class="panel-body" id="panel">Available Snapshots</div>
+                        <div id="container-image-list">
                         </div>
-
-
                     </div>
-                    <div class="playerSteps">
-
-                    </div>
-		        </div>
+                </div>
                 <div class="col-md-10" id="imgContainer" style="height:200px">
 
                 </div>
-		</div>
+            </div>
         </div>
     </body>
 </html>
+
