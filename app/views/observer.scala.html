@@ -1,4 +1,5 @@
-@(parameters:List[String])
+
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -15,7 +16,7 @@
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
     </head>
 
-    <input type="hidden" id="gameid" name="gameid" value='@parameters.get(0)'>
+    <input type="hidden" id="gameid" name="gameid" value='1111'>
 
     <script type="text/javascript">
         $(function(){
@@ -45,22 +46,37 @@
             });
         });
 
+        function leftColumnLoad(){
+
+            document.getElementById('drop').innerHTML="<button class='btn btn-default dropdown-toggle'" +
+                    " data-toggle='dropdown' type='button'>" +
+                    " Tutorials" +
+                    "<span class='caret'></span></button>"+
+            "<ul class='dropdown-menu'>"+
+            "<li><a href='#' onclick='loadPlayerSteps()'>HTML</a></li>"+
+            "<li><a href='#'>CSS</a></li></ul>";
+        }
+        function loadPlayerSteps(){
+            alert("im here");
+        }
+
     </script>
-    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" >
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="leftColumnLoad()">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-2">
                     <button id="btnShow">Show All</button>
-                <div>
-                    <div class="panel-body" id="panel">Available Snapshots</div>
-                    <ul class="list-snapshots">
-                        <li>Snap 1</li>
-                        <li>Snap 2</li>
-                        <li>Snap 3</li>
-                        <li>Snap 4</li>
-                        <li>Snap 5</li>
-                    </ul>
-                </div>
+                    <div class="dropdown" >
+                        Steps done by
+                        <div id="drop">
+
+                        </div>
+
+
+                    </div>
+                    <div class="playerSteps">
+
+                    </div>
 		        </div>
                 <div class="col-md-10" id="imgContainer" style="height:200px">
 
