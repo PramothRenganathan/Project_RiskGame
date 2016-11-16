@@ -100,10 +100,9 @@ $(function() {
 
         else if (model.type == "UpdateActivityLog") {
             var stepName = model.stepName,
-                playerName = model.player;
+                playerName = model.player.split("@@")[0];
 
                 var activityLog = $('#activity-log');
-
                 var txt = playerName + " performed step: " + stepName;
 
                 activityLog.prepend('<p>' + txt + '</p><hr/>');
@@ -119,15 +118,16 @@ $(function() {
             activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//Timeout
 
+
         else if (model.type == "Chat") {
-            var playerName = model.player,
+            var playerName = model.player.split("@@")[0],
                     message = model.message;
 
             var chatArea = $('#chatArea');
 
             var txt = "<b>" + playerName + "</b>: " + message;
 
-            chatArea.append('<p>' + txt + '</p><hr/>');
+            chatArea.append('<p>' + txt + '</p>');
         }//Chat
 
         else if (model.type == "ChangeTurn") {
