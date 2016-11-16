@@ -15,10 +15,7 @@ import utility.Constants;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -94,7 +91,7 @@ public class GameController extends Controller {
         String gameid = request().body().asJson().get("gameid").asText();
         //String playerid = request().body().asJson().get("playerid").asText();
 
-        File file = new File("/public/images/" + gameid);
+        File file = new File("public/images/" + gameid);
         String[] playerDirectories = file.list(new FilenameFilter() {
             @Override
             public boolean accept(File current, String name) {
@@ -102,20 +99,27 @@ public class GameController extends Controller {
             }
         });
 
-        String[] snapshots = null;
+
+        List<Directory> model = new ArrayList<>();
+
         if(playerDirectories!=null && playerDirectories.length!=0) {
             for (String directory : playerDirectories) {
-                file = new File("/public/images/" + gameid + "/" + directory);
+                String[] snapshots = null;
+                file = new File("public/images/" + gameid + "/" + directory);
                 snapshots = file.list(new FilenameFilter() {
                     @Override
                     public boolean accept(File current, String name) {
                         return new File(current, name).isFile();
                     }
                 });
-            }
+                if(snapshots!=null && snapshots.length>0){
+                    model.add(new Directory(directory, snapshots));
+                }
+
+            }//for
         }
 
-        return ok(play.libs.Json.toJson(snapshots));
+        return ok(play.libs.Json.toJson(model));
     }
 
     @BodyParser.Of(BodyParser.Json.class)
