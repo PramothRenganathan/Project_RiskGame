@@ -526,7 +526,6 @@ public class GameUtility {
         if(previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints()) return false;
         if(previousStep.getTurnNo() != currentStep.getTurnNo()-1) return false;
 
-
         return true;
     }
 
