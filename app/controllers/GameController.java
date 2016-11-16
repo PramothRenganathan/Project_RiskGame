@@ -389,7 +389,7 @@ public class GameController extends Controller {
         Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
 
 
-        if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
+//        if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
 
 
         //In case of skip step, just update the database and return
@@ -494,7 +494,7 @@ public class GameController extends Controller {
 
             boolean success = false;
 
-            if(successProbability > 0.67){
+            if(successProbability >= 0.0){
                 success = true;
             }
 
@@ -511,13 +511,15 @@ public class GameController extends Controller {
                 if(!GameUtility.updateRiskStatus(gamePlayerId,riskId)){
                     return badRequest("Error while updating risk status");
                 }
+                GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
+                GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(rc.getPersonnel());
 
-
+            }else{
+                GameUtility.addReturningResources(currentStep);
             }
             //Add step to project snapshot
-            GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
-            GameUtility.addReturningResources(currentStep);
-            currentStep.setTwoTurn(rc.getPersonnel());
+
 
         }
 
