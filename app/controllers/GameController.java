@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -489,12 +490,14 @@ public class GameController extends Controller {
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
-            double successProbability = performedSteps/totalSteps;
+            double successProbability = (performedSteps/totalSteps) *  100;
             System.out.println("Probability:" + successProbability);
 
+            Random rand = new Random();
+            int randomnumber = rand.nextInt(100) + 1;
             boolean success = false;
 
-            if(successProbability >= 0.0){
+            if(successProbability >= 0.0    ){
                 success = true;
             }
 
