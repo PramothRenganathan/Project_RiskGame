@@ -423,7 +423,6 @@
                         //setError('Make call failed');
                     }
                 });
-
             }
 
             var currentPhase="";
@@ -589,8 +588,15 @@
                     clearInterval(timer);
                 }, 500000);
             }
+
+            function newfunc(){
+            @for(phase <- model.getPhases) {
+
+                var name = '@phase.getPhaseName()';
+                }
+            }
     </script>
-    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="onPhaseClick('CPM1');
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="newfunc();onPhaseClick('CPM1');
     totalGameTimer()">
         <input type="hidden" name="phase" id="phase" value="plan"/>
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
@@ -819,7 +825,7 @@
 
                     </div>
 
-                    <textarea id="txtMessage">
+                    <textarea id="txtMessage" placeholder="Enter text (max 250 characters) and hit enter.">
 
                     </textarea>
                     <div>

@@ -50,8 +50,17 @@ public class PlayerSocket{
 
                     int turnno = Integer.parseInt(data.turnNumber);
                     int totalPlayers = SessionManager.getAllUsers(data.gameid).size();
-                    turnno = (turnno==totalPlayers-1)?totalPlayers:(turnno+1)%totalPlayers;
-                    wsdata.turnNumber = String.valueOf(turnno);
+
+                    if(totalPlayers==1){
+                        turnno = 1;
+                        wsdata.turnNumber = String.valueOf(turnno);
+                    }
+
+                    else {
+
+                        turnno = (turnno == totalPlayers - 1) ? totalPlayers : (turnno + 1) % totalPlayers;
+                        wsdata.turnNumber = String.valueOf(turnno);
+                    }
                 }
 
                 else if(data.type.equals("TurnUpdate")){
