@@ -1,7 +1,7 @@
 $(function() {
 
     //$('#txtMessage').attr("placeholder", "Enter message (upto 150 chars) and hit return.");
-    var timerTime = 300;
+    var timerTime = 120;
 
     //this flag will be used to know if the player performed any step after timeout
     var timeout = false,
@@ -55,7 +55,9 @@ $(function() {
         socket.send(data);
 
         //updates turns completed count because missed turn is a lost turn
-        var turnNo = $
+        var turnNo = parseInt($('#turnNo').html());
+        turnNo = turnNo+1;
+        $('#turnNo').html(turnNo);
     }
 
     var username = $('#username').val();
@@ -334,15 +336,17 @@ success: function (data) {
 
     $('#txtMessage').keyup(function(event){
 
-        var length = $(this).val().length;
         if(event.keyCode==13){
-            //check if length is more than 150
-            if(length<=150){
+
+                //check if length is more than 150
+                if($(this).val().length<=150){
                 sendChatMessage($(this).val());
+                $('#txtMessage').val('');
                 return;
-            }
+                }
         }
 
+var length = $(this).val().length;
         if(length>150){
             $(this).css('color', 'red');
         }
