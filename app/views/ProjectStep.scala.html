@@ -326,10 +326,10 @@
 
             }
 
+
             function onPerformStep(id){
 //                var isEligibleToPerformStep=true;
-//                alert(document.getElementById('oneTurn').innerHTML);
-//                    alert(typeof id);
+                var performedStep=document.getElementById(id).innerHTML;
 
                 if(id.indexOf("CRM") !==-1){
 
@@ -380,17 +380,19 @@
                     success: function (data) {
 //                        alert(data.oneturn+" "+data.twoturn);
 
-
+                        document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
                         {
                             var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
                             //alert(alertmsg);
                             swal("YOU GOT AN OOPS CARD!",alertmsg, "error");
+                            document.getElementById('myCurrentTurn').innerHTML = "You got an OOPS card!";
                         }
                         else if(data.steptype == "SURPRISE"){
                             var alertmsg = "You gained" + data.surprise_resource + " resource, " + data.surprise_points + "capability points, " + data.surprise_bonus + "capability bonus and " + data.surprise_budget + " dollars.";
                             //alert(alertmsg);
                             swal("YOU GOT A SURPRISE CARD!",alertmsg, "error");
+                            document.getElementById('myCurrentTurn').innerHTML = "You got a Surprise card!";
                         }
                         else
                         {
@@ -404,6 +406,7 @@
                         document.getElementById('oneTurn').innerHTML = data.oneturn;
                         document.getElementById('twoTurn').innerHTML = data.twoturn;
                         onPhaseClick(currentPhase);
+
                         onRiskClick(riskClicked);
 
                         if(id.indexOf("CRM") !==-1){
@@ -508,7 +511,8 @@
                         }
 
 //                            alert("*********"+stepsDoneInPlanning);
-                        document.getElementById('desc').innerHTML = "Steps in "+currentPhase;
+                        document.getElementById('desc').innerHTML = "Steps in "+ document.getElementById(currentPhase).innerHTML ;
+
                         document.getElementById('results').innerHTML = result;
 
                     },
@@ -694,6 +698,7 @@
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
 
                             </div>
+                            <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
                         </div>
 
