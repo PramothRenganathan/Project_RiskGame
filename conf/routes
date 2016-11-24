@@ -20,9 +20,9 @@ POST  /uploadimage           controllers.GameController.saveImageSnapshot()
 
 POST     /host                  controllers.GameController.hostGame()
 POST     /join                  controllers.GameController.joinGame()
-POST     /Activegames                  controllers.DashboardController.ActiveGames()
+POST     /Activegames                  controllers.DashboardController.activeGames()
 
-POST /joingame              controllers.DashboardController.JoinGame()
+POST /joingame              controllers.DashboardController.joinGame()
 POST /observegame              controllers.GameController.observeGame()
 
 POST /snapshotDetails              controllers.GameController.getSnapshotDetails()
@@ -36,8 +36,8 @@ GET     /assets.javascript.hostjs.js        controllers.Application.hostJs()
 GET     /assets.javascript.gamejs.js        controllers.Application.gameJs()
 GET     /wsInterface                    controllers.Application.wsInterface()
 
-POST /hostgame       controllers.DashboardController.ViewHostGame()
-GET /dashboard      controllers.DashboardController.ViewDashboard()
+POST /hostgame       controllers.DashboardController.viewHostGame()
+GET /dashboard      controllers.DashboardController.viewDashboard()
 
 POST /performstep  controllers.GameController.performStep()
 POST /riskdashboard  controllers.GameController.getRiskCards()

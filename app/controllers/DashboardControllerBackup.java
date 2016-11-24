@@ -14,7 +14,7 @@ public class DashboardControllerBackup extends Controller {
 
 /*
 
-    public static Result ViewDashboard(){
+    public static Result viewDashboard(){
        System.out.println("im here");
        // response().setContentType("text/html");
 
@@ -22,12 +22,12 @@ public class DashboardControllerBackup extends Controller {
         return ok(views.html.ProjectDashbard.render());
     }
 
-    public static Result ViewHostGame(){
+    public static Result viewHostGame(){
         System.out.println("im here");
         // response().setContentType("text/html");
 
         //return ok(views.html.ProjectDashbard.render());
-        return ok(views.html.HostGame.render());
+        return ok(views.html.hostGame.render());
     }
 
     public static Result testMethod()

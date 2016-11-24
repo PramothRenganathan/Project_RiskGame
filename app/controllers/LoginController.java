@@ -68,7 +68,7 @@ public class LoginController {
                     session().put("username",userName);
 
                     //change -- to main dashboard page
-                   // return redirect(controllers.routes.DashboardController.ViewDashboard());
+                   // return redirect(controllers.routes.DashboardController.viewDashboard());
                     return ok("success");
                 }
                 if(!login) return ok("Credentials wrong");
@@ -90,7 +90,7 @@ public class LoginController {
                 System.out.println("User already logged in");
                // return ok("Already Logged in");
                 return ok("success");
-              //  return redirect(controllers.routes.DashboardController.ViewDashboard());
+              //  return redirect(controllers.routes.DashboardController.viewDashboard());
             }
         }
 
