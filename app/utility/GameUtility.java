@@ -1,5 +1,6 @@
 package utility;
 
+import akka.japi.pf.FI;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.*;
 import play.Play;
@@ -18,6 +19,11 @@ public class GameUtility {
 
     public static Map<String,List<String>> webSocketMapping = new HashMap<>();
 
+    /**
+     * Returns list of projects steps for each phase provided in the list of phases
+     * @param phases
+     * @return
+     */
     public static List<String> getAllProjectSteps(List<Phase> phases) {
 
         Connection connection = DB.getConnection();
@@ -25,11 +31,6 @@ public class GameUtility {
         ResultSet rs;
         List<String> allProjectStepIds = new ArrayList<>();
         try {
-
-//            String query = "SELECT PH.phase_name,P.project_step_id, project_step_name, description, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus  from PROJECT_STEPS P " +
-//                    "JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPS on P.project_step_id = CPS.project_step_id " +
-//                    "JOIN CONFIG_PHASE_MAPPING CPM on CPS.config_phase_mapping_id = CPM.config_phase_mapping_id and game_config_id = ? " +
-//                    "JOIN PHASES PH on PH.phase_id = CPM.phase_id;" ;
             StringBuilder sb = new StringBuilder();
             for(Phase p : phases){
                 sb.append("'");
@@ -38,77 +39,43 @@ public class GameUtility {
                 sb.append(",");
             }
             String phaseIds = sb.substring(0,sb.length()-1);
-            System.out.println("PhaseIds:" + phaseIds);
+            logger.log(Level.FINE, "PhaseIds:" + phaseIds);
             String query = "SELECT config_project_step_mapping_id FROM CONFIG_PHASE_PROJECTSTEPS_MAPPING WHERE config_phase_mapping_id IN (" + phaseIds + ");";
 
             stmt = connection.prepareStatement(query);
-            //stmt.setString(1, configId);
-            System.out.println("Im here");
 
             rs = stmt.executeQuery();
-            System.out.print("DONE QUERY");
-
-            //List<ProjectStep> projectSteps = new ArrayList<>();
-            //System.out.println(rs.getRow());
+            logger.log(Level.FINE, "Retrieved project steps for all the phases");
             while (rs.next()) {
-//                String phaseName = rs.getString("phase_name");
-//                ProjectStep ps = new ProjectStep();
-//                ps.setProjectStepId(rs.getString("project_step_id"));
-//                ps.setProjectStepName(rs.getString("project_step_name"));
-//                ps.setProjectStepDescription(rs.getString("description"));
-//                ps.setBudget(rs.getInt("budget"));
-//                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
-//                ps.setCapabilityPoints(rs.getInt("capability_points"));
-//                ps.setLevel(rs.getInt("level"));
-//                ps.setPersonnel(rs.getInt("personnel"));
-//                ps.setPreRequisite(rs.getString("pre_requisite"));
-//                projectSteps.add(ps);
-                //String phaseId = rs.getString("config_phase_mapping_id");
                 allProjectStepIds.add(rs.getString("config_project_step_mapping_id"));
-
-
-//                        if(phaseProjectStepMapping.containsKey(phaseId))
-//                    phaseProjectStepMapping.get(phaseId).add(projectStepId);
-//
-//                        else{
-//                    ArrayList<String> projectSteps = new ArrayList<>();
-//                    projectSteps.add(projectStepId);
-//                    phaseProjectStepMapping.put(phaseId, projectSteps);
-//                }
-
-
-
-
-
             }
             return allProjectStepIds;
         }catch(Exception e){
-            //logger.log(Level.SEVERE,"Error while retrieving projectSteps");
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return allProjectStepIds;
         }
         finally{
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,connection);
         }
     }
 
+    /**
+     * Insert the game ordering for the players
+     * @param gameId
+     * @param playersInTheGame
+     * @return
+     */
     public static boolean insertIntoOrdering(String gameId, List<String> playersInTheGame) {
 
         Connection conn = null;
         PreparedStatement stmt = null;
         try {
             conn = DB.getConnection();
-            //stmt = conn.prepareStatement();
             int count = 1;
             String query = "INSERT INTO GAME_ORDERING (game_player_id,game_id,order_number) VALUES (?,?,?)";
             stmt = conn.prepareStatement(query);
             for(String playerId : playersInTheGame){
-                System.out.println("Players:" + playerId);
-
+                logger.log(Level.FINE, "Players:" + playerId);
                 stmt.setString(1,playerId);
                 stmt.setString(2,gameId);
                 stmt.setInt(3,count);
@@ -119,22 +86,24 @@ public class GameUtility {
             for(int i: results){
                 if(i <= 0) return false;
             }
-            System.out.println("Orders Inserted");
+            logger.log(Level.FINE, "Orders Inserted");
             return true;
         } catch (SQLException e) {
-            //e.printStackTrace();
-            System.out.println(e.getMessage());
+
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Inserts new row with player project step status
+     * @param playersInTheGame
+     * @param projectSteps
+     * @return
+     */
     public static boolean insertIntoPlayerProjectStepStatus(List<String> playersInTheGame,List<String> projectSteps) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -151,27 +120,24 @@ public class GameUtility {
                 }
                 stmt.executeBatch();
             }
-            //int[] result = stmt.executeBatch();
-            //for(int i = 0; i< result.length; i++){
-             //   if(result[i]<=0) return  false;
-            //}
-            System.out.println("Status entered for all the players");
+            logger.log(Level.FINE,"Status entered for all the players");
             return true;
 
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
         }
         finally{
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
 
     }
 
+    /**
+     * Check if the game exists
+     * @param gameId
+     * @return
+     */
     public static boolean gameExists(String gameId) {
 
         Connection conn = null;
@@ -188,18 +154,20 @@ public class GameUtility {
             return false;
 
         }catch(Exception e){
-            System.out.println("Error while checking gameId existence");
+            logger.log(Level.SEVERE, "Error while checking gameId existence");
             return false;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Check if the user is host or not.
+     * @param gameId
+     * @param userName
+     * @return
+     */
     public static boolean isHost(String gameId, String userName) {
 
         Connection conn = null;
@@ -212,27 +180,27 @@ public class GameUtility {
 
             ResultSet rs =stmt.executeQuery();
             while(rs.next()){
-                System.out.println("Host:" + rs.getString("host"));
-                System.out.println("UserName:" + userName);
+                logger.log(Level.FINE, "Host:" + rs.getString("host"));
+                logger.log(Level.FINE, "UserName:" + userName);
                 if(rs.getString("host").equalsIgnoreCase(userName)){
-                    System.out.println("Inside");
                     return true;
                 }
             }
             return false;
         }catch (Exception e){
-            System.out.println("Error while checking of host");
+            logger.log(Level.SEVERE, "Error while checking of host");
             return true;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Updates the start time of the game
+     * @param gameId
+     * @return
+     */
     public static boolean updateStartTimeInGameTable(String gameId) {
         Connection conn = DB.getConnection();
         PreparedStatement stmt = null;
@@ -250,20 +218,20 @@ public class GameUtility {
 
 
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
 
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
-
-
     }
+
+    /**
+     * Get the initial resources for the game
+     * @param initialGameStat
+     * @return
+     */
     public static boolean getResources(InitialGameStat initialGameStat){
         String configId = Play.application().configuration().getString("config_id");
         Connection conn = null;
@@ -285,21 +253,22 @@ public class GameUtility {
 
 
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
 
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
 
     }
 
-
+    /**
+     * Inserts the initial snapshots for all the players with turn 0
+     * @param playersInTheGame
+     * @param initialGameStat
+     * @return
+     */
     public static boolean insertSnapshots(List<String> playersInTheGame, InitialGameStat initialGameStat) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -334,28 +303,38 @@ public class GameUtility {
             }
             return true;
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
 
         }
         finally{
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
 
     }
 
+    /**
+     * Generates random game Id
+     * @return
+     */
     public static String generateGameId() {
         return getSeed();
     }
 
+    /**
+     * THe random number generator
+     * @return
+     */
     public static String getSeed(){
         return String.format("%d%d", Math.abs((int) System.currentTimeMillis() % 1000), (int) (Math.random() * 1000));
     }
 
+    /**
+     * Get the time bound status and steps for each player
+     * @param initialGameStat
+     * @param gameId
+     * @return
+     */
     public static boolean getTimeBound(InitialGameStat initialGameStat, String gameId) {
         String configId = Play.application().configuration().getString("config_id");
         Connection conn = null;
@@ -374,23 +353,25 @@ public class GameUtility {
 
 
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
 
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Check if the project step is performed
+     * @param id
+     * @param gamePlayerId
+     * @return
+     */
     public static boolean isProjectStepPerformed(String id, String gamePlayerId) {
         Connection conn = null;
         PreparedStatement stmt = null;
-        System.out.println("Checking if the project step is performed");
+        logger.log(Level.FINE, "Checking if the project step is performed");
         try{
             conn = DB.getConnection();
             String query = "SELECT `status` FROM GAME_PLAYER_PROJECT_STEP_STATUS WHERE config_project_step_mapping_id = ? and game_player_id = ?";
@@ -399,26 +380,23 @@ public class GameUtility {
             stmt.setString(2,gamePlayerId);
             ResultSet rs = stmt.executeQuery();
             if(rs.next()){
-                if(rs.getBoolean("status"))return true;
+                if(rs.getBoolean("status"))
+                    return true;
             }
             return false;
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
     public static boolean updateProjectStepStatus(String id, String gamePlayerId) {
         Connection conn = null;
         PreparedStatement stmt = null;
-        System.out.println("Updating project step status to true");
+        logger.log(Level.FINE, "Updating project step status to true");
         try{
             conn = DB.getConnection();
             String query = "UPDATE GAME_PLAYER_PROJECT_STEP_STATUS SET status = ? WHERE config_project_step_mapping_id = ? and game_player_id = ?";
@@ -427,26 +405,29 @@ public class GameUtility {
             stmt.setString(2,id);
             stmt.setString(3,gamePlayerId);
             int result = stmt.executeUpdate();
-            if(result > 0) return true;
-            return false;
+            if(result > 0)
+                return true;
+            else
+                return false;
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Get previous step details of the player
+     * @param gamePlayerId
+     * @param turnNo
+     * @return
+     */
     public static Snapshot getPreviousSnapshot(String gamePlayerId, int turnNo) {
-        System.out.println("In Getting previous step snapshot");
+        logger.log(Level.FINE, "In Getting previous step snapshot");
         Connection conn = null;
         PreparedStatement stmt = null;
-        System.out.println("Updating project step status to true");
         try{
             conn = DB.getConnection();
             String query = "SELECT budget,personnel,capability_bonus,capability_points,skip_turn_status,turn_no,isProduction FROM GAME_MOVES_SNAPSHOT WHERE game_player_id = ? and turn_no = ? ";
@@ -464,73 +445,97 @@ public class GameUtility {
                 step.setProduction(rs.getBoolean("isProduction"));
                 step.setTurnNo(turnNo);
             }
-            System.out.println("Done getting prevous snapshot");
-            System.out.println(step.getBudget() + " "+ step.getPersonnel());
+            logger.log(Level.FINE, "Done getting prevous snapshot");
+            logger.log(Level.FINE , "Budget:" + step.getBudget() + " Personnel:"+ step.getPersonnel());
             return step;
 
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return null;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Get current step details
+     * @param gamePlayerId
+     * @param body
+     * @return
+     */
     public static Snapshot getCurrentDetailsFromTheUser(String gamePlayerId, JsonNode body) {
+        try {
+            String type = body.get("type").asText();
+            String id = body.get("id").asText();
+            int turnNo = body.get("turnno").asInt();
+            int budget = body.get("budget").asInt();
+            int capabilityBonus = body.get("capabilitybonus").asInt();
+            int capabilityPoints = body.get("capabilitypoints").asInt();
+            int personnel = body.get("personnel").asInt();
+            int timeTaken = body.get("timetaken").asInt();
+            boolean skipTurn = body.get("skipturn").asBoolean();
+            int oneTurn = body.get("oneturn").asInt();
+            int twoTurn = body.get("twoturn").asInt();
+            int performedSteps = body.get("performedsteps").asInt();
+            int totalSteps = body.get("totalsteps").asInt();
 
-        String type = body.get("type").asText();
-        String id = body.get("id").asText();
-        int turnNo = body.get("turnno").asInt();
-        int budget = body.get("budget").asInt();
-        int capabilityBonus = body.get("capabilitybonus").asInt();
-        int capabilityPoints = body.get("capabilitypoints").asInt();
-        int personnel = body.get("personnel").asInt();
-        int timeTaken = body.get("timetaken").asInt();
-        boolean skipTurn = body.get("skipturn").asBoolean();
-        int oneTurn = body.get("oneturn").asInt();
-        int twoTurn = body.get("twoturn").asInt();
-        int performedSteps = body.get("performedsteps").asInt();
-        int totalSteps = body.get("totalsteps").asInt();
+            Snapshot receivedSnapShot = new Snapshot();
+            receivedSnapShot.setBudget(budget);
+            receivedSnapShot.setPersonnel(personnel);
+            receivedSnapShot.setCapabilityBonus(capabilityBonus);
+            receivedSnapShot.setCapabilityPoints(capabilityPoints);
+            receivedSnapShot.setTurnNo(turnNo);
+            receivedSnapShot.setProjectStepId(id);
+            receivedSnapShot.setMoveType(type);
+            receivedSnapShot.setTimeTaken(timeTaken);
+            receivedSnapShot.setSkipTurnStatus(skipTurn);
+            receivedSnapShot.setOneTurn(oneTurn);
+            receivedSnapShot.setTwoTurn(twoTurn);
+            receivedSnapShot.setPerformedSteps(performedSteps);
+            receivedSnapShot.setTotalSteps(totalSteps);
+            return receivedSnapShot;
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE,"In getting current details from user:" +  e.getMessage());
+            return null;
+        }
 
-        Snapshot receivedSnapShot = new Snapshot();
-        receivedSnapShot.setBudget(budget);
-        receivedSnapShot.setPersonnel(personnel);
-        receivedSnapShot.setCapabilityBonus(capabilityBonus);
-        receivedSnapShot.setCapabilityPoints(capabilityPoints);
-        receivedSnapShot.setTurnNo(turnNo);
-        receivedSnapShot.setProjectStepId(id);
-        receivedSnapShot.setMoveType(type);
-        receivedSnapShot.setTimeTaken(timeTaken);
-        receivedSnapShot.setSkipTurnStatus(skipTurn);
-        receivedSnapShot.setOneTurn(oneTurn);
-        receivedSnapShot.setTwoTurn(twoTurn);
-        receivedSnapShot.setPerformedSteps(performedSteps);
-        receivedSnapShot.setTotalSteps(totalSteps);
 
-        return receivedSnapShot;
     }
 
-   // public static int
-
+    /**
+     *  Validate current step to check if user tampered data on frontend
+     * @param previousStep
+     * @param currentStep
+     * @return
+     */
     public static boolean validateStep(Snapshot previousStep, Snapshot currentStep) {
-        if(previousStep.getBudget() != currentStep.getBudget())return false;
-//        if(previousStep.getPersonnel() != currentStep.getPersonnel()){
-//            System.out.println("Previous Resource:" + previousStep.getPersonnel());
-//            System.out.println("Previous Resource:" + currentStep.getPersonnel());
-//            return false;
-//        }
-        if(previousStep.getCapabilityBonus() != currentStep.getCapabilityBonus()) return false;
-        if(previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints()) return false;
-        if(previousStep.getTurnNo() != currentStep.getTurnNo()-1) return false;
+        try {
+            if (previousStep.getBudget() != currentStep.getBudget())
+                return false;
+            if (previousStep.getCapabilityBonus() != currentStep.getCapabilityBonus())
+                return false;
+            if (previousStep.getCapabilityPoints() != currentStep.getCapabilityPoints())
+                return false;
+            if (previousStep.getTurnNo() != currentStep.getTurnNo() - 1)
+                return false;
 
-        return true;
+            return true;
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE, "Error while validating step:" + e.getMessage());
+            return false;
+        }
     }
 
+    /**
+     * Insert the step into db
+     * @param gamePlayerId
+     * @param currentStep
+     * @param moveType
+     * @return
+     */
     public static boolean performStep(String gamePlayerId, Snapshot currentStep,Constants.PerformStep moveType) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -590,21 +595,23 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            System.out.println("Exception while retrieving project step");
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Exception while updating project step" + e.getMessage());
+
             return false;
         }finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-
-            }
+            cleanUp(stmt,conn);
         }
 
     }
 
 
-
+    /**
+     * Insert a row into game player data
+     * @param gameId
+     * @param userName
+     * @param isObserver
+     * @return
+     */
     public static String insertIntoGamePlayer(String gameId, String userName, boolean isObserver) {
 
         Connection conn = null;
@@ -623,30 +630,32 @@ public class GameUtility {
             stmt.setNull(5,Types.DATE);
             stmt.setNull(6,Types.DATE);
             int rs = stmt.executeUpdate();
-            if(rs > 0)return gamePlayerId;
-            else return null;
+            if(rs > 0)
+                return gamePlayerId;
+            else
+                return null;
 
 
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "error while inserting into game player:" + e.getMessage());
             return null;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Get the rules of the game
+     * @param gameStat
+     * @return
+     */
     public static boolean getGameRules(InitialGameStat gameStat)
     {
-
-        String configId = Play.application().configuration().getString("config_id");
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
+            String configId = Play.application().configuration().getString("config_id");
             conn = DB.getConnection();
             String query = "SELECT level2bonus,level3bonus FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
             stmt = conn.prepareStatement(query);
@@ -655,32 +664,32 @@ public class GameUtility {
             while(rs.next()){
                 gameStat.setLevel2Bonus(rs.getInt("level2bonus"));
                 gameStat.setLevel3Bonus(rs.getInt("level3bonus"));
-
             }
             return true;
 
 
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
 
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Identifies what action to be performed
+     * @param level
+     * @param capabilityBonus
+     * @return
+     */
     public static Constants.PerformStep getActiontobeTaken(int level,int capabilityBonus)
     {
 
         InitialGameStat gamerules = new InitialGameStat();
         Random rand = new Random();
         int randomnumber = rand.nextInt(100) + 1;
-        //randomnumber = 31;
         getGameRules(gamerules);
         if(level == 2) {
             if((randomnumber + capabilityBonus) > gamerules.getLevel2Bonus()){
@@ -725,6 +734,11 @@ public class GameUtility {
 
     }
 
+    /**
+     * Get the project step details based on project step id
+     * @param id
+     * @return
+     */
     public static ProjectStep getProjectStepDetails(String id) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -750,37 +764,46 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            System.out.println("Exception while retrieving project step");
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Exception while retrieving project step:" + e.getMessage());
             return null;
         }finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Check if the project step can be performed and make changes to resources for persisting
+     * @param currentStep
+     * @param projectStep
+     * @return
+     */
     public static boolean canProjectStepBePerformed(Snapshot currentStep, ProjectStep projectStep) {
-        if(currentStep.getBudget() - projectStep.getBudget() < 0) return false;
-        //if(currentStep.getCapabilityPoints() - projectStep.getCapabilityPoints() < 0 ) return false;
-        //if(currentStep.getCapabilityBonus() - projectStep.getCapabilityBonus() < 0) return false;
-        if(currentStep.getPersonnel() - projectStep.getPersonnel() < 0) return false;
+        try {
+            if (currentStep.getBudget() - projectStep.getBudget() < 0)
+                return false;
+            if (currentStep.getPersonnel() - projectStep.getPersonnel() < 0)
+                return false;
 
-        currentStep.setCapabilityBonus(currentStep.getCapabilityBonus() + projectStep.getCapabilityBonus());
-        currentStep.setBudget(currentStep.getBudget() - projectStep.getBudget());
-        currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
-        currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
-//        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
+            currentStep.setCapabilityBonus(currentStep.getCapabilityBonus() + projectStep.getCapabilityBonus());
+            currentStep.setBudget(currentStep.getBudget() - projectStep.getBudget());
+            currentStep.setCapabilityPoints(currentStep.getCapabilityPoints() + projectStep.getCapabilityPoints());
+            currentStep.setPersonnel(currentStep.getPersonnel() - projectStep.getPersonnel());
+            return true;
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE, "Error while checking if the project step can be performed:" + e.getMessage());
+            return false;
+        }
 
-        //System.out.println("Im here");
-        //Add pre-requisite step here
-        return true;
     }
 
 
-
+    /**
+     * Perform the oops card
+     * @param currentStep
+     * @param currentOOPS
+     * @return
+     */
     public static boolean performOOPS(Snapshot currentStep,OOPS currentOOPS) {
 
         OOPS oops = new OOPS();
@@ -789,10 +812,14 @@ public class GameUtility {
 
         for(int i=0;i<oopsList.size();i++){
 
-            if(currentStep.getBudget() - oopsList.get(i).getBudget() < 0) continue;
-            if(currentStep.getCapabilityPoints() - oopsList.get(i).getCapabilityPoints() < 0 ) continue;
-            if(currentStep.getCapabilityBonus() - oopsList.get(i).getCapabilityBonus() < 0) continue;
-            if(currentStep.getPersonnel() - oopsList.get(i).getResources() < 0) continue;
+            if(currentStep.getBudget() - oopsList.get(i).getBudget() < 0)
+                continue;
+            if(currentStep.getCapabilityPoints() - oopsList.get(i).getCapabilityPoints() < 0 )
+                continue;
+            if(currentStep.getCapabilityBonus() - oopsList.get(i).getCapabilityBonus() < 0)
+                continue;
+            if(currentStep.getPersonnel() - oopsList.get(i).getResources() < 0)
+                continue;
             oops = oopsList.get(i);
             break;
         }
@@ -809,13 +836,16 @@ public class GameUtility {
         currentOOPS.setBudget(oops.getBudget());
         currentOOPS.setCapabilityPoints(oops.getCapabilityPoints());
         currentOOPS.setCapabilityBonus(oops.getCapabilityBonus());
-//        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
-
-        //System.out.println("Im here");
         //Add pre-requisite step here
         return true;
     }
 
+    /**
+     * Perform surprise
+     * @param currentStep
+     * @param currentSurprise
+     * @return
+     */
     public static boolean performSurprise(Snapshot currentStep,SURPRISE currentSurprise) {
 
         SURPRISE surprise = new SURPRISE();
@@ -832,14 +862,15 @@ public class GameUtility {
         currentSurprise.setBudget(surprise.getBudget());
         currentSurprise.setCapabilityPoints(surprise.getCapabilityPoints());
         currentSurprise.setCapabilityBonus(surprise.getCapabilityBonus());
-//        currentStep.setTwoTurn(projectStep.getPersonnel());//Resources will be back in two turns
-
-        //System.out.println("Im here");
-        //Add pre-requisite step here
         return true;
     }
 
-
+    /**
+     * Check if the game is complete
+     * @param turnNo
+     * @param gameId
+     * @return
+     */
     public static boolean isGameComplete(int turnNo, String gameId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -852,31 +883,38 @@ public class GameUtility {
             if(rs.next() && rs.getInt("steps_for_each_player") == turnNo)return true;
             return false;
         }catch (Exception e){
-            System.out.println("Error while checking game complete");
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while checking game complete:" + e.getMessage());
             return false;
         }finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
 
     }
 
+    /**
+     * Adds the returning resources
+     * @param currentStep
+     */
     public static void addReturningResources(Snapshot currentStep) {
-        currentStep.setPersonnel(currentStep.getPersonnel() + currentStep.getOneTurn());//Resource already back
-        currentStep.setOneTurn(currentStep.getTwoTurn());//Resources to be back in one turn
+        try {
+            currentStep.setPersonnel(currentStep.getPersonnel() + currentStep.getOneTurn());//Resource already back
+            currentStep.setOneTurn(currentStep.getTwoTurn());//Resources to be back in one turn
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE, "Error while adding resources:" + e.getMessage());
+        }
     }
 
+    /**
+     * Generating oopds card
+     * @return
+     */
     public static List<OOPS> generateOOPSCard()
     {
         List<OOPS> oopslist = new ArrayList<>();
         OOPS oopsobj = null;
         Connection conn = null;
         PreparedStatement stmt = null;
-        PreparedStatement insertStmt = null;
         try {
             conn = DB.getConnection();
 
@@ -897,26 +935,24 @@ public class GameUtility {
                 return oopslist;
 
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error while generating oops card:" + e.getMessage());
             return oopslist;
         } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Generate surprise card
+     * @return
+     */
     public static SURPRISE generateSurpriseCard()
     {
         SURPRISE surpriseobj = new SURPRISE();
         Connection conn = null;
         PreparedStatement stmt = null;
-        PreparedStatement insertStmt = null;
         try {
             conn = DB.getConnection();
-
-
             String query = "SELECT * FROM SURPRISE  ORDER BY RAND() LIMIT 1";
             stmt = conn.prepareStatement(query);
             ResultSet rs = stmt.executeQuery();
@@ -931,16 +967,19 @@ public class GameUtility {
             return surpriseobj;
 
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error while generating surprise card:" + e.getMessage());
             return surpriseobj;
         } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Generate 5 random risk cards for players in the game
+     * @param playersInTheGame
+     * @param configId
+     * @return
+     */
     public static boolean generateRandomRiskCardsForPlayer(List<String> playersInTheGame, String configId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -963,22 +1002,33 @@ public class GameUtility {
                 }
                 int[] result = insertStmt.executeBatch();
                 for (int i : result) {
-                    if (i <= 0) return false;//Error while inserting
+                    if (i <= 0)
+                        return false;//Error while inserting
                 }
+
             }
+            return true;
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error while generating risk card:" + e.getMessage());
             return false;
         } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            if(insertStmt!=null)
+                try {
+                    insertStmt.close();
+                } catch (SQLException e) {
+                    logger.log(Level.SEVERE, "Error while generating oops card:" + e.getMessage());
+                }
+            cleanUp(stmt,conn);
         }
 
-        return true;
+
     }
 
+    /**
+     * Get risk cards of player based on his id
+     * @param gamePlayerId
+     * @return
+     */
     public static List<RiskCard> getRisks(String gamePlayerId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -1005,18 +1055,20 @@ public class GameUtility {
 
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while getting player risk cards:" + e.getMessage());
             return null;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Get the project steps for a phase id with player status
+     * @param phaseId
+     * @param gamePlayerId
+     * @return
+     */
     public static List<ProjectStep> getProjectSteps(String phaseId, String gamePlayerId  ){
 
 
@@ -1027,28 +1079,26 @@ public class GameUtility {
                 " JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id" +
                 " JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id and CPM.config_phase_mapping_id = ? and GPS.game_player_id = ?";
 
-        Connection connection = DB.getConnection();
+        Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rs;
 
         try {
+            connection = DB.getConnection();
             stmt = connection.prepareStatement(query);
-            //stmt.setString(1, configId);
             stmt.setString(1,phaseId);
             stmt.setString(2,gamePlayerId);
-            System.out.println("In Project Steps");
+            logger.log(Level.FINE, "Getting Project Steps");
 
             rs = stmt.executeQuery();
-            System.out.print("DONE QUERY");
 
             List<ProjectStep> projectSteps = new ArrayList<>();
-            //System.out.println(rs.getRow());
+
             while (rs.next()) {
-                //String phaseName = rs.getString("phase_name");
+
                 ProjectStep ps = new ProjectStep();
                 ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
                 ps.setProjectStepName(rs.getString("project_step_name"));
-                //ps.setProjectStepDescription(rs.getString("description"));
                 ps.setBudget(rs.getInt("budget"));
                 ps.setCapabilityBonus(rs.getInt("capability_bonus"));
                 ps.setCapabilityPoints(rs.getInt("capability_points"));
@@ -1057,31 +1107,35 @@ public class GameUtility {
                 ps.setPreRequisite(rs.getString("pre_requisite"));
                 ps.setStatus(rs.getBoolean("status"));
                 projectSteps.add(ps);
-
-
             }
-            System.out.println(projectSteps.toString());
+            logger.log(Level.FINE, "The project steps count:" + projectSteps.size());
             return projectSteps;
     }
     catch (Exception e){
-        System.out.println(e.getMessage());
+        logger.log(Level.SEVERE, "Error while getting project steps:" + e.getMessage());
         return null;
     }
     finally {
-            try {
-                connection.close();
-            }catch (Exception e){
-                System.out.println(e.getMessage());
-            }
+            cleanUp(stmt,connection);
 
         }
         }
 
+    /**
+     * Insert game data for a game
+     * @param gameId
+     * @param userName
+     * @param timeForEachMove
+     * @param stepsForEachPlayer
+     * @param isTimeBound
+     * @return
+     */
     public static boolean insertIntoGame(String gameId, String userName, int timeForEachMove, int stepsForEachPlayer, boolean isTimeBound){
-        Connection connection = DB.getConnection();
+        Connection connection = null;
         PreparedStatement stmt = null;
 
         try{
+            connection = DB.getConnection();
             String query = "INSERT INTO GAME (game_id,status,start_time,end_time,host,time_for_each_move,steps_for_each_player,isTimeBound,company_id,product_id) values (?,?,?,?,?,?,?,?,?,?)";
             stmt = connection.prepareStatement(query);
             stmt.setString(1,gameId);
@@ -1098,35 +1152,34 @@ public class GameUtility {
             int res = stmt.executeUpdate();
             return res > 0; // Query success result
 
-
-
         }
         catch(Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
             return false;
         }
         finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-            }
+            cleanUp(stmt,connection);
         }
     }
 
-
+    /**
+     * Get phases present in a game
+     * @param configId
+     * @return
+     */
     public static List<Phase> getPhases(String configId){
 
         String query = "SELECT C.config_phase_mapping_id, P.phase_id,phase_name,description from PHASES P" +
                 " JOIN CONFIG_PHASE_MAPPING C where P.phase_id=C.phase_id and C.game_config_id = ?";
 
-        System.out.println(configId);
+        logger.log(Level.FINE, "ConfigId: " + configId);
 
-        Connection connection = DB.getConnection();
+        Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rs;
         List<Phase> gamePhases = null;
         try {
+            connection = DB.getConnection();
             stmt = connection.prepareStatement(query);
             stmt.setString(1,configId);
             rs = stmt.executeQuery();
@@ -1144,19 +1197,20 @@ public class GameUtility {
             return gamePhases;
         }
         catch(Exception e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while getting phases:" + e.getMessage());
             return null;
         }
         finally{
-            try {
-                connection.close();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,connection);
         }
     }
 
+    /**
+     * Get mititgation cards for a given riskId
+     * @param riskId
+     * @param gamePlayerId
+     * @return
+     */
     public static List<ProjectStep> getMitigationCards(String riskId, String gamePlayerId){
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -1192,18 +1246,21 @@ public class GameUtility {
 
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE, "Error while getting mititgation cards:" + e.getMessage());
+            return null;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
-    return null;
+
     }
 
+    /**
+     * Update the risk status of a player
+     * @param gamePlayerId
+     * @param riskId
+     * @return
+     */
     public static boolean updateRiskStatus(String gamePlayerId, String riskId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -1219,18 +1276,19 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            System.out.println("Error while updating risk status");
+            logger.log(Level.SEVERE, "Error while updating risk status");
             return false;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Get tisk card details
+     * @param riskId
+     * @return
+     */
     public static RiskCard getRiskDetails(String riskId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -1251,28 +1309,43 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            System.out.println("Error while retrieving risk status");
+            logger.log(Level.SEVERE, "Error while retrieving risk status");
             return null;
         }
         finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            cleanUp(stmt,conn);
         }
     }
 
+    /**
+     * Check if risk can be mitigated
+     * @param currentStep
+     * @param rc
+     * @return
+     */
     public static boolean mitigateRisk(Snapshot currentStep, RiskCard rc) {
-        if(currentStep.getBudget() < rc.getBudget())return false;
-        if(currentStep.getPersonnel() < rc.getPersonnel()) return false;
+        try {
+            if (currentStep.getBudget() < rc.getBudget())
+                return false;
+            if (currentStep.getPersonnel() < rc.getPersonnel())
+                return false;
 
-        //perform risk mitigation
-        currentStep.setBudget(currentStep.getBudget() - rc.getBudget());
-        currentStep.setPersonnel(currentStep.getPersonnel() - rc.getPersonnel());
-        return true;
+            //perform risk mitigation
+            currentStep.setBudget(currentStep.getBudget() - rc.getBudget());
+            currentStep.setPersonnel(currentStep.getPersonnel() - rc.getPersonnel());
+            return true;
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "Error while checking mititgation status");
+            return false;
+        }
     }
 
+    /**
+     * Closes the connection
+     * @param stmt
+     * @param conn
+     */
     public static void cleanUp(PreparedStatement stmt, Connection conn){
         try {
             if(stmt!=null)
