@@ -5,30 +5,33 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.*;
 import play.Play;
-import play.db.DB;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utility.Constants;
 import utility.GameUtility;
-import utility.Constants;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.sql.*;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+/**
+ * All game related routes implemented in this class
+ */
 public class GameController extends Controller {
 
     public static final Logger logger = Logger.getLogger(GameController.class.getName());
 
 
+    /**
+     * When a host creates a game, this route is hit
+     * @return
+     */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result hostGame(){
         //Check if session is set for the user.
@@ -37,44 +40,38 @@ public class GameController extends Controller {
         // Insert the details into the db
 
         ObjectNode result = play.libs.Json.newObject();
-        if(!validateSession()) return ok(views.html.index.render());
-        String userName = session().get("username");
+        if(!validateSession())
+            return ok(views.html.index.render());
+        String userName = session().get(Constants.USERNAME);
 
         //Get all the necessary request parameters
         JsonNode json = request().body().asJson();
-        //String name = json.get("name").asText();
         boolean isTimeBound = json.get("istimebound").asBoolean();
         int timeForEachMove = json.get("timeforeachmove").asInt();
         int stepsForEachPlayer = json.get("stepsforeachplayer").asInt();
 
         String gameId = GameUtility.generateGameId();
         //Insert gameId into table
-        System.out.println("Inserting into game table");
+        logger.log(Level.FINE, "Inserting into game table");
 
         if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound)) {
-       // if(1==1){
-        result.put("errormsg","Error while starting the game. Contact system admin");
+        result.put(Constants.ERRORMSG,"Error while starting the game. Contact system admin");
             result.put("message","failure");
             return ok(result);
 
         }
-        System.out.println("Inserted into game table");
-        System.out.println("Inserting into game player table");
+        logger.log(Level.FINE, "Inserted into game table");
+        logger.log(Level.FINE, "Inserting into game player table");
         String gamePlayerId = GameUtility.insertIntoGamePlayer(gameId,userName,false);//Host cannot be observer
         if( gamePlayerId == null  || gamePlayerId.isEmpty()) {
-            // if(1==1){
-            result.put("errormsg","Error while hosting the game. Contact system admin");
+            result.put(Constants.ERRORMSG,"Error while hosting the game. Contact system admin");
             result.put("message","failure");
             return ok(result);
 
         }
-        System.out.println("Inserted into game player table");
+        logger.log(Level.FINE, "Inserted into game player table");
 
         session().put("gameplayerid",gamePlayerId);
-
-
-
-      //  ObjectNode result = play.libs.Json.newObject();
         result.put("gameid",gameId);
         result.put("message","success");
 
@@ -86,12 +83,15 @@ public class GameController extends Controller {
         return ok(result);
     }
 
+    /**
+     * Every snapshot is retrieved using this route.
+     * @return
+     * @throws IOException
+     */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result getSnapshotDetails() throws IOException {
         String gameid = request().body().asJson().get("gameid").asText();
-        //String playerid = request().body().asJson().get("playerid").asText();
-
-        File file = new File("public/images/" + gameid);
+        File file = new File(Constants.PUBLIC_IMAGES + gameid);
         String[] playerDirectories = file.list(new FilenameFilter() {
             @Override
             public boolean accept(File current, String name) {
@@ -104,8 +104,8 @@ public class GameController extends Controller {
 
         if(playerDirectories!=null && playerDirectories.length!=0) {
             for (String directory : playerDirectories) {
-                String[] snapshots = null;
-                file = new File("public/images/" + gameid + "/" + directory);
+                String[] snapshots;
+                file = new File(Constants.PUBLIC_IMAGES + gameid + "/" + directory);
                 snapshots = file.list(new FilenameFilter() {
                     @Override
                     public boolean accept(File current, String name) {
@@ -122,14 +122,19 @@ public class GameController extends Controller {
         return ok(play.libs.Json.toJson(model));
     }
 
+    /**
+     * Route hit to save image of the games snapshots
+     * @return
+     * @throws IOException
+     */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result saveImageSnapshot() throws IOException {
-        String image_data = request().body().asJson().get("image-data").asText();
-        String username = request().body().asJson().get("username").asText();
+        String imageData = request().body().asJson().get("image-data").asText();
+        String username = request().body().asJson().get(Constants.USERNAME).asText();
         String gameid = request().body().asJson().get("gameid").asText();
         String turn = request().body().asJson().get("turnNo").asText();
 
-        String base64Image = image_data.split(",")[1];
+        String base64Image = imageData.split(",")[1];
 
         // Convert the image code to bytes.
         byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
@@ -137,7 +142,7 @@ public class GameController extends Controller {
         BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("public/images/");
+        sb.append(Constants.PUBLIC_IMAGES);
         sb.append(gameid + "/");
         sb.append(username.split("@")[0] + "/");
         File imageDirectory = new File(sb.toString());
@@ -147,7 +152,7 @@ public class GameController extends Controller {
         }
 
         sb = new StringBuilder();
-        sb.append("public/images/");
+        sb.append(Constants.PUBLIC_IMAGES);
         sb.append(gameid + "/" + username.split("@")[0] + "/" + turn);
         sb.append(".png");
 
@@ -159,30 +164,32 @@ public class GameController extends Controller {
     }
 
 
-  //  @BodyParser.Of(BodyParser.Json.class)
+    /**
+     * When a player tries to join a game, this route is hit
+     * @return
+     */
     public static Result joinGame(){
         //Check if user is logged in
         if(!validateSession()){
             ok(views.html.index.render());
         }
         ObjectNode result = play.libs.Json.newObject();
-        String userName = session().get("username");
+        String userName = session().get(Constants.USERNAME);
 
         //Check if gameId is sent through the request
         JsonNode json = request().body().asJson();
         String gameId =json.get("gameid").asText();
-        System.out.println("GameId:" + gameId);
+        logger.log(Level.FINE, "GameId:" + gameId);
         boolean isObserver = json.get("isobserver").asBoolean();
         if(gameId == null || gameId.isEmpty()){
-            // if(1==1){
-            result.put("errormsg","Error with the request, gameId not found. Contact system admin");
+            result.put(Constants.ERRORMSG,"Error with the request, gameId not found. Contact system admin");
             result.put("message","failure");
             return ok(result);
 
         }
 
         //CHECK IF THE GAME EXISTS
-        System.out.println("Checking of game Id :" + gameId + " exists");
+        logger.log(Level.FINE, "Checking of game Id :" + gameId + " exists");
         /*
         TO DO -- CHECK IF THE GAME IS IN HOSTED STATUS
         IF GAME IS NOT TIME BOUND, ALLOW PLAYERS TO JOIN EVEN IF GAME IS RUNNING
@@ -190,18 +197,16 @@ public class GameController extends Controller {
          */
 
         if(!GameUtility.gameExists(gameId)){
-         //    if(1==1){
-            result.put("errormsg","Game Id doesnt exist. Contact system admin");
+            result.put(Constants.ERRORMSG,"Game Id doesnt exist. Contact system admin");
             result.put("message","failure");
             return ok(result);
 
         }
-        System.out.println("Game Id exists");
+        logger.log(Level.FINE, "Game Id exists");
         //If host of the game tries to join the game, REJECT THE request
-        System.out.println("Checking if requested person is host again");
+        logger.log(Level.FINE, "Checking if requested person is host again");
         if(GameUtility.isHost(gameId,userName)){
-            // if(1==1){
-            result.put("errormsg","You cannot do that as host. Contact system admin");
+            result.put(Constants.ERRORMSG,"You cannot do that as host. Contact system admin");
             result.put("message","failure");
             return ok(result);
 
@@ -215,8 +220,7 @@ public class GameController extends Controller {
          * CREATE SOCKET FOR THE USER AND REDIRECT TO THE HOSTED PAGE
          */
         if(SessionManager.getAllUsers(gameId).size()>=5){
-            // if(1==1){
-            result.put("errormsg","Already 5 players in the game.");
+            result.put(Constants.ERRORMSG,"Already 5 players in the game.");
             result.put("message","failure");
             return ok(result);
 
@@ -225,52 +229,52 @@ public class GameController extends Controller {
             SessionManager.addUser(gameId, gamePlayerid);
         }
 
-        //result.put("gamePlayerId",gamePlayerId);
         result.put("gameplayerid",gamePlayerid);
         result.put("message","success");
-        //return ok(views.html.join.render(gamePlayerid));
         return ok(result);
     }
 
+    /**
+     * Method for observe game
+     * @return
+     */
     public static Result observeGame()
     {
-        String userName = session().get("username");
+        String userName = session().get(Constants.USERNAME);
         String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
-
         List<String> parameters = new ArrayList<>();
         parameters.add(userName);
         parameters.add(gameId);
-
         return ok(views.html.observer.render(parameters));
     }
 
+    /**
+     * Initial game stats are persisted and game is started
+     * @return
+     */
     public static Result startGame(){
         try {
             //Based on the configuration - > load the phases, projectSteps, Risks, MitigationSteps
-            if(!validateSession())return ok(views.html.index.render());
+            if(!validateSession())
+                return ok(views.html.index.render());
 
             String configId = Play.application().configuration().getString("config_id");
             InitialGameStat initialGameStat = new InitialGameStat();
-            String userName = session().get("username");
+            String userName = session().get(Constants.USERNAME);
             initialGameStat.setUserName( userName );
             List<Phase> gamePhases = GameUtility.getPhases(configId);
             initialGameStat.setPhases(gamePhases);
             List<String> allProjectStepIds = GameUtility.getAllProjectSteps(gamePhases);
-            if (gamePhases == null || gamePhases.size() == 0){
+            if (gamePhases == null || gamePhases.isEmpty()){
                 logger.log(Level.SEVERE,"Error while retrieving phases");
-               // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
-
-
-            System.out.println("User:" + userName);
-
+            logger.log(Level.FINE, "User:" + userName);
             String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
             initialGameStat.setGameId(gameId);
             if(!GameUtility.getResources(initialGameStat)) {
                 logger.log(Level.SEVERE,"Error while retrieving resources");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -279,9 +283,8 @@ public class GameController extends Controller {
             List<String> playersInTheGame = SessionManager.getAllUsers(gameId);
             System.out.println("Players in the game:" + playersInTheGame.toString());
 
-            if (gameId == null || playersInTheGame == null || gameId.isEmpty() || playersInTheGame.size() == 0){
+            if (gameId == null || playersInTheGame == null || gameId.isEmpty() || playersInTheGame.isEmpty()){
                 logger.log(Level.SEVERE,"Illegal start of the game");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -289,7 +292,6 @@ public class GameController extends Controller {
             //Get TimeforEachMove and No of Steps
             if(!GameUtility.getTimeBound(initialGameStat,gameId)) {
                 logger.log(Level.SEVERE,"Error while getting time bound");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -304,11 +306,10 @@ public class GameController extends Controller {
             if(!GameUtility.isHost(gameId,userName)){
                 return ok(views.html.ProjectStep.render(initialGameStat));
             }
-            System.out.println("IM HOST ONLY:" + userName);
+            logger.log(Level.FINE, "IM HOST ONLY:" + userName);
             //update startTime in GAME TABLE
             if(!GameUtility.updateStartTimeInGameTable(gameId)){
                 logger.log(Level.SEVERE,"Error while updating start time");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -319,7 +320,6 @@ public class GameController extends Controller {
             //Insert Player Project Steps Status into table
             if (!GameUtility.insertIntoPlayerProjectStepStatus(playersInTheGame, allProjectStepIds)){
                 logger.log(Level.SEVERE,"Error while entering project step status");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -328,7 +328,6 @@ public class GameController extends Controller {
             //Enter players with their specific order for taking turns during the game
             if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame)){
                 logger.log(Level.SEVERE,"Error while inserting order");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -336,7 +335,6 @@ public class GameController extends Controller {
 
             if(!GameUtility.insertSnapshots(playersInTheGame,initialGameStat)){
                 logger.log(Level.SEVERE,"Error while inserting into Snapshots");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -344,7 +342,6 @@ public class GameController extends Controller {
             //Generate Random Risk cards for players
             if(!GameUtility.generateRandomRiskCardsForPlayer(playersInTheGame,configId)){
                 logger.log(Level.SEVERE,"Error while mapping risks to players");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
 
             }
@@ -354,27 +351,24 @@ public class GameController extends Controller {
 
             //Make him play the game
 
-            //Map<Phase,List<ProjectStep>> phaseProjectStepMapping = getProjectSteps(configId,phases);
-
 
             //Update the game table with start time and list of players
             return ok(views.html.ProjectStep.render(initialGameStat));
         }catch(Exception e){
-            System.out.println("Error while starting the game");
             logger.log(Level.SEVERE,"Error while starting the game");
             return ok(views.html.error.render());
 
         }
     }
 
-
+    /**
+     * When every step is performed in the game, this route is called
+     * @return
+     */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result performStep(){
-
-
-
-        String steptype = "projectstep";
-        if(!validateSession()) return ok(views.html.index.render());
+        if(!validateSession())
+            return ok(views.html.index.render());
 
         String gamePlayerId = session().get("gameplayerid");
 
@@ -388,7 +382,7 @@ public class GameController extends Controller {
         String type = currentStep.getMoveType();
         String projectStepId = currentStep.getProjectStepId();
         int turnNo = currentStep.getTurnNo();
-        RiskCard rc = null;
+        RiskCard rc;
 
         Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
 
@@ -397,24 +391,21 @@ public class GameController extends Controller {
 
 
         //In case of skip step, just update the database and return
-        if(type.equalsIgnoreCase("skipstep")) {
+        if("skipstep".equalsIgnoreCase(type)) {
             if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
-                logger.log(Level.SEVERE,"Error while updating status");
-                // System.out.println("Error while retrieving phases.");
+                logger.log(Level.SEVERE,"Error while updating step data");
                 return ok(views.html.error.render());
 
             }
             GameUtility.addReturningResources(currentStep);
         }
-        else if(type.equalsIgnoreCase("projectstep")) {
-
+        else if("projectstep".equalsIgnoreCase(type)) {
 
             if (GameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
                 return badRequest("You already performed this step");
             ProjectStep projectStep = GameUtility.getProjectStepDetails(projectStepId);
             if (projectStep == null){
                 logger.log(Level.SEVERE,"Error while retrieving project step details");
-                // System.out.println("Error while retrieving phases.");
                 return ok(views.html.error.render());
             }
 
@@ -424,12 +415,9 @@ public class GameController extends Controller {
 
             if(performAction == Constants.PerformStep.OOPS)
             {
-                steptype = "oops";
-
                 GameUtility.performOOPS(currentStep,currentOOPS);
                 if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
                     logger.log(Level.SEVERE,"Error while updating status");
-                    // System.out.println("Error while retrieving phases.");
                     return ok(views.html.error.render());
 
                 }
@@ -443,11 +431,9 @@ public class GameController extends Controller {
                 currentStep.setTwoTurn(currentStep.getCurrentStepResource());
             }
             else if(performAction == Constants.PerformStep.SURPRISE){
-                steptype = "surprise";
                 GameUtility.performSurprise(currentStep,currentSurprise);
                 if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
                     logger.log(Level.SEVERE,"Error while updating status");
-                    // System.out.println("Error while retrieving phases.");
                     return ok(views.html.error.render());
 
                 }
@@ -466,14 +452,12 @@ public class GameController extends Controller {
 
                 if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
                     logger.log(Level.SEVERE,"Error while updating status");
-                    // System.out.println("Error while retrieving phases.");
                     return ok(views.html.error.render());
 
                 }
 
                 if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId)){
                     logger.log(Level.SEVERE,"Error while updating project step status");
-                    // System.out.println("Error while retrieving phases.");
                     return ok(views.html.error.render());
 
                 }
@@ -484,17 +468,14 @@ public class GameController extends Controller {
                 currentStep.setTwoTurn(projectStep.getPersonnel());
             }
 
-
-          //  GameUtility.addReturningResources(currentStep);
-           // currentStep.setTwoTurn(projectStep.getPersonnel());
         }
-        else if(type.equalsIgnoreCase("risk")){
+        else if("risk".equalsIgnoreCase(type)){
             String riskId = body.get("riskid").asText();
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
             double successProbability = performedSteps/totalSteps;
-            System.out.println("Probability:" + successProbability);
+            logger.log(Level.FINE, "Probability:" + successProbability);
 
             boolean success = false;
 
@@ -526,9 +507,6 @@ public class GameController extends Controller {
 
 
         }
-
-
-            //ObjectNode result = play.libs.Json.newObject();
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
             result.put("message","success");
@@ -542,15 +520,15 @@ public class GameController extends Controller {
             result.put("twoturn",currentStep.getTwoTurn());
             result.put("steptype",currentStep.getMoveType());
 
-
-
-
-
             return ok(result);
 
 
     }
 
+    /**
+     * Get list of project steps given a phase Id
+     * @return
+     */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result getProjectSteps(){
 
@@ -561,37 +539,47 @@ public class GameController extends Controller {
 
     }
 
+    /**
+     * Session validator
+     * @return
+     */
     public static boolean validateSession(){
-        System.out.println("In validate session");
-        System.out.println(session().get("username"));
-        if(session().isEmpty() || session().get("username") == null || session().get("username").isEmpty() ){
-            System.out.println("Login to host a game");
+        logger.log(Level.FINE, "In validate session");
+        logger.log(Level.FINE, session().get(Constants.USERNAME));
+        if(session().isEmpty() || session().get(Constants.USERNAME) == null || session().get(Constants.USERNAME).isEmpty() ){
+            logger.log(Level.FINE, "Login to host a game");
             return false;
         }
 
         return true;
     }
 
-
+    /**
+     * Get list of risk cards for a given player
+     * @return
+     */
     public static Result getRiskCards(){
         String gamePlayerId = session().get("gameplayerid");
         List<RiskCard> risks = GameUtility.getRisks(gamePlayerId);
-        if(risks == null || risks.size()==0) {
+        if(risks == null || risks.isEmpty()) {
             logger.log(Level.SEVERE,"Error while retrieving risk cards");
-            // System.out.println("Error while retrieving phases.");
             return ok(views.html.error.render());
 
         }
-        System.out.println("RISKS:" + risks.toString());
+        logger.log(Level.FINE, "RISKS:" + risks.toString());
         return ok(play.libs.Json.toJson(risks));
     }
 
+    /**
+     * Gets mitigation steps for a given risk id
+     * @return
+     */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result getMitigationSteps(){
         String riskId = request().body().asJson().get("riskid").asText();
         String gamePlayerId = session().get("gameplayerid");
         List<ProjectStep> mitigationCards = GameUtility.getMitigationCards(riskId,gamePlayerId);
-        System.out.println("Mitigation Cards:"+ mitigationCards);
+        logger.log(Level.FINE, "Mitigation Cards:"+ mitigationCards);
         return ok(play.libs.Json.toJson(mitigationCards));
     }
 }

@@ -7,6 +7,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utility.Constants;
+import utility.GameUtility;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -118,12 +119,7 @@ public class DashboardController extends Controller {
             return badRequest();
         }
         finally{
-            try {
-                stmt.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            GameUtility.cleanUp(stmt,connection);
         }
     }
 

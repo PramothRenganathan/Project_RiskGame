@@ -8,11 +8,13 @@ import play.db.DB;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by srijithkarippure on 9/5/16.
  */
 public class GameUtility {
+    public static final Logger logger = Logger.getLogger(GameUtility.class.getName());
 
     public static Map<String,List<String>> webSocketMapping = new HashMap<>();
 
@@ -1269,5 +1271,16 @@ public class GameUtility {
         currentStep.setBudget(currentStep.getBudget() - rc.getBudget());
         currentStep.setPersonnel(currentStep.getPersonnel() - rc.getPersonnel());
         return true;
+    }
+
+    public static void cleanUp(PreparedStatement stmt, Connection conn){
+        try {
+            if(stmt!=null)
+                stmt.close();
+            if(conn!=null)
+                conn.close();
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE,"Exception while closing connection:" +  e.getMessage());
+        }
     }
 }
