@@ -10,6 +10,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utility.Constants;
 import utility.GameUtility;
+import utility.StartGameUtility;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -51,7 +52,7 @@ public class GameController extends Controller {
         int timeForEachMove = json.get("timeforeachmove").asInt();
         int stepsForEachPlayer = json.get("stepsforeachplayer").asInt();
 
-        String gameId = GameUtility.generateGameId();
+        String gameId = StartGameUtility.generateGameId();
         //Insert gameId into table
         logger.log(Level.FINE, "Inserting into game table");
 
@@ -197,7 +198,7 @@ public class GameController extends Controller {
         ELSE DONT ALLOW
          */
 
-        if(!GameUtility.gameExists(gameId)){
+        if(!StartGameUtility.gameExists(gameId)){
             result.put(Constants.ERRORMSG,"Game Id doesnt exist. Contact system admin");
             result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
@@ -206,7 +207,7 @@ public class GameController extends Controller {
         logger.log(Level.FINE, "Game Id exists");
         //If host of the game tries to join the game, REJECT THE request
         logger.log(Level.FINE, "Checking if requested person is host again");
-        if(GameUtility.isHost(gameId,userName)){
+        if(StartGameUtility.isHost(gameId,userName)){
             result.put(Constants.ERRORMSG,"You cannot do that as host. Contact system admin");
             result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
@@ -265,7 +266,7 @@ public class GameController extends Controller {
             initialGameStat.setUserName( userName );
             List<Phase> gamePhases = GameUtility.getPhases(configId);
             initialGameStat.setPhases(gamePhases);
-            List<String> allProjectStepIds = GameUtility.getAllProjectSteps(gamePhases);
+            List<String> allProjectStepIds = StartGameUtility.getAllProjectSteps(gamePhases);
             if (gamePhases == null || gamePhases.isEmpty()){
                 logger.log(Level.SEVERE,"Error while retrieving phases");
                 return ok(views.html.error.render());
@@ -274,7 +275,7 @@ public class GameController extends Controller {
             logger.log(Level.FINE, "User:" + userName);
             String gameId = request().body().asFormUrlEncoded().get(Constants.GAMEID)[0];
             initialGameStat.setGameId(gameId);
-            if(!GameUtility.getResources(initialGameStat)) {
+            if(!StartGameUtility.getResources(initialGameStat)) {
                 logger.log(Level.SEVERE,"Error while retrieving resources");
                 return ok(views.html.error.render());
 
@@ -291,7 +292,7 @@ public class GameController extends Controller {
             }
 
             //Get TimeforEachMove and No of Steps
-            if(!GameUtility.getTimeBound(initialGameStat,gameId)) {
+            if(!StartGameUtility.getTimeBound(initialGameStat,gameId)) {
                 logger.log(Level.SEVERE,"Error while getting time bound");
                 return ok(views.html.error.render());
 
@@ -304,12 +305,12 @@ public class GameController extends Controller {
             initialGameStat.setOneTurn(0);//Resources to be back after one turn
             initialGameStat.setTwoTurn(0);//Resources to be back after one turn
             //If not host, just redirect to the game page.
-            if(!GameUtility.isHost(gameId,userName)){
+            if(!StartGameUtility.isHost(gameId,userName)){
                 return ok(views.html.ProjectStep.render(initialGameStat));
             }
             logger.log(Level.FINE, "IM HOST ONLY:" + userName);
             //update startTime in GAME TABLE
-            if(!GameUtility.updateStartTimeInGameTable(gameId)){
+            if(!StartGameUtility.updateStartTimeInGameTable(gameId)){
                 logger.log(Level.SEVERE,"Error while updating start time");
                 return ok(views.html.error.render());
 
@@ -319,7 +320,7 @@ public class GameController extends Controller {
             //Get List of Observers
 
             //Insert Player Project Steps Status into table
-            if (!GameUtility.insertIntoPlayerProjectStepStatus(playersInTheGame, allProjectStepIds)){
+            if (!StartGameUtility.insertIntoPlayerProjectStepStatus(playersInTheGame, allProjectStepIds)){
                 logger.log(Level.SEVERE,"Error while entering project step status");
                 return ok(views.html.error.render());
 
@@ -327,14 +328,14 @@ public class GameController extends Controller {
 
 
             //Enter players with their specific order for taking turns during the game
-            if (!GameUtility.insertIntoOrdering(gameId, playersInTheGame)){
+            if (!StartGameUtility.insertIntoOrdering(gameId, playersInTheGame)){
                 logger.log(Level.SEVERE,"Error while inserting order");
                 return ok(views.html.error.render());
 
             }
 
 
-            if(!GameUtility.insertSnapshots(playersInTheGame,initialGameStat)){
+            if(!StartGameUtility.insertSnapshots(playersInTheGame,initialGameStat)){
                 logger.log(Level.SEVERE,"Error while inserting into Snapshots");
                 return ok(views.html.error.render());
 
@@ -404,7 +405,7 @@ public class GameController extends Controller {
         }
         else if("projectstep".equalsIgnoreCase(type)) {
             currentStep.setMoveStatus(true);
-            if (GameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
+            if (StartGameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
                 return badRequest("You already performed this step");
             ProjectStep projectStep = GameUtility.getProjectStepDetails(projectStepId);
             if (projectStep == null){
@@ -460,7 +461,7 @@ public class GameController extends Controller {
 
                 }
 
-                if (!GameUtility.updateProjectStepStatus(projectStepId, gamePlayerId)){
+                if (!StartGameUtility.updateProjectStepStatus(projectStepId, gamePlayerId)){
                     logger.log(Level.SEVERE,"Error while updating project step status");
                     return ok(views.html.error.render());
 
