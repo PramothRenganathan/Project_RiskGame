@@ -12,7 +12,6 @@ import utility.GameUtility;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -61,7 +60,6 @@ public class DashboardController extends Controller {
      */
     public static Result viewHostGame(){
         logger.log(Level.FINE,"In Host Game method");
-        System.out.println(request().body());
         String gameId = request().body().asFormUrlEncoded().get("hgameid")[0];
         logger.log(Level.FINE,"GameId:" + gameId);
         return ok(views.html.HostGame.render(gameId));
@@ -102,7 +100,7 @@ public class DashboardController extends Controller {
                 {
                     Calendar calobj = Calendar.getInstance();
                     calobj.setTimeInMillis(rs.getTimestamp("start_time").getTime());
-                    long seconds = (currentime.getTimeInMillis() - calobj.getTimeInMillis());
+                    long seconds = currentime.getTimeInMillis() - calobj.getTimeInMillis();
                     actobj.setGametime(convertSecondsToHMmSs(seconds));
                 }
                 else
@@ -115,7 +113,7 @@ public class DashboardController extends Controller {
             }
             return ok(play.libs.Json.toJson(listofgames));
         }catch(Exception e){
-            logger.log(Level.SEVERE,"Error while retrieving active games");
+            logger.log(Level.SEVERE,"Error while retrieving active games:" + e);
             return badRequest();
         }
         finally{

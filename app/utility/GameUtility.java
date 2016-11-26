@@ -1,6 +1,5 @@
 package utility;
 
-import akka.japi.pf.FI;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.*;
 import play.Play;
@@ -15,8 +14,17 @@ import java.util.logging.Logger;
  * Created by srijithkarippure on 9/5/16.
  */
 public class GameUtility {
-    public static final Logger logger = Logger.getLogger(GameUtility.class.getName());
 
+    /**
+     * Private constructor
+     */
+    private GameUtility(){
+        //Do Nothing. All static methods. No initialization required for this class
+    }
+    public static final Logger logger = Logger.getLogger(GameUtility.class.getName());
+    /**
+     * Web socket mapping for players stored in the map
+     */
     public static Map<String,List<String>> webSocketMapping = new HashMap<>();
 
     /**
@@ -47,11 +55,11 @@ public class GameUtility {
             rs = stmt.executeQuery();
             logger.log(Level.FINE, "Retrieved project steps for all the phases");
             while (rs.next()) {
-                allProjectStepIds.add(rs.getString("config_project_step_mapping_id"));
+                allProjectStepIds.add(rs.getString(Constants.CONFIG_PROJECT_STEP_MAPPING_ID));
             }
             return allProjectStepIds;
         }catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, "Error while getting project steps:" + e);
             return allProjectStepIds;
         }
         finally{
@@ -84,13 +92,14 @@ public class GameUtility {
             }
             int[] results = stmt.executeBatch();
             for(int i: results){
-                if(i <= 0) return false;
+                if(i <= 0)
+                    return false;
             }
             logger.log(Level.FINE, "Orders Inserted");
             return true;
         } catch (SQLException e) {
 
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while inserting game ordering" + e);
             return false;
         }
         finally {
@@ -124,7 +133,7 @@ public class GameUtility {
             return true;
 
         }catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while inserting proj step status" + e);
             return false;
         }
         finally{
@@ -149,12 +158,13 @@ public class GameUtility {
             stmt.setString(1,gameId);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
-                if(Integer.parseInt(rs.getString("count"))>0)return true;
+                if(Integer.parseInt(rs.getString("count"))>0)
+                    return true;
             }
             return false;
 
         }catch(Exception e){
-            logger.log(Level.SEVERE, "Error while checking gameId existence");
+            logger.log(Level.SEVERE, "Error while checking gameId existence" + e);
             return false;
         }
         finally {
@@ -188,7 +198,7 @@ public class GameUtility {
             }
             return false;
         }catch (Exception e){
-            logger.log(Level.SEVERE, "Error while checking of host");
+            logger.log(Level.SEVERE, "Error while checking of host" +e);
             return true;
         }
         finally {
@@ -213,12 +223,13 @@ public class GameUtility {
             stmt.setString(2,Constants.RUNNING_STATUS);
             stmt.setString(3,gameId);
             int updateStatus = stmt.executeUpdate();
-            if(updateStatus > 0 ) return true;
+            if(updateStatus > 0 )
+                return true;
             return false;
 
 
         }catch (Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"error while updating start time" + e);
             return false;
 
         }
@@ -233,7 +244,7 @@ public class GameUtility {
      * @return
      */
     public static boolean getResources(InitialGameStat initialGameStat){
-        String configId = Play.application().configuration().getString("config_id");
+        String configId = Play.application().configuration().getString(Constants.CONFIG_ID);
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
@@ -245,15 +256,15 @@ public class GameUtility {
             while(rs.next()){
                 initialGameStat.setResources(rs.getInt("initial_resources"));
                 initialGameStat.setBudget(rs.getInt("initial_budget"));
-                initialGameStat.setCapabilityBonus(rs.getInt("capability_bonus"));
-                initialGameStat.setCapabilityPoints(rs.getInt("capability_points"));
+                initialGameStat.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                initialGameStat.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
                 initialGameStat.setLoanAmount(rs.getInt("loan_amount"));
             }
             return true;
 
 
         }catch (Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, "Error while getting resources" + e);
             return false;
 
         }
@@ -299,11 +310,12 @@ public class GameUtility {
             }
             int[] result = stmt.executeBatch();
             for(int i : result){
-                if(i<=0)return false;
+                if(i<=0)
+                    return false;
             }
             return true;
         }catch (Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while adding step" +  e);
             return false;
 
         }
@@ -336,14 +348,13 @@ public class GameUtility {
      * @return
      */
     public static boolean getTimeBound(InitialGameStat initialGameStat, String gameId) {
-        String configId = Play.application().configuration().getString("config_id");
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
             String query = "SELECT time_for_each_move,steps_for_each_player FROM GAME WHERE game_id = ?";
             stmt = conn.prepareStatement(query);
-            stmt.setString(1,configId);
+            stmt.setString(1,gameId);
             ResultSet rs = stmt.executeQuery();
             while(rs.next()){
                 initialGameStat.setTimeForEachMove(rs.getInt("time_for_each_move"));
@@ -353,7 +364,7 @@ public class GameUtility {
 
 
         }catch (Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while getting time details:" +  e);
             return false;
 
         }
@@ -379,13 +390,12 @@ public class GameUtility {
             stmt.setString(1,id);
             stmt.setString(2,gamePlayerId);
             ResultSet rs = stmt.executeQuery();
-            if(rs.next()){
-                if(rs.getBoolean("status"))
+            if(rs.next() && rs.getBoolean(Constants.STATUS)){
                     return true;
             }
             return false;
         }catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while getting status:" +  e);
             return false;
         }
         finally {
@@ -393,6 +403,12 @@ public class GameUtility {
         }
     }
 
+    /**
+     * Update project step status for player
+     * @param id
+     * @param gamePlayerId
+     * @return
+     */
     public static boolean updateProjectStepStatus(String id, String gamePlayerId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -405,12 +421,10 @@ public class GameUtility {
             stmt.setString(2,id);
             stmt.setString(3,gamePlayerId);
             int result = stmt.executeUpdate();
-            if(result > 0)
-                return true;
-            else
-                return false;
+            return result > 0 ? true: false;
+
         }catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while updating status" + e);
             return false;
         }
         finally {
@@ -437,10 +451,10 @@ public class GameUtility {
             ResultSet rs = stmt.executeQuery();
             Snapshot step = new Snapshot();
             while(rs.next()){
-                step.setBudget(rs.getInt("budget"));
-                step.setCapabilityPoints(rs.getInt("capability_points"));
-                step.setCapabilityBonus(rs.getInt("capability_bonus"));
-                step.setPersonnel(rs.getInt("personnel"));
+                step.setBudget(rs.getInt(Constants.BUDGET));
+                step.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
+                step.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                step.setPersonnel(rs.getInt(Constants.PERSONNEL));
                 step.setSkipTurnStatus(rs.getBoolean("skip_turn_status"));
                 step.setProduction(rs.getBoolean("isProduction"));
                 step.setTurnNo(turnNo);
@@ -450,7 +464,7 @@ public class GameUtility {
             return step;
 
         }catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, "Error while getting snapshot:" + e);
             return null;
         }
         finally {
@@ -460,19 +474,18 @@ public class GameUtility {
 
     /**
      * Get current step details
-     * @param gamePlayerId
      * @param body
      * @return
      */
-    public static Snapshot getCurrentDetailsFromTheUser(String gamePlayerId, JsonNode body) {
+    public static Snapshot getCurrentDetailsFromTheUser(JsonNode body) {
         try {
             String type = body.get("type").asText();
             String id = body.get("id").asText();
             int turnNo = body.get("turnno").asInt();
-            int budget = body.get("budget").asInt();
+            int budget = body.get(Constants.BUDGET).asInt();
             int capabilityBonus = body.get("capabilitybonus").asInt();
             int capabilityPoints = body.get("capabilitypoints").asInt();
-            int personnel = body.get("personnel").asInt();
+            int personnel = body.get(Constants.PERSONNEL).asInt();
             int timeTaken = body.get("timetaken").asInt();
             boolean skipTurn = body.get("skipturn").asBoolean();
             int oneTurn = body.get("oneturn").asInt();
@@ -497,7 +510,7 @@ public class GameUtility {
             return receivedSnapShot;
         }
         catch (Exception e){
-            logger.log(Level.SEVERE,"In getting current details from user:" +  e.getMessage());
+            logger.log(Level.SEVERE,"In getting current details from user:" +  e);
             return null;
         }
 
@@ -524,7 +537,7 @@ public class GameUtility {
             return true;
         }
         catch (Exception e){
-            logger.log(Level.SEVERE, "Error while validating step:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while validating step:" + e);
             return false;
         }
     }
@@ -595,7 +608,7 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, "Exception while updating project step" + e.getMessage());
+            logger.log(Level.SEVERE, "Exception while updating project step" + e);
 
             return false;
         }finally {
@@ -625,19 +638,16 @@ public class GameUtility {
             stmt.setString(2,gameId);
             stmt.setString(3,userName);
             stmt.setBoolean(4,isObserver);
-
-            Calendar cal = Calendar.getInstance();
             stmt.setNull(5,Types.DATE);
             stmt.setNull(6,Types.DATE);
             int rs = stmt.executeUpdate();
-            if(rs > 0)
-                return gamePlayerId;
-            else
-                return null;
+
+                return rs > 0 ? gamePlayerId : null;
+
 
 
         }catch (Exception e){
-            logger.log(Level.SEVERE, "error while inserting into game player:" + e.getMessage());
+            logger.log(Level.SEVERE, "error while inserting into game player:" + e);
             return null;
         }
         finally {
@@ -655,7 +665,7 @@ public class GameUtility {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
-            String configId = Play.application().configuration().getString("config_id");
+            String configId = Play.application().configuration().getString(Constants.CONFIG_ID);
             conn = DB.getConnection();
             String query = "SELECT level2bonus,level3bonus FROM GAME_CONFIGURATIONS WHERE game_config_id = ?";
             stmt = conn.prepareStatement(query);
@@ -669,7 +679,7 @@ public class GameUtility {
 
 
         }catch (Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while getting rules" +  e);
             return false;
 
         }
@@ -752,19 +762,19 @@ public class GameUtility {
             ProjectStep ps = null;
             while(rs.next()){
                 ps = new ProjectStep();
-                ps.setBudget(rs.getInt("budget"));
-                ps.setCapabilityPoints(rs.getInt("capability_points"));
-                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
-                ps.setPersonnel(rs.getInt("personnel"));
-                ps.setProjectStepName(rs.getString("project_step_name"));
-                ps.setLevel(rs.getInt("level"));
-                ps.setPreRequisite(rs.getString("pre_requisite"));
+                ps.setBudget(rs.getInt(Constants.BUDGET));
+                ps.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
+                ps.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                ps.setPersonnel(rs.getInt(Constants.PERSONNEL));
+                ps.setProjectStepName(rs.getString(Constants.PROJECT_STEP_NAME));
+                ps.setLevel(rs.getInt(Constants.LEVEL));
+                ps.setPreRequisite(rs.getString(Constants.PRE_REQUISITE));
             }
             return ps;
 
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, "Exception while retrieving project step:" + e.getMessage());
+            logger.log(Level.SEVERE, "Exception while retrieving project step:" + e);
             return null;
         }finally {
             cleanUp(stmt,conn);
@@ -791,7 +801,7 @@ public class GameUtility {
             return true;
         }
         catch (Exception e){
-            logger.log(Level.SEVERE, "Error while checking if the project step can be performed:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while checking if the project step can be performed:" + e);
             return false;
         }
 
@@ -807,7 +817,7 @@ public class GameUtility {
     public static boolean performOOPS(Snapshot currentStep,OOPS currentOOPS) {
 
         OOPS oops = new OOPS();
-        List<OOPS> oopsList = new ArrayList<>();
+        List<OOPS> oopsList ;
         oopsList = generateOOPSCard();
 
         for(int i=0;i<oopsList.size();i++){
@@ -848,7 +858,7 @@ public class GameUtility {
      */
     public static boolean performSurprise(Snapshot currentStep,SURPRISE currentSurprise) {
 
-        SURPRISE surprise = new SURPRISE();
+        SURPRISE surprise ;
         surprise = generateSurpriseCard();
 
         currentStep.setCapabilityBonus(currentStep.getCapabilityBonus() + surprise.getCapabilityBonus());
@@ -880,10 +890,11 @@ public class GameUtility {
             stmt = conn.prepareStatement(query);
             stmt.setString(1, gameId);
             ResultSet rs = stmt.executeQuery();
-            if(rs.next() && rs.getInt("steps_for_each_player") == turnNo)return true;
+            if(rs.next() && rs.getInt("steps_for_each_player") == turnNo)
+                return true;
             return false;
         }catch (Exception e){
-            logger.log(Level.SEVERE, "Error while checking game complete:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while checking game complete:" + e);
             return false;
         }finally {
             cleanUp(stmt,conn);
@@ -901,7 +912,7 @@ public class GameUtility {
             currentStep.setOneTurn(currentStep.getTwoTurn());//Resources to be back in one turn
         }
         catch (Exception e){
-            logger.log(Level.SEVERE, "Error while adding resources:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while adding resources:" + e);
         }
     }
 
@@ -925,17 +936,17 @@ public class GameUtility {
                 while (rs.next()) {
                     oopsobj = new OOPS();
                     oopsobj.setId(rs.getString("oops_id"));
-                    oopsobj.setBudget(rs.getInt("budget"));
-                    oopsobj.setCapabilityBonus(rs.getInt("capability_bonus"));
-                    oopsobj.setCapabilityPoints(rs.getInt("capability_points"));
-                    oopsobj.setResources(rs.getInt("personnel"));
+                    oopsobj.setBudget(rs.getInt(Constants.BUDGET));
+                    oopsobj.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                    oopsobj.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
+                    oopsobj.setResources(rs.getInt(Constants.PERSONNEL));
                     oopslist.add(oopsobj);
                 }
 
                 return oopslist;
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error while generating oops card:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while generating oops card:" + e);
             return oopslist;
         } finally {
             cleanUp(stmt,conn);
@@ -958,16 +969,16 @@ public class GameUtility {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 surpriseobj.setId(rs.getString("surprise_id"));
-                surpriseobj.setBudget(rs.getInt("budget"));
-                surpriseobj.setCapabilityBonus(rs.getInt("capability_bonus"));
-                surpriseobj.setCapabilityPoints(rs.getInt("capability_points"));
-                surpriseobj.setResources(rs.getInt("personnel"));
+                surpriseobj.setBudget(rs.getInt(Constants.BUDGET));
+                surpriseobj.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                surpriseobj.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
+                surpriseobj.setResources(rs.getInt(Constants.PERSONNEL));
             }
 
             return surpriseobj;
 
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error while generating surprise card:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while generating surprise card:" + e);
             return surpriseobj;
         } finally {
             cleanUp(stmt,conn);
@@ -1009,14 +1020,14 @@ public class GameUtility {
             }
             return true;
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error while generating risk card:" + e.getMessage());
+            logger.log(Level.SEVERE, "Error while generating risk card:" + e);
             return false;
         } finally {
             if(insertStmt!=null)
                 try {
                     insertStmt.close();
                 } catch (SQLException e) {
-                    logger.log(Level.SEVERE, "Error while generating oops card:" + e.getMessage());
+                    logger.log(Level.SEVERE, "Error while generating oops card:" + e);
                 }
             cleanUp(stmt,conn);
         }
@@ -1046,7 +1057,7 @@ public class GameUtility {
                 rc = new RiskCard();
                 rc.setBudget(rs.getInt("budget_to_mitigate"));
                 rc.setPersonnel(rs.getInt("personnel_to_mitigate"));
-                rc.setComplete(rs.getBoolean("status"));
+                rc.setComplete(rs.getBoolean(Constants.STATUS));
                 rc.setRiskId(rs.getString("risk_id"));
                 rc.setRiskDescription(rs.getString("description"));
                 risks.add(rc);
@@ -1055,8 +1066,8 @@ public class GameUtility {
 
         }
         catch (Exception e){
-            logger.log(Level.SEVERE, "Error while getting player risk cards:" + e.getMessage());
-            return null;
+            logger.log(Level.SEVERE, "Error while getting player risk cards:" + e);
+            return risks;
         }
         finally {
             cleanUp(stmt,conn);
@@ -1082,7 +1093,7 @@ public class GameUtility {
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rs;
-
+        List<ProjectStep> projectSteps = new ArrayList<>();
         try {
             connection = DB.getConnection();
             stmt = connection.prepareStatement(query);
@@ -1092,28 +1103,28 @@ public class GameUtility {
 
             rs = stmt.executeQuery();
 
-            List<ProjectStep> projectSteps = new ArrayList<>();
+
 
             while (rs.next()) {
 
                 ProjectStep ps = new ProjectStep();
-                ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
-                ps.setProjectStepName(rs.getString("project_step_name"));
-                ps.setBudget(rs.getInt("budget"));
-                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
-                ps.setCapabilityPoints(rs.getInt("capability_points"));
-                ps.setLevel(rs.getInt("level"));
-                ps.setPersonnel(rs.getInt("personnel"));
-                ps.setPreRequisite(rs.getString("pre_requisite"));
-                ps.setStatus(rs.getBoolean("status"));
+                ps.setProjectStepId(rs.getString(Constants.CONFIG_PROJECT_STEP_MAPPING_ID));
+                ps.setProjectStepName(rs.getString(Constants.PROJECT_STEP_NAME));
+                ps.setBudget(rs.getInt(Constants.BUDGET));
+                ps.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                ps.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
+                ps.setLevel(rs.getInt(Constants.LEVEL));
+                ps.setPersonnel(rs.getInt(Constants.PERSONNEL));
+                ps.setPreRequisite(rs.getString(Constants.PRE_REQUISITE));
+                ps.setStatus(rs.getBoolean(Constants.STATUS));
                 projectSteps.add(ps);
             }
             logger.log(Level.FINE, "The project steps count:" + projectSteps.size());
             return projectSteps;
     }
     catch (Exception e){
-        logger.log(Level.SEVERE, "Error while getting project steps:" + e.getMessage());
-        return null;
+        logger.log(Level.SEVERE, "Error while getting project steps:" + e);
+        return projectSteps;
     }
     finally {
             cleanUp(stmt,connection);
@@ -1154,7 +1165,7 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, "Error while inseting game:" + e);
             return false;
         }
         finally {
@@ -1187,7 +1198,6 @@ public class GameUtility {
             gamePhases = new ArrayList<>();
             while(rs.next()){
                 phase = new Phase();
-                //phase.setId(rs.getInt("id"));
                 phase.setPhaseId(rs.getString("config_phase_mapping_id"));
                 phase.setPhaseName(rs.getString("phase_name"));
                 phase.setPhaseDescription(rs.getString("description"));
@@ -1197,8 +1207,8 @@ public class GameUtility {
             return gamePhases;
         }
         catch(Exception e) {
-            logger.log(Level.SEVERE, "Error while getting phases:" + e.getMessage());
-            return null;
+            logger.log(Level.SEVERE, "Error while getting phases:" + e);
+            return gamePhases;
         }
         finally{
             cleanUp(stmt,connection);
@@ -1214,6 +1224,7 @@ public class GameUtility {
     public static List<ProjectStep> getMitigationCards(String riskId, String gamePlayerId){
         Connection conn = null;
         PreparedStatement stmt = null;
+        List<ProjectStep> mititgationSteps = new ArrayList<>();
         try{
             conn = DB.getConnection();
             String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id,phase_name, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_RISK_MITIGATION_MAPPING CRMM " +
@@ -1227,27 +1238,27 @@ public class GameUtility {
             stmt.setString(2,gamePlayerId);
             ResultSet rs = stmt.executeQuery();
             ProjectStep ps = null;
-            List<ProjectStep> mititgationSteps = new ArrayList<>();
+
             while(rs.next()){
                 ps = new ProjectStep();
                 ps.setPhaseName(rs.getString("phase_name"));
-                ps.setProjectStepId(rs.getString("config_project_step_mapping_id"));
-                ps.setProjectStepName(rs.getString("project_step_name"));
-                ps.setBudget(rs.getInt("budget"));
-                ps.setCapabilityBonus(rs.getInt("capability_bonus"));
-                ps.setCapabilityPoints(rs.getInt("capability_points"));
-                ps.setLevel(rs.getInt("level"));
-                ps.setPersonnel(rs.getInt("personnel"));
-                ps.setPreRequisite(rs.getString("pre_requisite"));
-                ps.setStatus(rs.getBoolean("status"));
+                ps.setProjectStepId(rs.getString(Constants.CONFIG_PROJECT_STEP_MAPPING_ID));
+                ps.setProjectStepName(rs.getString(Constants.PROJECT_STEP_NAME));
+                ps.setBudget(rs.getInt(Constants.BUDGET));
+                ps.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
+                ps.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
+                ps.setLevel(rs.getInt(Constants.LEVEL));
+                ps.setPersonnel(rs.getInt(Constants.PERSONNEL));
+                ps.setPreRequisite(rs.getString(Constants.PRE_REQUISITE));
+                ps.setStatus(rs.getBoolean(Constants.STATUS));
                 mititgationSteps.add(ps);
             }
             return mititgationSteps;
 
         }
         catch (Exception e){
-            logger.log(Level.SEVERE, "Error while getting mititgation cards:" + e.getMessage());
-            return null;
+            logger.log(Level.SEVERE, "Error while getting mititgation cards:" + e);
+            return mititgationSteps;
         }
         finally {
             cleanUp(stmt,conn);
@@ -1276,7 +1287,7 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, "Error while updating risk status");
+            logger.log(Level.SEVERE, "Error while updating risk status" + e);
             return false;
         }
         finally {
@@ -1309,7 +1320,7 @@ public class GameUtility {
 
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, "Error while retrieving risk status");
+            logger.log(Level.SEVERE, "Error while retrieving risk status" + e);
             return null;
         }
         finally {
@@ -1336,7 +1347,7 @@ public class GameUtility {
             return true;
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, "Error while checking mititgation status");
+            logger.log(Level.SEVERE, "Error while checking mititgation status" + e);
             return false;
         }
     }
@@ -1353,7 +1364,7 @@ public class GameUtility {
             if(conn!=null)
                 conn.close();
         } catch (SQLException e) {
-            logger.log(Level.SEVERE,"Exception while closing connection:" +  e.getMessage());
+            logger.log(Level.SEVERE,"Exception while closing connection:" +  e);
         }
     }
 }

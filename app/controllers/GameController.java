@@ -56,7 +56,7 @@ public class GameController extends Controller {
 
         if(!GameUtility.insertIntoGame(gameId,userName,timeForEachMove,stepsForEachPlayer,isTimeBound)) {
         result.put(Constants.ERRORMSG,"Error while starting the game. Contact system admin");
-            result.put("message","failure");
+            result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
 
         }
@@ -65,15 +65,15 @@ public class GameController extends Controller {
         String gamePlayerId = GameUtility.insertIntoGamePlayer(gameId,userName,false);//Host cannot be observer
         if( gamePlayerId == null  || gamePlayerId.isEmpty()) {
             result.put(Constants.ERRORMSG,"Error while hosting the game. Contact system admin");
-            result.put("message","failure");
+            result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
 
         }
         logger.log(Level.FINE, "Inserted into game player table");
 
-        session().put("gameplayerid",gamePlayerId);
-        result.put("gameid",gameId);
-        result.put("message","success");
+        session().put(Constants.GAMEPLAYERID,gamePlayerId);
+        result.put(Constants.GAMEID,gameId);
+        result.put(Constants.MESSAGE, Constants.SUCCESS);
 
         /**
          *  WEB SOCKETS CODE
@@ -90,7 +90,7 @@ public class GameController extends Controller {
      */
     @BodyParser.Of(BodyParser.Json.class)
     public static Result getSnapshotDetails() throws IOException {
-        String gameid = request().body().asJson().get("gameid").asText();
+        String gameid = request().body().asJson().get(Constants.GAMEID).asText();
         File file = new File(Constants.PUBLIC_IMAGES + gameid);
         String[] playerDirectories = file.list(new FilenameFilter() {
             @Override
@@ -131,7 +131,7 @@ public class GameController extends Controller {
     public static Result saveImageSnapshot() throws IOException {
         String imageData = request().body().asJson().get("image-data").asText();
         String username = request().body().asJson().get(Constants.USERNAME).asText();
-        String gameid = request().body().asJson().get("gameid").asText();
+        String gameid = request().body().asJson().get(Constants.GAMEID).asText();
         String turn = request().body().asJson().get("turnNo").asText();
 
         String base64Image = imageData.split(",")[1];
@@ -178,12 +178,12 @@ public class GameController extends Controller {
 
         //Check if gameId is sent through the request
         JsonNode json = request().body().asJson();
-        String gameId =json.get("gameid").asText();
+        String gameId =json.get(Constants.GAMEID).asText();
         logger.log(Level.FINE, "GameId:" + gameId);
         boolean isObserver = json.get("isobserver").asBoolean();
         if(gameId == null || gameId.isEmpty()){
             result.put(Constants.ERRORMSG,"Error with the request, gameId not found. Contact system admin");
-            result.put("message","failure");
+            result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
 
         }
@@ -198,7 +198,7 @@ public class GameController extends Controller {
 
         if(!GameUtility.gameExists(gameId)){
             result.put(Constants.ERRORMSG,"Game Id doesnt exist. Contact system admin");
-            result.put("message","failure");
+            result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
 
         }
@@ -207,21 +207,21 @@ public class GameController extends Controller {
         logger.log(Level.FINE, "Checking if requested person is host again");
         if(GameUtility.isHost(gameId,userName)){
             result.put(Constants.ERRORMSG,"You cannot do that as host. Contact system admin");
-            result.put("message","failure");
+            result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
 
         }
 
         //INSERT ENTRY INTO GAME_PLAYER TABLE
         String gamePlayerid = GameUtility.insertIntoGamePlayer(gameId,userName,isObserver);
-        session().put("gameplayerid",gamePlayerid);
+        session().put(Constants.GAMEPLAYERID,gamePlayerid);
 
         /**
          * CREATE SOCKET FOR THE USER AND REDIRECT TO THE HOSTED PAGE
          */
         if(SessionManager.getAllUsers(gameId).size()>=5){
             result.put(Constants.ERRORMSG,"Already 5 players in the game.");
-            result.put("message","failure");
+            result.put(Constants.MESSAGE, Constants.FAILURE);
             return ok(result);
 
         }
@@ -229,8 +229,8 @@ public class GameController extends Controller {
             SessionManager.addUser(gameId, gamePlayerid);
         }
 
-        result.put("gameplayerid",gamePlayerid);
-        result.put("message","success");
+        result.put(Constants.GAMEPLAYERID,gamePlayerid);
+        result.put(Constants.MESSAGE, Constants.SUCCESS);
         return ok(result);
     }
 
@@ -241,7 +241,7 @@ public class GameController extends Controller {
     public static Result observeGame()
     {
         String userName = session().get(Constants.USERNAME);
-        String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
+        String gameId = request().body().asFormUrlEncoded().get(Constants.GAMEID)[0];
         List<String> parameters = new ArrayList<>();
         parameters.add(userName);
         parameters.add(gameId);
@@ -271,19 +271,19 @@ public class GameController extends Controller {
 
             }
             logger.log(Level.FINE, "User:" + userName);
-            String gameId = request().body().asFormUrlEncoded().get("gameid")[0];
+            String gameId = request().body().asFormUrlEncoded().get(Constants.GAMEID)[0];
             initialGameStat.setGameId(gameId);
             if(!GameUtility.getResources(initialGameStat)) {
                 logger.log(Level.SEVERE,"Error while retrieving resources");
                 return ok(views.html.error.render());
 
             }
-            System.out.println("GAME ID FOUND:" + gameId);
+            logger.log(Level.FINE, "GAME ID FOUND:" + gameId);
 
             List<String> playersInTheGame = SessionManager.getAllUsers(gameId);
-            System.out.println("Players in the game:" + playersInTheGame.toString());
+            logger.log(Level.FINE, "Players in the game:" + playersInTheGame.toString());
 
-            if (gameId == null || playersInTheGame == null || gameId.isEmpty() || playersInTheGame.isEmpty()){
+            if (gameId.isEmpty() || playersInTheGame.isEmpty()){
                 logger.log(Level.SEVERE,"Illegal start of the game");
                 return ok(views.html.error.render());
 
@@ -297,7 +297,7 @@ public class GameController extends Controller {
             }
 
             //Set turn for each player
-            String gamePlayerId = session().get("gameplayerid");
+            String gamePlayerId = session().get(Constants.GAMEPLAYERID);
             initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId) + 1);
             initialGameStat.setSkipTurn(false);
             initialGameStat.setOneTurn(0);//Resources to be back after one turn
@@ -355,7 +355,7 @@ public class GameController extends Controller {
             //Update the game table with start time and list of players
             return ok(views.html.ProjectStep.render(initialGameStat));
         }catch(Exception e){
-            logger.log(Level.SEVERE,"Error while starting the game");
+            logger.log(Level.SEVERE,"Error while starting the game:" + e);
             return ok(views.html.error.render());
 
         }
@@ -370,11 +370,11 @@ public class GameController extends Controller {
         if(!validateSession())
             return ok(views.html.index.render());
 
-        String gamePlayerId = session().get("gameplayerid");
+        String gamePlayerId = session().get(Constants.GAMEPLAYERID);
 
         JsonNode body = request().body().asJson();
-        String gameId = body.get("gameid").asText();
-        Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(gamePlayerId,body);
+        String gameId = body.get(Constants.GAMEID).asText();
+        Snapshot currentStep = GameUtility.getCurrentDetailsFromTheUser(body);
         OOPS currentOOPS = new OOPS();
         ObjectNode result = play.libs.Json.newObject();
         SURPRISE currentSurprise = new SURPRISE();
@@ -417,7 +417,7 @@ public class GameController extends Controller {
             {
                 GameUtility.performOOPS(currentStep,currentOOPS);
                 if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
-                    logger.log(Level.SEVERE,"Error while updating status");
+                    logger.log(Level.SEVERE,"Error while updating oops status");
                     return ok(views.html.error.render());
 
                 }
@@ -433,7 +433,7 @@ public class GameController extends Controller {
             else if(performAction == Constants.PerformStep.SURPRISE){
                 GameUtility.performSurprise(currentStep,currentSurprise);
                 if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
-                    logger.log(Level.SEVERE,"Error while updating status");
+                    logger.log(Level.SEVERE,"Error while updating surprise status");
                     return ok(views.html.error.render());
 
                 }
@@ -447,11 +447,12 @@ public class GameController extends Controller {
                 currentStep.setTwoTurn(currentStep.getCurrentStepResource());
             }
             else{
-                if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep))
-                    return badRequest("The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
-
+                if (!GameUtility.canProjectStepBePerformed(currentStep, projectStep)) {
+                    logger.log(Level.SEVERE, "The project step cannot be performed with current budget,personnel,capabilityPoints, capabilityBonus");
+                    return ok(views.html.error.render());
+                }
                 if (!GameUtility.performStep(gamePlayerId, currentStep,performAction)) {
-                    logger.log(Level.SEVERE,"Error while updating status");
+                    logger.log(Level.SEVERE,"Error while updating proj step status");
                     return ok(views.html.error.render());
 
                 }
@@ -507,9 +508,10 @@ public class GameController extends Controller {
 
 
         }
-            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))result.put("complete","true");
+            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))
+                result.put("complete","true");
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
-            result.put("message","success");
+            result.put(Constants.MESSAGE, Constants.SUCCESS);
             result.put("budget",currentStep.getBudget());
             result.put("personnel",currentStep.getPersonnel());
             result.put("capabilitybonus",currentStep.getCapabilityBonus());
@@ -533,7 +535,7 @@ public class GameController extends Controller {
     public static Result getProjectSteps(){
 
         String phaseId = request().body().asJson().get("phaseId").asText();
-        String gamePlayerId = session().get("gameplayerid");
+        String gamePlayerId = session().get(Constants.GAMEPLAYERID);
         List<ProjectStep> projectSteps = GameUtility.getProjectSteps(phaseId,gamePlayerId);
             return ok(play.libs.Json.toJson(projectSteps));
 
@@ -559,7 +561,7 @@ public class GameController extends Controller {
      * @return
      */
     public static Result getRiskCards(){
-        String gamePlayerId = session().get("gameplayerid");
+        String gamePlayerId = session().get(Constants.GAMEPLAYERID);
         List<RiskCard> risks = GameUtility.getRisks(gamePlayerId);
         if(risks == null || risks.isEmpty()) {
             logger.log(Level.SEVERE,"Error while retrieving risk cards");
@@ -577,7 +579,7 @@ public class GameController extends Controller {
     @BodyParser.Of(BodyParser.Json.class)
     public static Result getMitigationSteps(){
         String riskId = request().body().asJson().get("riskid").asText();
-        String gamePlayerId = session().get("gameplayerid");
+        String gamePlayerId = session().get(Constants.GAMEPLAYERID);
         List<ProjectStep> mitigationCards = GameUtility.getMitigationCards(riskId,gamePlayerId);
         logger.log(Level.FINE, "Mitigation Cards:"+ mitigationCards);
         return ok(play.libs.Json.toJson(mitigationCards));

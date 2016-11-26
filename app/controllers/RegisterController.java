@@ -67,14 +67,11 @@ public class RegisterController extends Controller {
                     stmt.setString(6, andrewId);
 
                 int success = stmt.executeUpdate(); // Returns 1 if successfully inserted
-                if(success > 0)
-                    return ok("success");
-                else
-                    return ok("Error while inserting in the db");
+                return success > 0 ? ok("success") : ok("Error while inserting in the db");
             }
         }
         catch(Exception e){
-            logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE,"Error while registering:"  +  e);
             return ok("Enter all the required fields");
         }
         finally {
@@ -82,7 +79,7 @@ public class RegisterController extends Controller {
                 try {
                     stmt.close();
                 } catch (SQLException e) {
-                    logger.log(Level.SEVERE, e.getMessage());
+                    logger.log(Level.SEVERE, "Error while closing stmt" + e);
                 }
             GameUtility.cleanUp(checkStmt,conn);
         }

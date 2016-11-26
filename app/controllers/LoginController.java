@@ -4,6 +4,7 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.db.DB;
 import play.mvc.BodyParser;
+import play.mvc.Controller;
 import play.mvc.Result;
 
 import java.sql.Connection;
@@ -27,16 +28,10 @@ import views.html.*;
  */
 
 
-public class LoginController {
+public class LoginController extends Controller{
 
     public static final Logger logger = Logger.getLogger(LoginController.class.getName());
 
-    /**
-     * Constructor
-     */
-    public LoginController(){
-
-    }
     /**
      * Method called when login route is hit
      * Creates a user session and returns a cookie as part of response
@@ -73,7 +68,7 @@ public class LoginController {
                 }
                  return ok("Credentials wrong");
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Exception while login :" + e.getMessage());
+                logger.log(Level.SEVERE, "Exception while login :" + e);
             }
             finally {
                 GameUtility.cleanUp(stmt,conn);
