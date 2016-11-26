@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -392,6 +393,8 @@ public class GameController extends Controller {
 
         //In case of skip step, just update the database and return
         if("skipstep".equalsIgnoreCase(type)) {
+            currentStep.setMoveStatus(true);
+            currentStep.setSkipTurnStatus(true);
             if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
                 logger.log(Level.SEVERE,"Error while updating step data");
                 return ok(views.html.error.render());
@@ -400,7 +403,7 @@ public class GameController extends Controller {
             GameUtility.addReturningResources(currentStep);
         }
         else if("projectstep".equalsIgnoreCase(type)) {
-
+            currentStep.setMoveStatus(true);
             if (GameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
                 return badRequest("You already performed this step");
             ProjectStep projectStep = GameUtility.getProjectStepDetails(projectStepId);
@@ -462,26 +465,29 @@ public class GameController extends Controller {
                     return ok(views.html.error.render());
 
                 }
-
-
-
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(projectStep.getPersonnel());
             }
 
         }
+        //When the player performs risk mitigation
         else if("risk".equalsIgnoreCase(type)){
             String riskId = body.get("riskid").asText();
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
+            System.out.println(performedSteps + " " + totalSteps);
             double successProbability = performedSteps/totalSteps;
             logger.log(Level.FINE, "Probability:" + successProbability);
 
             boolean success = false;
 
-            if(successProbability >= 0.0){
-                success = true;
+            if(successProbability >= 0.5){
+
+                Random rand = new Random();
+
+                if(rand.nextInt(10) > 6)
+                    success = true;
             }
 
             if(success){
@@ -490,24 +496,28 @@ public class GameController extends Controller {
                 rc = GameUtility.getRiskDetails(riskId);
                 //Mitigate the risk
                 if(!GameUtility.mitigateRisk(currentStep,rc)){
-
-                    return badRequest("Error while mitigating risk");
+                    logger.log(Level.SEVERE,"Error while mitigating risk");
+                    return ok(views.html.error.render());
                 }
                 //update risk status for the player
                 if(!GameUtility.updateRiskStatus(gamePlayerId,riskId)){
-                    return badRequest("Error while updating risk status");
+                    logger.log(Level.SEVERE,"Error while updating risk status");
+                    return ok(views.html.error.render());
+
                 }
                 GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(rc.getPersonnel());
 
             }else{
+                currentStep.setMoveStatus(false);
+                GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
             }
-            //Add step to project snapshot
 
 
         }
+        //Check if game is complete
             if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))
                 result.put("complete","true");
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);

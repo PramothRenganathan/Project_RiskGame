@@ -563,7 +563,7 @@ public class GameUtility {
             stmt.setInt(5,currentStep.getCapabilityBonus());
             stmt.setInt(6,currentStep.getTimeTaken());//time taken
             stmt.setString(7, currentStep.getMoveType());//move type
-            stmt.setBoolean(8,true);//move Status
+            stmt.setBoolean(8,currentStep.isMoveStatus());//move Status
             stmt.setBoolean(9,currentStep.isSkipTurnStatus());//skip turn status
             if(moveType == Constants.PerformStep.PROJECTSTEP){
                 stmt.setString(10,currentStep.getProjectStepId());//project Step Id
@@ -574,7 +574,8 @@ public class GameUtility {
             }
 
             if(moveType == Constants.PerformStep.OOPS){
-                stmt.setString(12,currentStep.getOopsId());//project Step Id
+                stmt.setString(12,currentStep.getOopsId());
+                stmt.setString(10,currentStep.getProjectStepId());
             }
             else
             {
@@ -583,6 +584,7 @@ public class GameUtility {
 
             if(moveType == Constants.PerformStep.SURPRISE){
                 stmt.setString(13,currentStep.getSurpriseId());//surprise id
+                stmt.setString(10,currentStep.getProjectStepId());
             }
             else
             {
@@ -602,14 +604,11 @@ public class GameUtility {
             stmt.setInt(16,currentStep.getLoanAmount());
             stmt.setNull(17,Types.TINYINT);//Production status
             stmt.setInt(18,currentStep.getCapabilityPoints());
-
             int result = stmt.executeUpdate();
             return result > 0 ? true: false;
-
         }
         catch(Exception e){
             logger.log(Level.SEVERE, "Exception while updating project step" + e);
-
             return false;
         }finally {
             cleanUp(stmt,conn);
