@@ -1,5 +1,8 @@
 $(function() {
 
+    //$('#txtMessage').attr("placeholder", "Enter message (upto 150 chars) and hit return.");
+    var timerTime = 120;
+
     //this flag will be used to know if the player performed any step after timeout
     var timeout = false,
         stopped = false;
@@ -12,7 +15,7 @@ $(function() {
                  timeout = true;
                  sendTimeoutMessage();
 
-                setTimer(240);
+                setTimer(timerTime);
                 resetTimer();
                 timer.hide();
                 //In case of timeout, next player should get his turn
@@ -21,9 +24,10 @@ $(function() {
         }
     });
 
+
     //This function should be called whenever each player gets his/her turn
     var startTimer = function(){
-        clock.setTime(240);
+        clock.setTime(timerTime);
         clock.start();
     }
 
@@ -49,6 +53,11 @@ $(function() {
         timer.hide();
         var data = JSON.stringify({"gameid": gameid, "type": "Timeout", "player": {"username": username}});
         socket.send(data);
+
+        //updates turns completed count because missed turn is a lost turn
+        var turnNo = parseInt($('#turnNo').html());
+        turnNo = turnNo+1;
+        $('#turnNo').html(turnNo);
     }
 
     var username = $('#username').val();
@@ -180,7 +189,7 @@ $(function() {
     //put all code inside this method to setup the stage for player who is having the current turn
     var enableMyTurn = function (event) {
         timer.show();
-        setTimer(240);
+        setTimer(timerTime);
         resetTimer();
         startTimer();
     }
@@ -254,7 +263,7 @@ $(function() {
 
         stopTimer();
 
-        setTimer(240);
+        setTimer(timerTime);
         resetTimer();
         timer.hide();
     });
@@ -302,6 +311,13 @@ success: function (data) {
         }
     });
 
+    var sendChatMessage = function(message){
+        if(message!=""){
+            var data = JSON.stringify({"gameid": gameid, "message":message, "type": "Chat", "player": {"username": username}});
+            socket.send(data);
+        }
+    }
+
     $('#btnLeave').click(function (e) {
 
         var data = JSON.stringify({"type": "leaving", "player": {"username": username}});
@@ -316,5 +332,26 @@ success: function (data) {
                 window.location.replace("/");
             }
         });
+    });
+
+    $('#txtMessage').keyup(function(event){
+
+        if(event.keyCode==13){
+
+                //check if length is more than 150
+                if($(this).val().length<=150){
+                sendChatMessage($(this).val());
+                $('#txtMessage').val('');
+                return;
+                }
+        }
+
+var length = $(this).val().length;
+        if(length>150){
+            $(this).css('color', 'red');
+        }
+        else{
+            $(this).css('color', 'black');
+        }
     });
 });

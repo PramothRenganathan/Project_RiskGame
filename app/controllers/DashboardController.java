@@ -6,11 +6,12 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utility.Constants;
+import utility.GameUtility;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -24,9 +25,13 @@ public class DashboardController extends Controller {
 
     public static final Logger logger = Logger.getLogger(DashboardController.class.getName());
 
+    /**
+     * Session validating method
+     * @return true if valid
+     */
     public static boolean validateSession(){
 
-        if(session().isEmpty() || session().get("username") == null || session().get("username").isEmpty() ){
+        if(session().isEmpty() || session().get(Constants.USERNAME) == null || session().get(Constants.USERNAME).isEmpty() ){
 
             return false;
         }
@@ -34,117 +39,110 @@ public class DashboardController extends Controller {
         return true;
     }
 
-    public static Result ViewDashboard(){
-       System.out.println("im here");
-       // response().setContentType("text/html");
-        if(!validateSession()) return ok(views.html.index.render());
-
+    /**
+     * THis method is invoked for viewing project dashboard
+     * @return page with status 200
+     */
+    public static Result viewDashboard(){
+       logger.log(Level.FINE,"In view dashboard controller");
+        if(!validateSession())
+            return ok(views.html.index.render());
         String firstname = session().get("firstname");
         Http.Context.current().args.put("firstname", firstname);
-        String userName = session().get("username");
-        Http.Context.current().args.put("username", userName);
-        //return ok(views.html.ProjectDashbard.render());
+        String userName = session().get(Constants.USERNAME);
+        Http.Context.current().args.put(Constants.USERNAME, userName);
         return ok(views.html.ProjectDashbard.render());
     }
 
-    public static Result ViewHostGame(){
-        System.out.println(request().body());
-        System.out.println("im here");
+    /**
+     * Renders the host game page
+     * @return
+     */
+    public static Result viewHostGame(){
+        logger.log(Level.FINE,"In Host Game method");
         String gameId = request().body().asFormUrlEncoded().get("hgameid")[0];
-        System.out.println("GAME:" + gameId);
+        logger.log(Level.FINE,"GameId:" + gameId);
         return ok(views.html.HostGame.render(gameId));
     }
 
+    /**
+     * Converts time to provided format
+     * @param seconds
+     * @return
+     */
     public static String convertSecondsToHMmSs(long seconds) {
         long s = (seconds/ 1000) % 60;
         long m = (seconds / (60 * 1000)) % 60;
-        long h = (seconds / (60 * 60 * 1000));
+        long h = seconds / (60 * 60 * 1000);
         return String.format("%d:%02d:%02d", h,m,s);
     }
 
-   // @BodyParser.Of(BodyParser.Json.class)
-    public static Result ActiveGames(){
+    /**
+     * Active games
+     * @return
+     */
+    public static Result activeGames(){
 
         String query = "SELECT * FROM GAME where end_time is null";
-        System.out.println("Inside Active Games");
+        logger.log(Level.FINE,"Inside active games");
         Connection connection = DB.getConnection();
         PreparedStatement stmt = null;
         ResultSet rs;
-
         try {
             stmt = connection.prepareStatement(query);
-            //stmt.setString(1, configId);
-
-            System.out.println("In Active Games");
-
             rs = stmt.executeQuery();
-            System.out.print("DONE QUERY");
-
-
-
         List<ActiveGames> listofgames = new ArrayList<>();
             Calendar currentime = Calendar.getInstance();
             while (rs.next()) {
                 ActiveGames actobj = new ActiveGames();
                 actobj.setStatus(rs.getString("status"));
-              //  ((rs.getTimestamp("start_time")
                 if(rs.getTimestamp("start_time") != null)
                 {
                     Calendar calobj = Calendar.getInstance();
-
                     calobj.setTimeInMillis(rs.getTimestamp("start_time").getTime());
-                    //Date d1 = calobj.getTime();
-                  //  long seconds = currentime.getTimeInMillis() - calobj.getTimeInMillis();
-                    long seconds = (currentime.getTimeInMillis() - calobj.getTimeInMillis());
-                 //   long seconds = (d2.getTime() - d1.getTime());
-                 //   String test = convertSecondsToHMmSs(seconds);
+                    long seconds = currentime.getTimeInMillis() - calobj.getTimeInMillis();
                     actobj.setGametime(convertSecondsToHMmSs(seconds));
-                   // actobj.setGametime(String.valueOf(seconds));
-                 //   actobj.setGametime(d1.toString());
-                   //actobj.setStatus(currentime.getTime().toString());
                 }
                 else
                 {
                 actobj.setGametime("Not yet started");
                 }
-
-             //  actobj.setGametime((rs.getString("start_time")));
                 actobj.setIstimebound(rs.getString("isTimeBound"));
                 actobj.setGameid(rs.getString("game_id"));
                 listofgames.add(actobj);
             }
-
             return ok(play.libs.Json.toJson(listofgames));
         }catch(Exception e){
-            logger.log(Level.SEVERE,"Error while retrieving active games");
-            System.out.println(e.getMessage());
+            logger.log(Level.SEVERE,"Error while retrieving active games:" + e);
             return badRequest();
         }
         finally{
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            GameUtility.cleanUp(stmt,connection);
         }
     }
 
+    /**
+     * Host game method
+     * @return
+     */
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result HostGame()
+    public static Result hostGame()
     {
-        //String node = request().body().asJson().get("istimebound").toString();
-        // System.out.println(node);
-       // response().setContentType("");
 
         return ok("success");
     }
 
-    public static Result JoinGame()
+    /**
+     * Join game method
+     * @return
+     */
+    public static Result joinGame()
     {
-        String userName = session().get("username");
+        logger.log(Level.FINE,"In join Game method");
+        String userName = session().get(Constants.USERNAME);
         String gameId = request().body().asFormUrlEncoded().get("jgameid")[0];
         String observer = request().body().asFormUrlEncoded().get("hdn_observer")[0];
-        boolean isObserver = observer.equals("1")? true: false;
+        boolean isObserver ="1".equals(observer)? true: false;
 
         List<String> parameters = new ArrayList<>();
         parameters.add(userName);
