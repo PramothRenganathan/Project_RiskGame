@@ -54,7 +54,7 @@ public class RegisterController extends Controller {
             else{ // User not present, insert into the users database
 
                 query = "INSERT INTO USERS (player_id, password, first_name, last_name, isCMU, andrew_id) " +
-                        "VALUES (?,?,?,?,?,?)";
+                        "VALUES (?,?,?,?,?,?,?)";
                 stmt = conn.prepareStatement(query);
                 stmt.setString(1,userName);
                 stmt.setString(2,password);
@@ -65,6 +65,8 @@ public class RegisterController extends Controller {
                     stmt.setNull(6, Types.VARCHAR);
                 else
                     stmt.setString(6, andrewId);
+
+                stmt.setBoolean(7,false);//Is Admin, admins are manually added to db
 
                 int success = stmt.executeUpdate(); // Returns 1 if successfully inserted
                 return success > 0 ? ok("success") : ok("Error while inserting in the db");
