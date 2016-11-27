@@ -65,9 +65,11 @@ public class PlayerSocket{
 
                 else if(data.type.equals("TurnUpdate")){
                     //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
                     wsdata = new WebSocketData();
                     wsdata.type = "TurnUpdate";
                     wsdata.currentPlayer = data.player.name;
+                    wsdata.joinedUsers = activeUsers;
                 }
 
                 else if(data.type.equals("StartGame")){
@@ -99,6 +101,15 @@ public class PlayerSocket{
                     List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
                     wsdata = new WebSocketData();
                     wsdata.type = "Timeout";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                }
+
+                else if(data.type.equals("SkipTurn")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "SkipTurn";
                     wsdata.joinedUsers = activeUsers;
                     wsdata.player = data.player.username;
                 }

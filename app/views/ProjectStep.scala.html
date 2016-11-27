@@ -602,6 +602,7 @@
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
         <input type="hidden" name="gameid" id="gameid" value='@model.getGameId()'/>
         <input type="hidden" name="turn" id="turn" value='@model.getTurnNo()'/>
+        <input type="hidden" name="moveTime" id="moveTime" value='@model.getTimeForEachMove()'/>
 
         <div class="container" >
 
@@ -709,6 +710,7 @@
                             </div>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
+                            <button id="btnSkip">Skip Turn</button>
                         </div>
 
                     </div>
@@ -847,8 +849,6 @@
 
 
                 <!-- This will be displayed if he is the observer -->
-
-
 
             <div class="clearfix"></div>
             <div class="clearfix"></div>
