@@ -386,14 +386,23 @@
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
                         {
+                           // $('#updateactivity').trigger('click');
+
                             var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
                             //alert(alertmsg);
+
+                            $("#oopsmsg").val(alertmsg);
+                            $("#isoops").val("true");
+                            $('#updateactivity').trigger('click');
                             swal("YOU GOT AN OOPS CARD!",alertmsg, "error");
                             document.getElementById('myCurrentTurn').innerHTML = "You got an OOPS card!";
                         }
                         else if(data.steptype == "SURPRISE"){
                             var alertmsg = "You gained" + data.surprise_resource + " resource, " + data.surprise_points + "capability points, " + data.surprise_bonus + "capability bonus and " + data.surprise_budget + " dollars.";
                             //alert(alertmsg);
+                            $("#isoops").val("false");
+                            $("#oopsmsg").val(alertmsg);
+                            $('#updateactivity').trigger('click');
                             swal("YOU GOT A SURPRISE CARD!",alertmsg, "error");
                             document.getElementById('myCurrentTurn').innerHTML = "You got a Surprise card!";
                         }
@@ -602,6 +611,7 @@
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
         <input type="hidden" name="gameid" id="gameid" value='@model.getGameId()'/>
         <input type="hidden" name="turn" id="turn" value='@model.getTurnNo()'/>
+        <input type="hidden" name="moveTime" id="moveTime" value='@model.getTimeForEachMove()'/>
 
         <div class="container" >
 
@@ -709,6 +719,7 @@
                             </div>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
+                            <button id="btnSkip">Skip Turn</button>
                         </div>
 
                     </div>
@@ -848,8 +859,6 @@
 
                 <!-- This will be displayed if he is the observer -->
 
-
-
             <div class="clearfix"></div>
             <div class="clearfix"></div>
             <div class="clearfix"></div>
@@ -899,6 +908,9 @@
                             <div class="col-xs-12" style="height: 30px;"></div>
                             <div id="performstep"></div>
                             <button disabled=""  id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
+                            <button disabled="" hidden  id="updateactivity" class=""  style="margin-bottom: 20px"  >Perform this Step</button>
+                            <input type="text" hidden id="oopsmsg" />
+                            <input type="text" hidden id="isoops" />
                             <div id="isDisabled" style="color: #8b0000;"></div>
                         </div>
                     </div>
