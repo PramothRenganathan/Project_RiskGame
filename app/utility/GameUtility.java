@@ -25,7 +25,7 @@ public class GameUtility {
     /**
      * Web socket mapping for players stored in the map
      */
-    public static Map<String,List<String>> webSocketMapping = new HashMap<>();
+    protected final static Map<String,List<String>> webSocketMapping = new HashMap<>();
 
 
 
