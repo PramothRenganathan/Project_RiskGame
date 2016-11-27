@@ -1,7 +1,9 @@
 $(function() {
 
     //$('#txtMessage').attr("placeholder", "Enter message (upto 150 chars) and hit return.");
-    var timerTime = 120;
+
+
+    var timerTime = parseInt($('#moveTime').val())*60;
 
     //this flag will be used to know if the player performed any step after timeout
     var timeout = false,
@@ -48,6 +50,7 @@ $(function() {
     // startTimer();
 
     var sendTimeoutMessage = function(){
+
         stopTimer();
         resetTimer();
         timer.hide();
@@ -58,7 +61,27 @@ $(function() {
         var turnNo = parseInt($('#turnNo').html());
         turnNo = turnNo+1;
         $('#turnNo').html(turnNo);
+
+        //capture screen after timeout once turn Number field is updated
+        takeSnapshot();
     }
+
+var sendSkipTurnMessage = function(){
+
+stopTimer();
+resetTimer();
+timer.hide();
+var data = JSON.stringify({"gameid": gameid, "type": "SkipTurn", "player": {"username": username}});
+socket.send(data);
+
+//updates turns completed count because skipped turn is a lost turn
+var turnNo = parseInt($('#turnNo').html());
+turnNo = turnNo+1;
+$('#turnNo').html(turnNo);
+
+//capture screen after timeout once turn Number field is updated
+takeSnapshot();
+}
 
     var username = $('#username').val();
     var gameid = $('#gameid').val();
@@ -127,6 +150,16 @@ $(function() {
             activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//Timeout
 
+else if (model.type == "SkipTurn") {
+var playerName = model.player;
+
+var activityLog = $('#activity-log');
+
+var txt = playerName + " skipped their turn!";
+
+activityLog.prepend('<p>' + txt + '</p><hr/>');
+}//SkipTurn
+
 
         else if (model.type == "Chat") {
             var playerName = model.player.split("@@")[0],
@@ -146,19 +179,40 @@ $(function() {
             //alert("CTurn: " + turnNumber + ", PTurn: " + playerTurn + ", EStatus: " + (turnNumber == playerTurn));
             if(turnNumber == playerTurn){
                 enableMyTurn();
+                publishMyTurn();
             }
 
-            publishMyTurn();
+            //publishMyTurn();
 
         }//ChangeTurn
 
         else if (model.type == "TurnUpdate") {
-            var currentPlayer = model.currentPlayer;
+        var currentPlayer = model.currentPlayer.split("@@")[0];
+        var tmp_username = username.split("@@")[0];
 
-        //alert("Username: " + username + ", Current Player: " + currentPlayer);
-            if(username != currentPlayer){
-                //alert(currentPlayer + "'s " + "turn now..");
-            }
+        var users = model.joinedUsers;
+        activePlayersList.html("");
+
+        if(tmp_username==currentPlayer){
+            activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
+        }
+
+        else{
+            activePlayersList.append(tmp_username + ' (you)' + '<br/>');
+        }
+
+
+        for (i = 0; i < users.length; i++) {
+            if (users[i].split("-")[0] != tmp_username) {
+                if(users[i].split("-")[0]==currentPlayer) {
+                    activePlayersList.append('<b>' + users[i].split("-")[0] + '</b><br/>');
+                }
+
+                else{
+                    activePlayersList.append(users[i].split("-")[0] + '<br/>');
+                }
+            }//if
+        }//for
 
         }//TurnUpdate
 
@@ -277,19 +331,20 @@ $(function() {
         });
     }
 
-var uploadImage = function(url){
-var turnNo = $('#turnNo').html();
-var obj = {'image-data' : url, 'username' : username, 'gameid' : gameid, 'turnNo' : turnNo};
-$.ajax({
-type: 'POST',
-url: '@routes.GameController.saveImageSnapshot()',
-data: JSON.stringify(obj),
-contentType: 'application/json',
-success: function (data) {
-//alert("Image uploaded");
-}
-});//ajax call ends here
-}
+    var uploadImage = function(url){
+    var turnNo = parseInt($('#turnNo').html());
+    turnNo = turnNo-1;
+    var obj = {'image-data' : url, 'username' : username, 'gameid' : gameid, 'turnNo' : turnNo};
+        $.ajax({
+            type: 'POST',
+            url: '@routes.GameController.saveImageSnapshot()',
+            data: JSON.stringify(obj),
+            contentType: 'application/json',
+            success: function (data) {
+            //alert("Image uploaded");
+            }
+        });//ajax call ends here
+    }
 
     var publishTurnNumber = function(){
         var turnNumber = $('#turn').val();
@@ -332,6 +387,18 @@ success: function (data) {
                 window.location.replace("/");
             }
         });
+    });
+
+
+    $('#btnSkip').click(function(){
+        timeout = true;
+        sendSkipTurnMessage();
+
+        setTimer(timerTime);
+        resetTimer();
+        timer.hide();
+        //In case of timeout, next player should get his turn
+        publishTurnNumber();
     });
 
     $('#txtMessage').keyup(function(event){
