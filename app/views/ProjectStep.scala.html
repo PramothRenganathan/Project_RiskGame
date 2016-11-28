@@ -377,6 +377,28 @@
 
 //                var isEligibleToPerformStep=true;
                 var performedStep=document.getElementById(id).innerHTML;
+                var isProduction = $('#btnIsProduction').val();
+                if(isProduction == "true" && 1==0){
+                    var obj = {
+                        'id': 'null',
+                        'riskid' : 'null',
+                        'gameid':document.getElementById('gameid').innerHTML,
+                        'skipturn':'false',
+                        'isProduction':isProduction,
+                        'oneturn':document.getElementById('oneTurn').innerHTML,
+                        'twoturn':document.getElementById('twoTurn').innerHTML,
+                        'type': 'production',
+                        'budget': document.getElementById('budgetremaining').innerHTML,
+                        'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+                        'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+                        'personnel' :document.getElementById('personnelremaining').innerHTML,
+                        'turnno': document.getElementById('turnNo').innerHTML,
+                        'timetaken': 3,
+                        'performedsteps': 0,
+                        'totalsteps':totalSteps
+                    };
+                }
+
                 if(id.indexOf("Skip") !==-1){
 //                    alert(id);
                     var obj = {
@@ -384,6 +406,7 @@
                         'riskid' : 'null',
                         'gameid':document.getElementById('gameid').innerHTML,
                         'skipturn':'true',
+                        'isProduction':isProduction,
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
                         'type': 'skipstep',
@@ -393,7 +416,7 @@
                         'personnel' :document.getElementById('personnelremaining').innerHTML,
                         'turnno': document.getElementById('turnNo').innerHTML,
                         'timetaken': 3,
-                        'performedsteps': stepsDone,
+                        'performedsteps': 0,
                         'totalsteps':totalSteps
                     };
                 }
@@ -405,6 +428,7 @@
                         'riskid' : id,
                         'gameid':document.getElementById('gameid').innerHTML,
                         'skipturn':'false',
+                        'isProduction':isProduction,
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
                         'type': 'risk',
@@ -516,7 +540,7 @@
                 if(currentPhase == "CPM6"){
                     swal({   title: "Are you sure?",   text: "You will not be able to do any further project steps after production!",   type: "warning",   showCancelButton: true,   confirmButtonColor: "#DD6B55",   confirmButtonText: "Yes, Go to Production!",   closeOnConfirm: false }, function(){
 
-
+                        $('#btnIsProduction').val("true");
                         swal("Your product is LIVE!", "You have successfully deployed your software to production.", "success");
                     });
                 }
@@ -812,6 +836,7 @@
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
 
                             </div>
+                            <input type ="text" id="btnIsProduction" value="false"/>
                             <button class="btn btn-danger" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
