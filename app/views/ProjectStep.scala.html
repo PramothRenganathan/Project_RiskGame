@@ -155,7 +155,7 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
-//                        alert(data);
+//                        alert("im here");
                         var result = " ";
                         $("#grid-basic tbody") .empty();
                         var firstRisk=data[0].riskId;
@@ -166,7 +166,7 @@
 //                            obj.isComplete = obj.isComplete === 'false' ? "Not Completed" : "Completed";
                             var isCompleted="";
                             var isDisabled="";
-//                            alert(obj.budget+" "+obj.personnel);
+//                            alert(obj.budget+" "+obj.personnel+" "+obj.complete);
                             if(obj.complete){
 //                                alert('object is true')
                                 isCompleted="Completed"
@@ -254,7 +254,7 @@
                 var projectStepId = $(this).data('id');
 //                $(".perform-risk").attr("id",projectStepId);
                 $(".perform-risk").attr("disabled",buttonDisabled);
-                alert(buttonDisabled);
+//                alert(buttonDisabled);
 
 
                 $(".perform-risk").attr("id",riskId);
@@ -374,11 +374,32 @@
 
 
             function onPerformStep(id){
+
 //                var isEligibleToPerformStep=true;
                 var performedStep=document.getElementById(id).innerHTML;
+                if(id.indexOf("Skip") !==-1){
+//                    alert(id);
+                    var obj = {
+                        'id': 'null',
+                        'riskid' : 'null',
+                        'gameid':document.getElementById('gameid').innerHTML,
+                        'skipturn':'true',
+                        'oneturn':document.getElementById('oneTurn').innerHTML,
+                        'twoturn':document.getElementById('twoTurn').innerHTML,
+                        'type': 'skipstep',
+                        'budget': document.getElementById('budgetremaining').innerHTML,
+                        'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
+                        'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
+                        'personnel' :document.getElementById('personnelremaining').innerHTML,
+                        'turnno': document.getElementById('turnNo').innerHTML,
+                        'timetaken': 3,
+                        'performedsteps': stepsDone,
+                        'totalsteps':totalSteps
+                    };
+                }
 
-                if(id.indexOf("CRM") !==-1){
-
+                else if(id.indexOf("CRM") !==-1){
+//                    alert(id);
                     var obj = {
                         'id': 'null',
                         'riskid' : id,
@@ -425,7 +446,7 @@
                     contentType: 'application/json',
                     success: function (data) {
 //                        alert(data.oneturn+" "+data.twoturn);
-
+//                        alert(data.personnel);
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
                         {
@@ -770,7 +791,7 @@
                             </div>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
-                            <button id="btnSkip">Skip Turn</button>
+                            <button id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
                         </div>
 
                     </div>
