@@ -386,11 +386,6 @@ public class GameController extends Controller {
         int turnNo = currentStep.getTurnNo();
         RiskCard rc;
 
-        Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
-
-
-//        if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
-
 
         //In case of skip step, just update the database and return
         if("skipstep".equalsIgnoreCase(type)) {
@@ -478,9 +473,9 @@ public class GameController extends Controller {
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
-            System.out.println(performedSteps + " " + totalSteps);
+//            System.out.println(performedSteps + " " + totalSteps);
             double successValue = (performedSteps*100)/totalSteps;
-            logger.log(Level.FINE, "Probability:" + successValue);
+            logger.log(Level.FINE, "Probability:" + successProbability);
 
             boolean success = false;
 
@@ -492,7 +487,7 @@ public class GameController extends Controller {
             }
 
             if(success){
-                System.out.println("Success!!!");
+
                 //Get Risk details
                 rc = GameUtility.getRiskDetails(riskId);
                 //Mitigate the risk
@@ -532,7 +527,7 @@ public class GameController extends Controller {
             result.put("oneturn",currentStep.getOneTurn());
             result.put("twoturn",currentStep.getTwoTurn());
             result.put("steptype",currentStep.getMoveType());
-//        System.out.println(currentStep.getOneTurn()+" "+currentStep.getTwoTurn()+" "+currentStep.getBudget()+" "+currentStep.getPersonnel());
+
             return ok(result);
 
 

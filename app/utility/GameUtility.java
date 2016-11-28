@@ -25,7 +25,7 @@ public class GameUtility {
     /**
      * Web socket mapping for players stored in the map
      */
-    public static Map<String,List<String>> webSocketMapping = new HashMap<>();
+    protected final static Map<String,List<String>> webSocketMapping = new HashMap<>();
 
 
 
@@ -594,25 +594,36 @@ public class GameUtility {
         try {
             conn = DB.getConnection();
             for (String player : playersInTheGame) {
+                try {
 
-                String query = "SELECT config_risk_mapping_id FROM CONFIG_RISK_MAPPING WHERE game_config_id = ? ORDER BY RAND() LIMIT 5";
-                stmt = conn.prepareStatement(query);
-                stmt.setString(1, configId);
-                ResultSet rs = stmt.executeQuery();
-                String insertQuery = "INSERT INTO GAME_PLAYER_RISK_STATUS (game_player_id,risk_id,`status`) VALUES (?,?,?)";
-                insertStmt = conn.prepareStatement(insertQuery);
-                while (rs.next()) {
-                    insertStmt.setString(1, player);
-                    insertStmt.setString(2, rs.getString("config_risk_mapping_id"));
-                    insertStmt.setBoolean(3, false);
-                    insertStmt.addBatch();
+                    String query = "SELECT config_risk_mapping_id FROM CONFIG_RISK_MAPPING WHERE game_config_id = ? ORDER BY RAND() LIMIT 5";
+                    stmt = conn.prepareStatement(query);
+                    stmt.setString(1, configId);
+                    ResultSet rs = stmt.executeQuery();
+                    String insertQuery = "INSERT INTO GAME_PLAYER_RISK_STATUS (game_player_id,risk_id,`status`) VALUES (?,?,?)";
+                    insertStmt = conn.prepareStatement(insertQuery);
+                    while (rs.next()) {
+                        insertStmt.setString(1, player);
+                        insertStmt.setString(2, rs.getString("config_risk_mapping_id"));
+                        insertStmt.setBoolean(3, false);
+                        insertStmt.addBatch();
+                    }
+                    int[] result = insertStmt.executeBatch();
+                    for (int i : result) {
+                        if (i <= 0)
+                            return false;//Error while inserting
+                    }
                 }
-                int[] result = insertStmt.executeBatch();
-                for (int i : result) {
-                    if (i <= 0)
-                        return false;//Error while inserting
+                catch (Exception e){
+                    logger.log(Level.SEVERE, "Error while generating risk card:" + e);
+                    return false;
                 }
-
+                finally {
+                    if(stmt != null)
+                        stmt.close();
+                    if(insertStmt != null)
+                        insertStmt.close();
+                }
             }
             return true;
         } catch (Exception e) {

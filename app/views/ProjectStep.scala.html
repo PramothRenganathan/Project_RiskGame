@@ -155,7 +155,7 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
-//                        alert("im here");
+//                        alert(data);
                         var result = " ";
                         $("#grid-basic tbody") .empty();
                         var firstRisk=data[0].riskId;
@@ -166,7 +166,7 @@
 //                            obj.isComplete = obj.isComplete === 'false' ? "Not Completed" : "Completed";
                             var isCompleted="";
                             var isDisabled="";
-//                            alert(obj.budget+" "+obj.personnel+" "+obj.complete);
+//                            alert(obj.budget+" "+obj.personnel);
                             if(obj.complete){
 //                                alert('object is true')
                                 isCompleted="Completed"
@@ -235,10 +235,9 @@
             }
 
             $(document).on("click", ".open-riskDialog", function () {
-//                alert($(this).data('risk'));
+                alert($(this).data('risk'));
 
 //                var title = $(this).data('title');
-
 
                 var riskId=$(this).data('risk');
                 var budget = $(this).data('budget');
@@ -446,18 +445,25 @@
                     contentType: 'application/json',
                     success: function (data) {
 //                        alert(data.oneturn+" "+data.twoturn);
-//                        alert(data.personnel);
+
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
                         {
                             var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
                             //alert(alertmsg);
+
+                            $("#oopsmsg").val(alertmsg);
+                            $("#isoops").val("true");
+                            $('#updateactivity').trigger('click');
                             swal("YOU GOT AN OOPS CARD!",alertmsg, "error");
                             document.getElementById('myCurrentTurn').innerHTML = "You got an OOPS card!";
                         }
                         else if(data.steptype == "SURPRISE"){
                             var alertmsg = "You gained" + data.surprise_resource + " resource, " + data.surprise_points + "capability points, " + data.surprise_bonus + "capability bonus and " + data.surprise_budget + " dollars.";
                             //alert(alertmsg);
+                            $("#isoops").val("false");
+                            $("#oopsmsg").val(alertmsg);
+                            $('#updateactivity').trigger('click');
                             swal("YOU GOT A SURPRISE CARD!",alertmsg, "error");
                             document.getElementById('myCurrentTurn').innerHTML = "You got a Surprise card!";
                         }
@@ -473,7 +479,9 @@
                         document.getElementById('oneTurn').innerHTML = data.oneturn;
                         document.getElementById('twoTurn').innerHTML = data.twoturn;
                         onPhaseClick(currentPhase);
+
                         onRiskClick(riskClicked);
+
                         if(id.indexOf("CRM") !==-1){
                             onRiskDashboardClick();
                             $('#riskDialog').modal('hide');
@@ -1002,6 +1010,9 @@
                             <div id="performstep"></div>
                             <button disabled=""  id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
                             <button data-dismiss="modal" class="btn btn-danger"  style="margin-bottom: 20px" aria-label="Close">Cancel</button>
+                            <button disabled="" hidden  id="updateactivity" class=""  style="margin-bottom: 20px"  >Perform this Step</button>
+                            <input type="text" hidden id="oopsmsg" />
+                            <input type="text" hidden id="isoops" />
                             <div id="isDisabled" style="color: #8b0000;"></div>
                         </div>
                     </div>

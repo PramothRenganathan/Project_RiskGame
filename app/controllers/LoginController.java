@@ -49,7 +49,7 @@ public class LoginController extends Controller{
             Connection conn = DB.getConnection();
             PreparedStatement stmt = null;
             try {
-                String query = "SELECT first_name from USERS where player_id = ? and password = ?";
+                String query = "SELECT first_name,isAdmin from USERS where player_id = ? and password = ?";
                 stmt = conn.prepareStatement(query);
                 stmt.setString(1, userName);
                 stmt.setString(2, password);
@@ -60,7 +60,9 @@ public class LoginController extends Controller{
                 while (rs.next()) {
                     logger.log(Level.FINE, "Creating session");
                     session().put("firstname",rs.getString("first_name"));
-
+                    if(rs.getBoolean("isAdmin")){
+                        session().put("admin","true");
+                    }
                     session().put("username",userName);
 
                     //change -- to main dashboard page

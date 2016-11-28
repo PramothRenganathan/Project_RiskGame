@@ -2,6 +2,9 @@ package models;
 
 import java.util.Date;
 
+/**
+ * Game related fields
+ */
 public class Game{
 
     private String gameId;
