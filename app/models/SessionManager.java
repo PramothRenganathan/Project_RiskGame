@@ -62,4 +62,12 @@ public class SessionManager {
        }
        return null;
     }
+    //Remove map entry for the game
+    public static boolean removeGame(String gameId){
+        if(users.containsKey(gameId)){
+            users.remove(gameId);
+            return true;
+        }
+        return false;
+    }
 }
