@@ -455,14 +455,14 @@ public class StartGameUtility {
     public static boolean isGameCompleteForAllPlayers(List<String> allUsers) {
         Connection conn = null;
         PreparedStatement stmt = null;
-        StringBuilder players = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         for(String user: allUsers){
-            players.append('\'');
-            players.append(user);
-            players.append('\'');
-            players.append(',');
+            sb.append("'");
+            sb.append(user);
+            sb.append("'");
+            sb.append(",");
         }
-        String updatedValue = players.toString().substring(0,players.length()-1);
+        String updatedValue = sb.substring(0,sb.length()-1);
 
         try{
             conn = DB.getConnection();
