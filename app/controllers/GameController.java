@@ -473,9 +473,9 @@ public class GameController extends Controller {
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
-//            System.out.println(performedSteps + " " + totalSteps);
+
             double successValue = (performedSteps*100)/totalSteps;
-            logger.log(Level.FINE, "Probability:" + successProbability);
+            logger.log(Level.FINE, "Probability:" + successValue);
 
             boolean success = false;
 
