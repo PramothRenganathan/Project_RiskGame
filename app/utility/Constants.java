@@ -26,7 +26,11 @@ public class Constants {
     public static final String PROJECT_STEP_NAME = "project_step_name";
     public static final String LEVEL = "level";
     public static final String PRE_REQUISITE = "pre_requisite";
+    public static final String APPLICATION_JAVASCRIPT = "application/javascript";
 
+    /**
+     * Different kinds of steps performed
+     */
     public enum PerformStep {
         PROJECTSTEP,
         OOPS,

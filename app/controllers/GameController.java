@@ -386,11 +386,6 @@ public class GameController extends Controller {
         int turnNo = currentStep.getTurnNo();
         RiskCard rc;
 
-        Snapshot previousStep = GameUtility.getPreviousSnapshot(gamePlayerId,turnNo - 1);
-
-
-//        if(!GameUtility.validateStep(previousStep,currentStep))return badRequest("User tampered the data on the frontend");
-
 
         //In case of skip step, just update the database and return
         if("skipstep".equalsIgnoreCase(type)) {
@@ -402,6 +397,7 @@ public class GameController extends Controller {
 
             }
             GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(currentStep.getCurrentStepResource());
         }
         else if("projectstep".equalsIgnoreCase(type)) {
             currentStep.setMoveStatus(true);
@@ -477,17 +473,16 @@ public class GameController extends Controller {
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
-            System.out.println(performedSteps + " " + totalSteps);
-            double successProbability = performedSteps/totalSteps;
+//            System.out.println(performedSteps + " " + totalSteps);
+            double successValue = (performedSteps*100)/totalSteps;
             logger.log(Level.FINE, "Probability:" + successProbability);
 
             boolean success = false;
 
-            if(successProbability >= 0.5){
+            Random rand = new Random();
 
-                Random rand = new Random();
 
-                if(rand.nextInt(10) > 6)
+            if(successValue >= rand.nextInt(100) ){
                     success = true;
             }
 

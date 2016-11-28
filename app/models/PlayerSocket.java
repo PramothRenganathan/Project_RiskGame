@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Player sockets related methods
+ */
 public class PlayerSocket{
     private static List<WebSocket.Out<JsonNode>> connections = new ArrayList<WebSocket.Out<JsonNode>>();
     private static Map<String, List<WebSocket.Out<JsonNode>>> gameUsersMap = new HashMap<>();

@@ -166,14 +166,29 @@ public class StartGameUtility {
             conn = DB.getConnection();
             for(String playerId: playersInTheGame){
                 String query = "INSERT INTO GAME_PLAYER_PROJECT_STEP_STATUS (game_player_id,config_project_step_mapping_id,status) VALUES (?,?,?)";
-                stmt = conn.prepareStatement(query);
-                for(String projectStepId : projectSteps) {
-                    stmt.setString(1, playerId);
-                    stmt.setString(2, projectStepId);
-                    stmt.setBoolean(3, false);
-                    stmt.addBatch();
+                try {
+                    stmt = conn.prepareStatement(query);
+                    for (String projectStepId : projectSteps) {
+                        stmt.setString(1, playerId);
+                        stmt.setString(2, projectStepId);
+                        stmt.setBoolean(3, false);
+                        stmt.addBatch();
+                    }
+                    int[] rs = stmt.executeBatch();
+                    for (int i : rs) {
+                        if (i <= 0)
+                            return false;
+                    }
                 }
-                stmt.executeBatch();
+                catch(Exception e){
+                    logger.log(Level.SEVERE,"Error while inserting proj step status" + e);
+                    return false;
+                }
+                finally {
+                    if(stmt != null)
+                        stmt.close();
+                }
+
             }
             logger.log(Level.FINE,"Status entered for all the players");
             return true;
