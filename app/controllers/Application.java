@@ -5,12 +5,14 @@ import models.PlayerSocket;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.WebSocket;
+import utility.Constants;
 import views.html.index;
 
 /**
  * Takes care of the socket connections
  */
 public class Application extends Controller {
+
     /**
      * Index rendering
      * @return
@@ -33,7 +35,7 @@ public class Application extends Controller {
      * @return
      */
     public static Result hostJs() {
-        return ok(views.html.hostjs.render()).as("application/javascript");
+        return ok(views.html.hostjs.render()).as(Constants.APPLICATION_JAVASCRIPT);
     }
 
     /**
@@ -41,7 +43,7 @@ public class Application extends Controller {
      * @return
      */
     public static Result wsJs() {
-        return ok(views.html.ws.render()).as("application/javascript");
+        return ok(views.html.ws.render()).as(Constants.APPLICATION_JAVASCRIPT);
     }
 
     /**
@@ -49,7 +51,7 @@ public class Application extends Controller {
      * @return
      */
     public static Result gameJs() {
-        return ok(views.html.gamejs.render()).as("application/javascript");
+        return ok(views.html.gamejs.render()).as(Constants.APPLICATION_JAVASCRIPT);
     }
 
     /**
