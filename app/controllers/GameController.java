@@ -402,6 +402,7 @@ public class GameController extends Controller {
 
             }
             GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(currentStep.getCurrentStepResource());
         }
         else if("projectstep".equalsIgnoreCase(type)) {
             currentStep.setMoveStatus(true);
@@ -478,21 +479,20 @@ public class GameController extends Controller {
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
             System.out.println(performedSteps + " " + totalSteps);
-            double successProbability = performedSteps/totalSteps;
-            logger.log(Level.FINE, "Probability:" + successProbability);
+            double successValue = (performedSteps*100)/totalSteps;
+            logger.log(Level.FINE, "Probability:" + successValue);
 
             boolean success = false;
 
-            if(successProbability >= 0.5){
+            Random rand = new Random();
 
-                Random rand = new Random();
 
-                if(rand.nextInt(10) > 6)
+            if(successValue >= rand.nextInt(100) ){
                     success = true;
             }
 
             if(success){
-
+                System.out.println("Success!!!");
                 //Get Risk details
                 rc = GameUtility.getRiskDetails(riskId);
                 //Mitigate the risk
@@ -532,7 +532,7 @@ public class GameController extends Controller {
             result.put("oneturn",currentStep.getOneTurn());
             result.put("twoturn",currentStep.getTwoTurn());
             result.put("steptype",currentStep.getMoveType());
-
+//        System.out.println(currentStep.getOneTurn()+" "+currentStep.getTwoTurn()+" "+currentStep.getBudget()+" "+currentStep.getPersonnel());
             return ok(result);
 
 
