@@ -513,9 +513,17 @@ public class GameController extends Controller {
 
 
         }
-        //Check if game is complete
-            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))
-                result.put("complete","true");
+            //Check if game is complete
+            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId, gamePlayerId)) {
+                result.put("complete", "true");
+            }
+            //Check if game is complete for all players in the game
+            if(StartGameUtility.isGameCompleteForAllPlayers(SessionManager.getAllUsers(gameId))){
+                if(!StartGameUtility.updateCompletionOfGame(gameId)) {
+                    logger.log(Level.SEVERE, "Error while updating completion of game");
+                }
+                SessionManager.removeGame(gameId);
+            }
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
             result.put(Constants.MESSAGE, Constants.SUCCESS);
             result.put("budget",currentStep.getBudget());

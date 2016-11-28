@@ -228,7 +228,7 @@ public class GameUtility {
         try{
             conn = DB.getConnection();
             String gamePlayerId = userName.split("@")[0] + "-" +  gameId;
-            String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time) VALUES (?,?,?,?,?,?)";
+            String query = "INSERT INTO GAME_PLAYER (game_player_id,game_id,player_id,isObserver,start_time,end_time,game_complete) VALUES (?,?,?,?,?,?,?)";
             stmt = conn.prepareStatement(query);
             stmt.setString(1,gamePlayerId);
             stmt.setString(2,gameId);
@@ -236,6 +236,7 @@ public class GameUtility {
             stmt.setBoolean(4,isObserver);
             stmt.setNull(5,Types.DATE);
             stmt.setNull(6,Types.DATE);
+            stmt.setBoolean(7,false);
             int rs = stmt.executeUpdate();
 
                 return rs > 0 ? gamePlayerId : null;
@@ -475,24 +476,39 @@ public class GameUtility {
      * Check if the game is complete
      * @param turnNo
      * @param gameId
+     * @param gamePlayerId
      * @return
      */
-    public static boolean isGameComplete(int turnNo, String gameId) {
+    public static boolean isGameComplete(int turnNo, String gameId, String gamePlayerId) {
         Connection conn = null;
         PreparedStatement stmt = null;
+        PreparedStatement updateStmt = null;
         try{
             conn = DB.getConnection();
             String query = "SELECT steps_for_each_player FROM GAME WHERE game_id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setString(1, gameId);
             ResultSet rs = stmt.executeQuery();
-            if(rs.next() && rs.getInt("steps_for_each_player") == turnNo)
-                return true;
+            if(rs.next() && rs.getInt("steps_for_each_player") == turnNo) {
+                String updateQuery = "UPDATE GAME_PLAYER SET game_complete = ? where game_player_id = ?";
+                updateStmt = conn.prepareStatement(updateQuery);
+                updateStmt.setBoolean(1, true);
+                updateStmt.setString(2,gamePlayerId);
+                int result = updateStmt.executeUpdate();
+                return result > 0 ? true:false;
+            }
             return false;
         }catch (Exception e){
             logger.log(Level.SEVERE, "Error while checking game complete:" + e);
             return false;
         }finally {
+            if(updateStmt != null){
+                try {
+                    updateStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
             cleanUp(stmt,conn);
         }
 
