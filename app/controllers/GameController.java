@@ -397,6 +397,7 @@ public class GameController extends Controller {
 
             }
             GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(currentStep.getCurrentStepResource());
         }
         else if("projectstep".equalsIgnoreCase(type)) {
             currentStep.setMoveStatus(true);
@@ -472,17 +473,16 @@ public class GameController extends Controller {
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
-            logger.log(Level.FINE, performedSteps + " " + totalSteps);
-            double successProbability = performedSteps/totalSteps;
-            logger.log(Level.FINE, "Probability:" + successProbability);
+
+            double successValue = (performedSteps*100)/totalSteps;
+            logger.log(Level.FINE, "Probability:" + successValue);
 
             boolean success = false;
 
-            if(successProbability >= 0.5){
+            Random rand = new Random();
 
-                Random rand = new Random();
 
-                if(rand.nextInt(10) > 6)
+            if(successValue >= rand.nextInt(100) ){
                     success = true;
             }
 
