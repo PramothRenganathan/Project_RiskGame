@@ -44,6 +44,8 @@
             border-color:#F05C2B;
         }
 
+
+
         .ProjectStepStyle:hover,
         .ProjectStepStyle:focus,
         .ProjectStepStyle:active,
@@ -159,7 +161,6 @@
                         var result = " ";
                         $("#grid-basic tbody") .empty();
                         var firstRisk=data[0].riskId;
-
                         for (i = 0; i < data.length; i++) {
 
                             var obj = data[i];
@@ -449,6 +450,8 @@
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
                         {
+                           // $('#updateactivity').trigger('click');
+
                             var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
                             //alert(alertmsg);
 
@@ -692,6 +695,7 @@
         <input type="hidden" name="gameid" id="gameid" value='@model.getGameId()'/>
         <input type="hidden" name="turn" id="turn" value='@model.getTurnNo()'/>
         <input type="hidden" name="moveTime" id="moveTime" value='@model.getTimeForEachMove()'/>
+        <input type="hidden" id="notmymove" value=''/>
 
         <div class="container" >
 
@@ -797,9 +801,10 @@
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
 
                             </div>
+                            <button class="btn btn-danger" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
-                            <button id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
+
                         </div>
 
                     </div>
