@@ -470,7 +470,9 @@ public class StartGameUtility {
             stmt = conn.prepareStatement(query);
             stmt.setBoolean(1, true);
             ResultSet rs = stmt.executeQuery();
-            if(rs.getInt("count") == allUsers.size()){
+            System.out.println("hi");
+
+            if(rs.next() && Integer.parseInt(rs.getString("count")) == allUsers.size()){
                 return true;
             }
             return false;
