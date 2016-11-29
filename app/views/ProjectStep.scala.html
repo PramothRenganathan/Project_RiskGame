@@ -382,7 +382,7 @@
                     var obj = {
                         'id': 'null',
                         'riskid' : 'null',
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId,
                         'skipturn':'true',
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
@@ -403,7 +403,7 @@
                     var obj = {
                         'id': 'null',
                         'riskid' : id,
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId,
                         'skipturn':'false',
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
@@ -421,7 +421,7 @@
                     var obj = {
                         'id': id,
                         'riskid' : 'null',
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId,
                         'skipturn':'false',
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
@@ -846,7 +846,7 @@
                                 <div style="height: 20px; "></div>
 
                                 <div id="listOfProjectSteps">
-                                @if(model.getTurnNo==1){
+
 
                                     @for(phase <- model.getPhases()) {
                                         @if(phase.getPhaseName().equalsIgnoreCase("PLANNING")){
@@ -864,10 +864,8 @@
                                             <div class="col-md-1" style="height: 60px;"> </div>
                                         }
 
-
-
                                     }
-                                }
+
 
                                 </div>
 
