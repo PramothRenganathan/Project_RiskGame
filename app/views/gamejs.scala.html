@@ -1,5 +1,6 @@
 $(function() {
 
+    var myTurn="false";
     //$('#txtMessage').attr("placeholder", "Enter message (upto 150 chars) and hit return.");
 
 
@@ -50,7 +51,7 @@ $(function() {
     // startTimer();
 
     var sendTimeoutMessage = function(){
-
+        myTurn="false";
         stopTimer();
         resetTimer();
         timer.hide();
@@ -67,7 +68,7 @@ $(function() {
     }
 
 var sendSkipTurnMessage = function(){
-
+myTurn="false";
 stopTimer();
 resetTimer();
 timer.hide();
@@ -180,6 +181,12 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
             if(turnNumber == playerTurn){
                 enableMyTurn();
                 publishMyTurn();
+                @*$("input.perform-step").attr("disabled", false);*@
+                @*document.getElementById("btnSkip").disabled = false;*@
+
+            }else{
+            @*$("input.perform-step").attr("disabled", true);*@
+            @*document.getElementById("btnSkip").disabled = true;*@
             }
 
             //publishMyTurn();
@@ -223,6 +230,24 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
         }
     }
 
+        $('#editTodoDialog').on('shown.bs.modal', function () {
+
+            if(myTurn=="true"){
+
+                $(".perform-step").attr("disabled",false);
+                $("#btnSkip").attr("disabled",false);
+                $(".perform-risk").attr("disabled",false);
+
+            }else{
+
+                $(".perform-step").attr("disabled",true);
+                $("#btnSkip").attr("disabled",true);
+                $(".perform-risk").attr("disabled",true);
+            }
+
+
+        });
+
     var publishMyTurn = function (event) {
         var data = JSON.stringify({"gameid":gameid, "type": "TurnUpdate", "player": {"name": username, "team": "somecode"}});
         socket.send(data);
@@ -242,6 +267,7 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
 
     //put all code inside this method to setup the stage for player who is having the current turn
     var enableMyTurn = function (event) {
+        myTurn="true";
         timer.show();
         setTimer(timerTime);
         resetTimer();
@@ -304,7 +330,7 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
 
     //Perform step button event handler
     $('.perform-step').on("click", function(){
-
+            myTurn="false";
         var     topModal = $(this).closest('div.modal'),
                 parentModal = topModal.find('div.modal-content'),
                 header = parentModal.find('div.modal-header'),
