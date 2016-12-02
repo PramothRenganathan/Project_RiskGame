@@ -304,6 +304,7 @@ public class GameController extends Controller {
             //Set turn for each player
             String gamePlayerId = session().get(Constants.GAMEPLAYERID);
             initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId) + 1);
+            //initialGameStat.setTurnNo(1);
             initialGameStat.setSkipTurn(false);
             initialGameStat.setOneTurn(0);//Resources to be back after one turn
             initialGameStat.setTwoTurn(0);//Resources to be back after one turn
@@ -400,7 +401,26 @@ public class GameController extends Controller {
 
             }
             GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(currentStep.getCurrentStepResource());
         }
+
+        else if("production".equalsIgnoreCase(type)) {
+
+            //currentStep.setMoveStatus(true);
+            //currentStep.setSkipTurnStatus(true);
+            if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
+                logger.log(Level.SEVERE,"Error while updating production");
+                return ok(views.html.error.render());
+
+            }
+            int moneyGained = GameUtility.getProductionMoney(currentStep.getRiskMitigated());
+            int updatedBudget = currentStep.getBudget() + moneyGained;
+            currentStep.setBudget(updatedBudget);
+            GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(currentStep.getCurrentStepResource());
+            result.put("prod_money",moneyGained);
+        }
+
         else if("projectstep".equalsIgnoreCase(type)) {
             currentStep.setMoveStatus(true);
             if (StartGameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
@@ -411,9 +431,13 @@ public class GameController extends Controller {
                 return ok(views.html.error.render());
             }
 
+            Constants.PerformStep performAction = Constants.PerformStep.PROJECTSTEP;
 
+            if(!projectStep.getPhaseId().equalsIgnoreCase("CPM1")){
 
-            Constants.PerformStep performAction = GameUtility.getActiontobeTaken(projectStep.getLevel(),currentStep.getCapabilityBonus());
+                performAction = GameUtility.getActiontobeTaken(projectStep.getLevel(),currentStep.getCapabilityBonus());
+            }
+
 
             if(performAction == Constants.PerformStep.OOPS)
             {
@@ -475,24 +499,23 @@ public class GameController extends Controller {
             currentStep.setRiskId(riskId);
             double performedSteps = currentStep.getPerformedSteps();
             double totalSteps = currentStep.getTotalSteps();
-            logger.log(Level.FINE, performedSteps + " " + totalSteps);
-            double successProbability = performedSteps/totalSteps;
-            logger.log(Level.FINE, "Probability:" + successProbability);
 
+            double successValue = (performedSteps*100)/totalSteps;
+            logger.log(Level.FINE, "Probability:" + successValue);
+            //Get Risk details
+            rc = GameUtility.getRiskDetails(riskId);
             boolean success = false;
 
-            if(successProbability >= 0.5){
+            Random rand = new Random();
 
-                Random rand = new Random();
 
-                if(rand.nextInt(10) > 6)
+            if(successValue >= rand.nextInt(100) ){
                     success = true;
             }
 
             if(success){
 
-                //Get Risk details
-                rc = GameUtility.getRiskDetails(riskId);
+
                 //Mitigate the risk
                 if(!GameUtility.mitigateRisk(currentStep,rc)){
                     logger.log(Level.SEVERE,"Error while mitigating risk");
@@ -507,18 +530,31 @@ public class GameController extends Controller {
                 GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(rc.getPersonnel());
+                result.put("risk_status","success");
 
             }else{
                 currentStep.setMoveStatus(false);
+                currentStep.setBudget(currentStep.getBudget() - rc.getBudget());
+                currentStep.setPersonnel(currentStep.getPersonnel() - rc.getPersonnel());
                 GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(rc.getPersonnel());
+                result.put("risk_status","failure");
             }
 
 
         }
-        //Check if game is complete
-            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId))
-                result.put("complete","true");
+            //Check if game is complete
+            if(GameUtility.isGameComplete(currentStep.getTurnNo(),gameId, gamePlayerId)) {
+                result.put("complete", "true");
+            }
+            //Check if game is complete for all players in the game
+            if(StartGameUtility.isGameCompleteForAllPlayers(SessionManager.getAllUsers(gameId))){
+                if(!StartGameUtility.updateCompletionOfGame(gameId)) {
+                    logger.log(Level.SEVERE, "Error while updating completion of game");
+                }
+                SessionManager.removeGame(gameId);
+            }
             currentStep.setTurnNo(currentStep.getTurnNo() + 1);
             result.put(Constants.MESSAGE, Constants.SUCCESS);
             result.put("budget",currentStep.getBudget());

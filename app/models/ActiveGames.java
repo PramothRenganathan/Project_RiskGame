@@ -8,6 +8,8 @@ public class ActiveGames {
     String status;
     String gametime;
     String istimebound;
+    String hostId;
+    String fullName;
 
     public String getGameid() {
         return gameid;
@@ -15,6 +17,22 @@ public class ActiveGames {
 
     public void setGameid(String gameid) {
         this.gameid = gameid;
+    }
+
+    public String getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(String hostId) {
+        this.hostId = hostId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getStatus() {

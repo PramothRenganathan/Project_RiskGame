@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static utility.GameUtility.cleanUp;
+import static utility.GameUtility.logger;
 
 /**
  * Created by srijithkarippure on 11/26/16.
@@ -439,6 +440,72 @@ public class StartGameUtility {
 
         }catch(Exception e){
             logger.log(Level.SEVERE,"Error while updating status" + e);
+            return false;
+        }
+        finally {
+            cleanUp(stmt,conn);
+        }
+    }
+
+    /**
+     * Check if the game is complete for all the players
+     * @param allUsers
+     * @return
+     */
+    public static boolean isGameCompleteForAllPlayers(List<String> allUsers) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        StringBuilder sb = new StringBuilder();
+        for(String user: allUsers){
+            sb.append("'");
+            sb.append(user);
+            sb.append("'");
+            sb.append(",");
+        }
+        String updatedValue = sb.substring(0,sb.length()-1);
+
+        try{
+            conn = DB.getConnection();
+            String query = "SELECT COUNT(*) as `count` FROM GAME_PLAYER WHERE game_player_id IN (" + updatedValue + ") AND game_complete = ? ";
+            stmt = conn.prepareStatement(query);
+            stmt.setBoolean(1, true);
+            ResultSet rs = stmt.executeQuery();
+            System.out.println("hi");
+
+            if(rs.next() && Integer.parseInt(rs.getString("count")) == allUsers.size()){
+                return true;
+            }
+            return false;
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "Error while checking completion" + e);
+            return false;
+        }
+        finally{
+            cleanUp(stmt,conn);
+        }
+    }
+
+    /**
+     * Update completion status of the game
+     * @param gameId
+     */
+    public static boolean updateCompletionOfGame(String gameId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        java.sql.Timestamp date = new java.sql.Timestamp(new java.util.Date().getTime());
+        try{
+            conn = DB.getConnection();
+            String query = "UPDATE GAME SET end_time = ?,`status`='COMPLETE' where game_id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setTimestamp(1, date);
+            stmt.setString(2, gameId);
+            int result = stmt.executeUpdate();
+            return result > 0 ? true:false;
+
+        }
+        catch(Exception e){
+            logger.log(Level.SEVERE, "Error while updating game" + e);
             return false;
         }
         finally {

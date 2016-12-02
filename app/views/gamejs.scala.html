@@ -1,5 +1,6 @@
 $(function() {
 
+    var myTurn="false";
     //$('#txtMessage').attr("placeholder", "Enter message (upto 150 chars) and hit return.");
 
 
@@ -16,7 +17,7 @@ $(function() {
             if (!timeout && !stopped) {
                  timeout = true;
                  sendTimeoutMessage();
-
+                $('#btnSkipTimeout').trigger('click');
                 setTimer(timerTime);
                 resetTimer();
                 timer.hide();
@@ -50,7 +51,7 @@ $(function() {
     // startTimer();
 
     var sendTimeoutMessage = function(){
-
+        myTurn="false";
         stopTimer();
         resetTimer();
         timer.hide();
@@ -59,7 +60,7 @@ $(function() {
 
         //updates turns completed count because missed turn is a lost turn
         var turnNo = parseInt($('#turnNo').html());
-        turnNo = turnNo+1;
+       // turnNo = turnNo+1;
         $('#turnNo').html(turnNo);
 
         //capture screen after timeout once turn Number field is updated
@@ -67,7 +68,7 @@ $(function() {
     }
 
 var sendSkipTurnMessage = function(){
-
+myTurn="false";
 stopTimer();
 resetTimer();
 timer.hide();
@@ -199,6 +200,11 @@ takeSnapshot();
             if(turnNumber == playerTurn){
                 enableMyTurn();
                 publishMyTurn();
+                if($('#btnIsProduction').val() == "true"){
+                $('#btnSkip').trigger('click');
+                }
+
+
             }
 
             //publishMyTurn();
@@ -242,6 +248,24 @@ takeSnapshot();
         }
     }
 
+        $('#editTodoDialog').on('shown.bs.modal', function () {
+
+            if(myTurn=="true"){
+
+                $(".perform-step").attr("disabled",false);
+                $("#btnSkip").attr("disabled",false);
+                $(".perform-risk").attr("disabled",false);
+
+            }else{
+
+                $(".perform-step").attr("disabled",true);
+                $("#btnSkip").attr("disabled",true);
+                $(".perform-risk").attr("disabled",true);
+            }
+
+
+        });
+
     var publishMyTurn = function (event) {
         var data = JSON.stringify({"gameid":gameid, "type": "TurnUpdate", "player": {"name": username, "team": "somecode"}});
         socket.send(data);
@@ -261,6 +285,7 @@ takeSnapshot();
 
     //put all code inside this method to setup the stage for player who is having the current turn
     var enableMyTurn = function (event) {
+        myTurn="true";
         timer.show();
         setTimer(timerTime);
         resetTimer();
@@ -323,7 +348,7 @@ takeSnapshot();
 
     //Perform step button event handler
     $('.perform-step').on("click", function(){
-
+            myTurn="false";
         var     topModal = $(this).closest('div.modal'),
                 parentModal = topModal.find('div.modal-content'),
                 header = parentModal.find('div.modal-header'),

@@ -51,7 +51,13 @@ public class DashboardController extends Controller {
         Http.Context.current().args.put("firstname", firstname);
         String userName = session().get(Constants.USERNAME);
         Http.Context.current().args.put(Constants.USERNAME, userName);
-        return ok(views.html.ProjectDashbard.render());
+        if(session().get("admin")!=null && session().get("admin").equalsIgnoreCase("true")){
+            return ok(views.html.ProjectDashbard.render());
+
+        }else{
+            return ok(views.html.ProjectDashbard.render());
+        }
+
     }
 
     /**
@@ -83,7 +89,8 @@ public class DashboardController extends Controller {
      */
     public static Result activeGames(){
 
-        String query = "SELECT * FROM GAME where end_time is null";
+        String query = "select status,start_time,isTimeBound,game_id,first_name,last_name,G.host from GAME G " +
+                "join USERS U on U.player_id = G.host where end_time is null";
         logger.log(Level.FINE,"Inside active games");
         Connection connection = DB.getConnection();
         PreparedStatement stmt = null;
@@ -95,7 +102,14 @@ public class DashboardController extends Controller {
             Calendar currentime = Calendar.getInstance();
             while (rs.next()) {
                 ActiveGames actobj = new ActiveGames();
-                actobj.setStatus(rs.getString("status"));
+                if(rs.getString("status").equalsIgnoreCase("HOSTED")){
+                    actobj.setStatus("Waiting for players to join");
+                }
+                else {
+                    actobj.setStatus(rs.getString("status"));
+                }
+                actobj.setFullName(rs.getString("first_name") + " " + rs.getString("last_name"));
+                actobj.setHostId(rs.getString("host"));
                 if(rs.getTimestamp("start_time") != null)
                 {
                     Calendar calobj = Calendar.getInstance();

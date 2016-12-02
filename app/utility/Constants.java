@@ -42,5 +42,6 @@ public class Constants {
     public static final int INITIAL_BUDGET = 35000;
     public static final int INITIAL_CAPABILITY_POINTS = 0;
     public static final int INITIAL_CAPABILITY_BONUS = 0;
+    public static final int INITIAL_NO_OF_RISKS = 5;
 
 }
