@@ -146,9 +146,14 @@
 
                 alert("aaaaaaaa");
             }
+            var lastclickedTab;
 
+            function onProjectStepTabClick(){
+
+                lastclickedTab="projectStep";
+            }
             function onRiskDashboardClick(){
-
+                lastclickedTab="riskDashboard";
                 $.ajax({
                     type: 'POST',
                     url: '@routes.GameController.getRiskCards()',
@@ -280,6 +285,7 @@
             var riskClicked="";
             var totalSteps=0;
             var stepsDone=0;
+            var onlyPlanning=true;
             function onRiskClick(id){
 //                alert("fghjh "+id);
                 riskClicked=id;
@@ -303,7 +309,7 @@
                             var status;
                             if(obj.status){
                                 stepsDone++;
-                                obj.status="disabled='true'"
+                                obj.status="disabled='true'";
                             }
 
 //                                result= result+"<h1>"+obj.projectStepName+"</h1>";
@@ -336,27 +342,75 @@
 //                            alert("elig"+setColor);
 
 //                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
-
-                            result = result + "<button " +
-                                    " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
-                                    " style='white-space: normal; ' " +
-                                    " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
-                                    " data-toggle='modal' " +obj.status+
-                                    " data-buttondisable='"+buttonDisable+"'" +
-                                    "data-title='" + obj.projectStepName +
-                                    "'data-id='" + obj.projectStepId +
-                                    "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
-                                    "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
-                                    "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
-                                    "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
-                                    "'data-level='Level:' data-levelvalue='" + obj.level +
-                                    "'data-id='" + obj.projectStepId +
-                                    "'" +
+                            if(onlyPlanning){
+                                if(obj.phaseName=="PLANNING"){
+                                    result = result + "<button " +
+                                            " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
+                                            " style='white-space: normal; ' " +
+                                            " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
+                                            " data-toggle='modal' " +obj.status+
+                                            " data-buttondisable='"+buttonDisable+"'" +
+                                            "data-title='" + obj.projectStepName +
+                                            "'data-id='" + obj.projectStepId +
+                                            "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
+                                            "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
+                                            "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
+                                            "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
+                                            "'data-level='Level:' data-levelvalue='" + obj.level +
+                                            "'data-id='" + obj.projectStepId +
+                                            "'" +
 //                                            "data-todo='{'id':12,'todo':'xyz'}'"+
-                                    "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
-                                    "  id='todolink'>" + obj.projectStepName +
-                                    "</button><div class='col-md-1' style='height:90px;'></div>";
-//                                    "</button><div class='col-md-1' style='height:90px;"+setColor+"'"></div>";
+                                            "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
+                                            "  id='todolink'>" + obj.projectStepName +
+                                            "</button><div class='col-md-1' style='height:90px;'></div>";
+//
+                                }else{
+                                    result = result + "<button disabled" +
+                                            " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
+                                            " style='white-space: normal; ' " +
+                                            " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
+                                            " data-toggle='modal' " +obj.status+
+                                            " data-buttondisable='"+buttonDisable+"'" +
+                                            "data-title='" + obj.projectStepName +
+                                            "'data-id='" + obj.projectStepId +
+                                            "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
+                                            "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
+                                            "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
+                                            "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
+                                            "'data-level='Level:' data-levelvalue='" + obj.level +
+                                            "'data-id='" + obj.projectStepId +
+                                            "'" +
+//                                            "data-todo='{'id':12,'todo':'xyz'}'"+
+                                            "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
+                                            "  id='todolink'>" + obj.projectStepName +
+                                            "</button><div class='col-md-1' style='height:90px;'></div>";
+//
+                                }
+
+
+                            }else{
+                                result = result + "<button " +
+                                        " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
+                                        " style='white-space: normal; ' " +
+                                        " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
+                                        " data-toggle='modal' " +obj.status+
+                                        " data-buttondisable='"+buttonDisable+"'" +
+                                        "data-title='" + obj.projectStepName +
+                                        "'data-id='" + obj.projectStepId +
+                                        "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
+                                        "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
+                                        "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
+                                        "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
+                                        "'data-level='Level:' data-levelvalue='" + obj.level +
+                                        "'data-id='" + obj.projectStepId +
+                                        "'" +
+//                                            "data-todo='{'id':12,'todo':'xyz'}'"+
+                                        "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
+                                        "  id='todolink'>" + obj.projectStepName +
+                                        "</button><div class='col-md-1' style='height:90px;'></div>";
+//
+                            }
+
 
                         }
 //                        alert(stepsDone+"/"+totalSteps);
@@ -445,7 +499,22 @@
                     // dataType: 'json',
                     contentType: 'application/json',
                     success: function (data) {
-//                        alert(data.oneturn+" "+data.twoturn);
+                        onlyPlanning=false;
+                        if(data.complete=="true"){
+                            swal({
+                                        title: "Congratulations !",
+                                        text: "You ended up the game with "+data.budget,
+                                        confirmButtonColor: "#DD6B55",
+                                        confirmButtonText: "QuitGame",
+                                        closeOnConfirm: false,
+                                    },
+                                    function(isConfirm){
+                                        if (isConfirm) {
+                        swal("Call Leave Game function!");
+
+                                        }
+                                    });
+                        }
 
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
@@ -485,7 +554,8 @@
 
                         onRiskClick(riskClicked);
 
-                        if(id.indexOf("CRM") !==-1){
+                        if(id.indexOf("CRM") !==-1 || lastclickedTab.indexOf("risk")!==-1){
+
                             onRiskDashboardClick();
                             $('#riskDialog').modal('hide');
                         }
@@ -663,7 +733,10 @@
                 setTimeout(function () {
                     clearInterval(timer);
                 }, 500000);
+
+
             }
+
             function refreshProjectSteps(){
                 @*alert(@model.getPhases.get(0).getPhaseName);*@
                 var result="";
@@ -688,7 +761,7 @@
                 }
             }
     </script>
-    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="newfunc();onPhaseClick('CPM1');
+    <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="onProjectStepTabClick();newfunc();onPhaseClick('CPM1');
     totalGameTimer()">
         <input type="hidden" name="phase" id="phase" value="plan"/>
         <input type="hidden" name="username" id="username" value='@model.getUserName()'/>
@@ -801,7 +874,7 @@
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
 
                             </div>
-                            <button class="btn btn-danger" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
+                            <button class="btn btn-danger skipp" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
 
@@ -836,7 +909,7 @@
                     <!-- \\ start of center div - phases and steps -->
                 <div class="col-md-8 card" style="border: 1px solid transparent">
                     <ul class="nav nav-tabs">
-                        <li class="active"><a data-toggle="tab" href="#projectSteps">Project Steps</a></li>
+                        <li class="active"><a data-toggle="tab" onclick="onProjectStepTabClick()" href="#projectSteps">Project Steps</a></li>
                         <li><a data-toggle="tab" href="#riskDashboard" onclick="onRiskDashboardClick()">Risk Dashboard</a></li>
                     </ul>
                     <div class="tab-content">
