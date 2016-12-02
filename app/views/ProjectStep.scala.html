@@ -437,7 +437,7 @@
                     var obj = {
                         'id': 'null',
                         'riskid' : 'null',
-                        'gameid':@model.getGameId(),
+                        'gameid':@model.getGameId,
                         'skipturn':'false',
                         'isProduction':isProduction,
                         'riskmitigatedcount': parseInt($('#txtRisk').val()),
@@ -530,7 +530,9 @@
                     contentType: 'application/json',
                     success: function (data) {
                         onlyPlanning=false;
+                        document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.complete=="true"){
+                            alert(data.complete);
                             swal({
                                         title: "Congratulations !",
                                         text: "You ended up the game with "+data.budget,
@@ -546,8 +548,8 @@
                                     });
                         }
 
-                        document.getElementById('myCurrentTurn').innerHTML = performedStep;
-                        if(data.steptype == "OOPS")
+
+                       else if(data.steptype == "OOPS")
                         {
                            // $('#updateactivity').trigger('click');
 
@@ -708,83 +710,83 @@
                         success: function (data) {
 //                            alert(Object.prototype.toString.call(data));
 //                        alert('im here');
-                        var result = "";
-                        for (i = 0; i < data.length; i++) {
-                            var obj = data[i];
-                            if(currentPhase=="CPM1"){
-                                if(obj.status){
-                                    stepsDoneInPlanning++;
+                            var result = "";
+                            for (i = 0; i < data.length; i++) {
+                                var obj = data[i];
+                                if (currentPhase == "CPM1") {
+                                    if (obj.status) {
+                                        stepsDoneInPlanning++;
+                                    }
                                 }
-                            }
 //                                alert(obj.status);
-                            var status;
-                            if(obj.status){
-                                obj.status="disabled='true'"
-                            }
+                                var status;
+                                if (obj.status) {
+                                    obj.status = "disabled='true'"
+                                }
 
 
-                            var eligibleBudget=0;
-                            var eligibleCapabilityBonus=0;
-                            var eligibleCapabilityPoints=0;
-                            var eligiblePersonnelRemaining=0;
+                                var eligibleBudget = 0;
+                                var eligibleCapabilityBonus = 0;
+                                var eligibleCapabilityPoints = 0;
+                                var eligiblePersonnelRemaining = 0;
 ////                            alert('hereee');
-                            eligibleBudget= parseInt(document.getElementById('budgetremaining').innerHTML) - obj.budget;
-                            eligibleCapabilityBonus= parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
-                            eligibleCapabilityPoints= parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
-                            eligiblePersonnelRemaining= parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
+                                eligibleBudget = parseInt(document.getElementById('budgetremaining').innerHTML) - obj.budget;
+                                eligibleCapabilityBonus = parseInt(document.getElementById('capabilitybonus').innerHTML) + obj.capabilityBonus;
+                                eligibleCapabilityPoints = parseInt(document.getElementById('capabilitypoints').innerHTML) + obj.capabilityPoints;
+                                eligiblePersonnelRemaining = parseInt(document.getElementById('personnelremaining').innerHTML) - obj.personnel;
 
 //                            alert(eligibleBudget+" "+eligiblePersonnelRemaining);
 ////
-                            var setClassColor;
-                            var buttonDisable;
-                            if(eligibleBudget<0 || eligiblePersonnelRemaining<0){
-                                setClassColor="ProjectStepStyle";
-                                buttonDisable="true";
+                                var setClassColor;
+                                var buttonDisable;
+                                if (eligibleBudget < 0 || eligiblePersonnelRemaining < 0) {
+                                    setClassColor = "ProjectStepStyle";
+                                    buttonDisable = "true";
 //                                alert("you cannot perform this step "+obj.projectStepName );
-                            }else{
-                                setClassColor=" ";
-                                buttonDisable="false"
-                            }
+                                } else {
+                                    setClassColor = " ";
+                                    buttonDisable = "false"
+                                }
 //                              alert(document.getElementById('budgetremaining').innerHTML);
 //                            alert("elig"+setColor);
 
 //                            alert(eligibleBudget+" "+eligibleCapabilityBonus+" "+eligibleCapabilityPoints+" "+eligiblePersonnelRemaining);
 
-                            result = result + "<button " +
-                                    " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
-                                    " style='white-space: normal; ' " +
-                                    " class='open-EditTodo col-md-3 btn btn-success "+setClassColor+"'" +
-                                    " data-toggle='modal' " +obj.status+
-                                    " data-buttondisable='"+buttonDisable+"'" +
-                                    "data-title='" + obj.projectStepName +
-                                    "'data-id='" + obj.projectStepId +
-                                    "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
-                                    "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
-                                    "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
-                                    "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
-                                    "'data-level='Level:' data-levelvalue='" + obj.level +
-                                    "'data-id='" + obj.projectStepId +
-                                    "'" +
+                                result = result + "<button " +
+                                        " href='#editTodoDialog'  id='" + obj.projectStepId + "'" +
+                                        " style='white-space: normal; ' " +
+                                        " class='open-EditTodo col-md-3 btn btn-success " + setClassColor + "'" +
+                                        " data-toggle='modal' " + obj.status +
+                                        " data-buttondisable='" + buttonDisable + "'" +
+                                        "data-title='" + obj.projectStepName +
+                                        "'data-id='" + obj.projectStepId +
+                                        "'data-budget='Budget:' data-budgetvalue='" + obj.budget +
+                                        "'data-capabilitypoints='Capability Points:' data-capabilitypointsvalue='" + obj.capabilityPoints +
+                                        "'data-personnel='Personnel:' data-personnelvalue='" + obj.personnel +
+                                        "'data-capabilitybonus='Capability Bonus:' data-capabilitybonusvalue='" + obj.capabilityBonus +
+                                        "'data-level='Level:' data-levelvalue='" + obj.level +
+                                        "'data-id='" + obj.projectStepId +
+                                        "'" +
 //                                            "data-todo='{'id':12,'todo':'xyz'}'"+
-                                    "title='Budget :" + obj.budget + "  Level: " + obj.level +"  Personnel: " + obj.personnel + "'" +
-                                    "  id='todolink'>" + obj.projectStepName +
-                                    "</button><div class='col-md-1' style='height:90px;'></div>";
+                                        "title='Budget :" + obj.budget + "  Level: " + obj.level + "  Personnel: " + obj.personnel + "'" +
+                                        "  id='todolink'>" + obj.projectStepName +
+                                        "</button><div class='col-md-1' style='height:90px;'></div>";
 //                                    "</button><div class='col-md-1' style='height:90px;"+setColor+"'"></div>";
 
-                        }
+                            }
 
 //                            alert("*********"+stepsDoneInPlanning);
-                        document.getElementById('desc').innerHTML = "Steps in "+ document.getElementById(currentPhase).innerHTML ;
+                            document.getElementById('desc').innerHTML = "Steps in " + document.getElementById(currentPhase).innerHTML ;
 
-                        document.getElementById('results').innerHTML = result;
+                            document.getElementById('results').innerHTML = result;
 
-                    },
-                    error: function (data) {
-                        alert("error");
-                        //setError('Make call failed');
-                    }
-                });
-
+                        },
+                        error: function (data) {
+                            alert("error");
+                            //setError('Make call failed');
+                        }
+                    });
+                }
             }
 
             $(document).on("click", ".open-EditTodo", function () {
@@ -989,7 +991,7 @@
                             </div>
                             <input type ="text" hidden id="btnIsProduction" value="false"/>
                             <button class="btn btn-danger" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
-                            <button class="btn btn-danger" hidden id="btnSkipTimeout" onclick="onPerformStep(id)">Timeout button</button>
+                            <button class="btn btn-danger" id="btnSkipTimeout" onclick="onPerformStep(id)">Timeout button</button>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
 

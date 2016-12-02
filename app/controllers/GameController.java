@@ -499,7 +499,8 @@ public class GameController extends Controller {
 
             double successValue = (performedSteps*100)/totalSteps;
             logger.log(Level.FINE, "Probability:" + successValue);
-
+            //Get Risk details
+            rc = GameUtility.getRiskDetails(riskId);
             boolean success = false;
 
             Random rand = new Random();
@@ -511,8 +512,7 @@ public class GameController extends Controller {
 
             if(success){
 
-                //Get Risk details
-                rc = GameUtility.getRiskDetails(riskId);
+
                 //Mitigate the risk
                 if(!GameUtility.mitigateRisk(currentStep,rc)){
                     logger.log(Level.SEVERE,"Error while mitigating risk");
@@ -531,8 +531,11 @@ public class GameController extends Controller {
 
             }else{
                 currentStep.setMoveStatus(false);
+                currentStep.setBudget(currentStep.getBudget() - rc.getBudget());
+                currentStep.setPersonnel(currentStep.getPersonnel() - rc.getPersonnel());
                 GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
+                currentStep.setTwoTurn(rc.getPersonnel());
                 result.put("risk_status","failure");
             }
 

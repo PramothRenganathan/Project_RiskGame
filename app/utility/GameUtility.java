@@ -353,10 +353,10 @@ public class GameUtility {
             }
         }
         else{
-            if(randomnumber > 40){
+            if(randomnumber > 30){
                 return Constants.PerformStep.PROJECTSTEP;
             }
-            else if (randomnumber > 30){
+            else if (randomnumber > 20){
                 return Constants.PerformStep.SURPRISE;
             }
             else{

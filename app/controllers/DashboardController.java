@@ -52,7 +52,7 @@ public class DashboardController extends Controller {
         String userName = session().get(Constants.USERNAME);
         Http.Context.current().args.put(Constants.USERNAME, userName);
         if(session().get("admin")!=null && session().get("admin").equalsIgnoreCase("true")){
-            return ok(views.html.InstructorDashboard.render());
+            return ok(views.html.ProjectDashbard.render());
 
         }else{
             return ok(views.html.ProjectDashbard.render());
