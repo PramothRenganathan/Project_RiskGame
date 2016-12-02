@@ -10,6 +10,10 @@ public class WebSocketData {
      * Type of data
      */
     public String type;
+
+    public boolean active;
+
+    public String turnToSkip;
     /**
      * users joined
      */

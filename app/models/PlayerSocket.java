@@ -136,13 +136,35 @@ public class PlayerSocket{
                     String turnToBeSkipped = data.turnNumber;
                     //adjust the turn number for all other players
 
-
-
                     wsdata = new WebSocketData();
+                    wsdata.active = data.active;
+
+                    //if the leaving player is the one with current turn
+                    if(wsdata.active){
+                        int turnno = Integer.parseInt(data.turnNumber);
+                        int totalPlayers = SessionManager.getAllUsers(data.gameid).size();
+
+                        if(totalPlayers==1){
+                            turnno = 1;
+                            wsdata.turnNumber = String.valueOf(turnno);
+                        }
+
+                        else {
+
+                            turnno = (turnno == totalPlayers - 1) ? totalPlayers : (turnno + 1) % totalPlayers;
+                            wsdata.turnNumber = String.valueOf(turnno);
+                        }
+                    }
+
+                    String userTrimmed = userLeaving.split("@")[0];
+                    userLeaving = userTrimmed + "-" + data.gameid;
+                    SessionManager.removeUser(data.gameid, userLeaving);
+
+
                     wsdata.type = "LeaveGame";
-                    wsdata.leavingUser = userLeaving;
+                    wsdata.leavingUser = userTrimmed;
                     wsdata.joinedUsers = activeUsers;
-                    wsdata.turnNumber = turnToBeSkipped;
+                    wsdata.turnToSkip = turnToBeSkipped;
                 }
 
                 //toJson method was throwing exception
