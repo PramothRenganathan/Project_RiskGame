@@ -53,7 +53,7 @@ public class RegisterController extends Controller {
             }
             else{ // User not present, insert into the users database
 
-                query = "INSERT INTO USERS (player_id, password, first_name, last_name, isCMU, andrew_id) " +
+                query = "INSERT INTO USERS (player_id, password, first_name, last_name, isCMU, andrew_id, isAdmin) " +
                         "VALUES (?,?,?,?,?,?,?)";
                 stmt = conn.prepareStatement(query);
                 stmt.setString(1,userName);
