@@ -438,7 +438,7 @@
             var stepsDoneInPlanning=0;
             function onPhaseClick(clicked_id) {
 
-//                alert(clicked_id);
+                   alert(clicked_id);
                 currentPhase=clicked_id;
                 var test = 'abc';
 //                    var test = $.('#id').val();
@@ -615,6 +615,8 @@
 
         <div class="container" >
 
+            <form  id="dashform" hidden method ="GET" action="@routes.DashboardController.viewDashboard()">
+            </form>
 
             <header style="" >
 
@@ -636,7 +638,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="#">Help</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#">Leave Game</a></li>
+                            <li><a id="lnkLeave" href="#">Leave Game</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="/logout" >Logout</a></li>
                         </ul>

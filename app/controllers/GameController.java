@@ -7,6 +7,7 @@ import models.*;
 import play.Play;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utility.Constants;
 import utility.GameUtility;
@@ -249,6 +250,8 @@ public class GameController extends Controller {
         parameters.add(gameId);
         return ok(views.html.observer.render(parameters));
     }
+
+
 
     /**
      * Initial game stats are persisted and game is started
@@ -589,5 +592,17 @@ public class GameController extends Controller {
         List<ProjectStep> mitigationCards = GameUtility.getMitigationCards(riskId,gamePlayerId);
         logger.log(Level.FINE, "Mitigation Cards:"+ mitigationCards);
         return ok(play.libs.Json.toJson(mitigationCards));
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result leaveGame() {
+        String username = request().body().asJson().get(Constants.USERNAME).asText();
+        String gameid = request().body().asJson().get(Constants.GAMEID).asText();
+
+        username = username.split("@")[0] + "-" + gameid;
+
+        SessionManager.removeUser(gameid, username);
+
+        return ok("success");
     }
 }

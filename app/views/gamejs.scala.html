@@ -119,12 +119,31 @@ takeSnapshot();
             }//for
         }//joined
 
-        else if (model.type == "leaving") {
+        else if (model.type == "LeaveGame") {
             var users = model.joinedUsers;
             var leavinguser = model.leavingUser;
+            var activityLog = $('#activity-log');
+            var txt = leavinguser + " left the game!";
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
+            var deadTurn = parseInt(model.turnNumber);
+            var myTurn = parseInt($('#turn').val());
+            var tmp_username = username.split("@@")[0];
 
-            var listItemToBeRemoved = $(userList).find('#' + leavinguser).remove();
-        }
+            if(myTurn > deadTurn){
+                myTurn = myTurn-1;
+                $('#turn').val(myTurn);
+            }
+
+        var users = model.joinedUsers;
+        activePlayersList.html("");
+        activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
+
+        for (i = 0; i < users.length; i++) {
+            if (users[i].split("-")[0] != tmp_username) {
+                activePlayersList.append(users[i].split("-")[0] + '<br/>');
+            }//if
+        }//for
+    }
 
         else if (model.type == "redirect") {
            $('#frmHidden').submit();
@@ -150,15 +169,15 @@ takeSnapshot();
             activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//Timeout
 
-else if (model.type == "SkipTurn") {
-var playerName = model.player;
+        else if (model.type == "SkipTurn") {
+            var playerName = model.player;
 
-var activityLog = $('#activity-log');
+            var activityLog = $('#activity-log');
 
-var txt = playerName + " skipped their turn!";
+            var txt = playerName + " skipped their turn!";
 
-activityLog.prepend('<p>' + txt + '</p><hr/>');
-}//SkipTurn
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
+            }//SkipTurn
 
 
         else if (model.type == "Chat") {
@@ -404,6 +423,11 @@ updateActivityLogs(otitle);
 
     $('#btnLeave').click(function (e) {
 
+        if(){
+
+
+}
+
         var data = JSON.stringify({"type": "leaving", "player": {"username": username}});
         socket.send(data);
 
@@ -442,7 +466,7 @@ updateActivityLogs(otitle);
                 }
         }
 
-var length = $(this).val().length;
+        var length = $(this).val().length;
         if(length>150){
             $(this).css('color', 'red');
         }
@@ -450,4 +474,28 @@ var length = $(this).val().length;
             $(this).css('color', 'black');
         }
     });
+
+
+
+    $('#lnkLeave').click(function(){
+        var obj = {'username' : username, 'gameid' : gameid};
+        $.ajax({
+            type: 'POST',
+            url: '/leave',
+            data: JSON.stringify(obj),
+            contentType: 'application/json',
+            success: function (data) {
+                if(data=="success"){
+                    notifyOthers();
+                    $('#dashform').submit();
+                }
+            }
+        });//ajax call ends here
+    });
+
+    var notifyOthers = function(){
+        var turn = $('#turn').val();
+        var data = JSON.stringify({"gameid": gameid, "type": "LeaveGame", "turnNumber" : turn, "player": {"username": username}});
+        socket.send(data);
+    }
 });

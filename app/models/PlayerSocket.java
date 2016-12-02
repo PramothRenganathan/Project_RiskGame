@@ -22,6 +22,7 @@ public class PlayerSocket{
 
     public static void start(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out){
 
+        
         connections.add(out);
         if(!inoutMap.containsKey(in)){
             inoutMap.put(in, out);
@@ -127,15 +128,21 @@ public class PlayerSocket{
                     wsdata.message = data.message;
                 }
 
-                else if(data.type.equals("leaving")){
+                else if(data.type.equals("LeaveGame")){
                     //push the list of all users so that everyone gets updated
                     List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
                     String userLeaving = data.player.username;
 
+                    String turnToBeSkipped = data.turnNumber;
+                    //adjust the turn number for all other players
+
+
+
                     wsdata = new WebSocketData();
-                    wsdata.type = "leaving";
+                    wsdata.type = "LeaveGame";
                     wsdata.leavingUser = userLeaving;
                     wsdata.joinedUsers = activeUsers;
+                    wsdata.turnNumber = turnToBeSkipped;
                 }
 
                 //toJson method was throwing exception
