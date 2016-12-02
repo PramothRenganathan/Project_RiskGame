@@ -236,7 +236,7 @@
             }
 
             $(document).on("click", ".open-riskDialog", function () {
-                alert($(this).data('risk'));
+             //   alert($(this).data('risk'));
 
 //                var title = $(this).data('title');
 
@@ -271,7 +271,7 @@
             });
 
             function onMitigateRisk(id){
-//                alert(id);
+               // alert(id);
                 onRiskClick(id);
                 onPerformStep(id);
             }
@@ -378,13 +378,15 @@
 //                var isEligibleToPerformStep=true;
                 var performedStep=document.getElementById(id).innerHTML;
                 var isProduction = $('#btnIsProduction').val();
-                if(isProduction == "true" && 1==0){
+               // alert("in project skip..turn no is " + document.getElementById('turnNo').innerHTML);
+                if(isProduction == "true"){
                     var obj = {
                         'id': 'null',
                         'riskid' : 'null',
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId(),
                         'skipturn':'false',
                         'isProduction':isProduction,
+                        'riskmitigatedcount': parseInt($('#txtRisk').val()),
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
                         'type': 'production',
@@ -392,21 +394,24 @@
                         'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
                         'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
                         'personnel' :document.getElementById('personnelremaining').innerHTML,
-                        'turnno': document.getElementById('turnNo').innerHTML,
+                        'turnno': document.getElementById('turnNo').innerHTML - 1,
                         'timetaken': 3,
                         'performedsteps': 0,
                         'totalsteps':totalSteps
                     };
                 }
 
-                if(id.indexOf("Skip") !==-1){
+                else if(id.indexOf("Skip") !==-1 && isProduction == "false"){
 //                    alert(id);
+
+
                     var obj = {
                         'id': 'null',
                         'riskid' : 'null',
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId(),
                         'skipturn':'true',
                         'isProduction':isProduction,
+                        'riskmitigatedcount': parseInt($('#txtRisk').val()),
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
                         'type': 'skipstep',
@@ -426,9 +431,10 @@
                     var obj = {
                         'id': 'null',
                         'riskid' : id,
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId(),
                         'skipturn':'false',
                         'isProduction':isProduction,
+                        'riskmitigatedcount': parseInt($('#txtRisk').val()),
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
                         'type': 'risk',
@@ -445,8 +451,10 @@
                     var obj = {
                         'id': id,
                         'riskid' : 'null',
-                        'gameid':document.getElementById('gameid').innerHTML,
+                        'gameid':@model.getGameId(),
                         'skipturn':'false',
+                        'isProduction':isProduction,
+                        'riskmitigatedcount': parseInt($('#txtRisk').val()),
                         'oneturn':document.getElementById('oneTurn').innerHTML,
                         'twoturn':document.getElementById('twoTurn').innerHTML,
                         'type': 'projectstep',
@@ -474,28 +482,85 @@
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.steptype == "OOPS")
                         {
-                           // $('#updateactivity').trigger('click');
+                            // $('#updateactivity').trigger('click');
 
-                            var alertmsg = "You lost" + data.oops_resource + " resource, " + data.oops_points + " capability points, " + data.oops_bonus + " capability bonus and " + data.oops_budget + " dollars.";
-                            //alert(alertmsg);
+                            var alertmsg = "You lost ";
+
+                            if(data.oops_resource !=0) {
+                                alertmsg = alertmsg + data.oops_resource + " resource, ";
+                            }
+                            if(data.oops_points !=0) {
+                                alertmsg = alertmsg + data.oops_points + " capability points, ";
+                            }
+                            if(data.oops_bonus !=0) {
+                                alertmsg = alertmsg + data.oops_bonus + " capability bonus, ";
+                            }
+                            if(data.oops_budget !=0) {
+                                alertmsg = alertmsg + data.oops_budget + " dollars, ";
+                            }
+                            alertmsg = alertmsg.substring(0, alertmsg.length - 2);
+
+                            swal({   title: "YOU GOT AN OOPS CARD!",   text: alertmsg,   imageUrl: "/assets/images/oops.png" });
 
                             $("#oopsmsg").val(alertmsg);
                             $("#isoops").val("true");
                             $('#updateactivity').trigger('click');
-                            swal("YOU GOT AN OOPS CARD!",alertmsg, "error");
+                          //  swal("YOU GOT AN OOPS CARD!",alertmsg, "error");
                             document.getElementById('myCurrentTurn').innerHTML = "You got an OOPS card!";
                         }
                         else if(data.steptype == "SURPRISE"){
-                            var alertmsg = "You gained" + data.surprise_resource + " resource, " + data.surprise_points + "capability points, " + data.surprise_bonus + "capability bonus and " + data.surprise_budget + " dollars.";
-                            //alert(alertmsg);
+
+                            var alertmsg = "You gained ";
+
+                            if(data.surprise_resource !=0) {
+                                alertmsg = alertmsg + data.surprise_resource + " resource, ";
+                            }
+                            if(data.surprise_points !=0) {
+                                alertmsg = alertmsg + data.surprise_points + " capability points, ";
+                            }
+                            if(data.surprise_bonus !=0) {
+                                alertmsg = alertmsg + data.surprise_bonus + " capability bonus, ";
+                            }
+                            if(data.surprise_budget !=0) {
+                                alertmsg = alertmsg + data.surprise_budget + " dollars, ";
+                            }
+                            alertmsg = alertmsg.substring(0, alertmsg.length - 2);
+
+                            swal({   title: "YOU GOT A SURPRISE CARD!",   text: alertmsg,   imageUrl: "/assets/images/surprise.png" });
                             $("#isoops").val("false");
                             $("#oopsmsg").val(alertmsg);
                             $('#updateactivity').trigger('click');
-                            swal("YOU GOT A SURPRISE CARD!",alertmsg, "error");
+                           // swal("YOU GOT A SURPRISE CARD!",alertmsg, "error");
                             document.getElementById('myCurrentTurn').innerHTML = "You got a Surprise card!";
+                        }
+                        else if(data.steptype == "production"){
+                            var alertmsg = "";
+                            if(data.prod_money < 0){
+                                alertmsg = "Your product is not doing well. You lost " + Math.abs(data.prod_money) + " dollars in Production.";
+                            }
+                            else{
+                                alertmsg = "Your product is doing well. You won " + Math.abs(data.prod_money) + " dollars in Production.";
+                            }
+
+                            swal(alertmsg);
+                        }
+                        else if(data.steptype == "skipstep"){
+                            if($('#btnIsProduction').val() != "true"){
+                                swal({   title: "YOU SKIPPED YOUR TURN!",  imageUrl: "/assets/images/skipturn.png" });
+                            }
+
+                        }
+                        else if(data.steptype == "risk"){
+                            if(data.risk_status == "success"){
+                                swal({   title: "SUCCESS!",   text: "RISK SUCCESSFULLY MITIGATED",   imageUrl: "/assets/images/rockon.png" });
+                            }
+                            else{
+                                swal({   title: "OOPS",   text: "RISK NOT MITIGATED",   imageUrl: "/assets/images/oops.png" });
+                            }
                         }
                         else
                         {
+                            swal({   title: "SUCCESS!",   text: "PROJECT STEP SUCCESSFUL",   imageUrl: "/assets/images/rockon.png" });
 
                         }
                         document.getElementById('budgetremaining').innerHTML = data.budget;
@@ -528,7 +593,7 @@
             var stepsDoneInPlanning=0;
             function onPhaseClick(clicked_id) {
 
-//                alert(clicked_id);
+               // alert(clicked_id);
                 currentPhase=clicked_id;
                 var test = 'abc';
 //                    var test = $.('#id').val();
@@ -540,7 +605,25 @@
                 if(currentPhase == "CPM6"){
                     swal({   title: "Are you sure?",   text: "You will not be able to do any further project steps after production!",   type: "warning",   showCancelButton: true,   confirmButtonColor: "#DD6B55",   confirmButtonText: "Yes, Go to Production!",   closeOnConfirm: false }, function(){
 
+
+                     /*   $('#grid-basic > tbody  > tr').each(function() {
+                            var status = $(this).find("input.name").val();
+
+
+                        });*/
+                        var riskcount = 0;
+                        $('#grid-basic tr').each(function() {
+                            var status = $(this).find("td").eq(2).html();
+
+                            if(status == "COMPLETED"){
+                                riskcount++;
+                            }
+                        });
+                        $('#txtRiskCount').val(riskcount.toString());
+                        //alert(riskcount);
+                        currentPhase = "CPM1";
                         $('#btnIsProduction').val("true");
+                        $('#btnSkip').trigger('click');
                         swal("Your product is LIVE!", "You have successfully deployed your software to production.", "success");
                     });
                 }
@@ -702,7 +785,7 @@
             function refreshProjectSteps(){
                 @*alert(@model.getPhases.get(0).getPhaseName);*@
                 var result="";
-            @for(phases <- model.getPhases()) {
+                @for(phases <- model.getPhases()) {
 
                 result = result+ "<button class='col-md-3 btn btn-warning' " +
                         "style='background-color: #DB8B00 !important;'" +
@@ -717,7 +800,7 @@
             }
 
             function newfunc(){
-            @for(phase <- model.getPhases) {
+                @for(phase <- model.getPhases) {
 
                 var name = '@phase.getPhaseName()';
                 }
@@ -836,8 +919,9 @@
                             <div class="col-md-3 mytimer" style="zoom: 0.4;padding:0" hidden>
 
                             </div>
-                            <input type ="text" id="btnIsProduction" value="false"/>
+                            <input type ="text" hidden id="btnIsProduction" value="false"/>
                             <button class="btn btn-danger" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
+                            <button class="btn btn-danger" hidden id="btnSkipTimeout" onclick="onPerformStep(id)">Timeout button</button>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
 
@@ -882,7 +966,7 @@
                                 <div style="height: 20px; "></div>
 
                                 <div id="listOfProjectSteps">
-                                @if(model.getTurnNo==1){
+                                @if(1==1){
 
                                     @for(phase <- model.getPhases()) {
                                         @if(phase.getPhaseName().equalsIgnoreCase("PLANNING")){
@@ -931,7 +1015,7 @@
                         <div id="riskDashboard" class="tab-pane fade">
 
                             <div id="risks"></div>
-
+                            <input type="text" id="txtRiskCount" hidden value="0" />
 
                             <table id="grid-basic" class="table table-condensed table-hover table-striped">
                                 <thead>
@@ -1051,7 +1135,7 @@
                             <div id="performstep"></div>
                             <button disabled=""  id="" class="btn btn-success perform-step"  style="margin-bottom: 20px" onclick="onPerformStep(id)" >Perform this Step</button>
                             <button data-dismiss="modal" class="btn btn-danger"  style="margin-bottom: 20px" aria-label="Close">Cancel</button>
-                            <button disabled="" hidden  id="updateactivity" class=""  style="margin-bottom: 20px"  >Perform this Step</button>
+                            <button disabled="" hidden  id="updateactivity" class=""  style="margin-bottom: 20px"  ></button>
                             <input type="text" hidden id="oopsmsg" />
                             <input type="text" hidden id="isoops" />
                             <div id="isDisabled" style="color: #8b0000;"></div>

@@ -85,10 +85,12 @@ public class GameUtility {
             int personnel = body.get(Constants.PERSONNEL).asInt();
             int timeTaken = body.get("timetaken").asInt();
             boolean skipTurn = body.get("skipturn").asBoolean();
+            boolean isProduction = body.get("isProduction").asBoolean();
             int oneTurn = body.get("oneturn").asInt();
             int twoTurn = body.get("twoturn").asInt();
             int performedSteps = body.get("performedsteps").asInt();
             int totalSteps = body.get("totalsteps").asInt();
+            int riskMitigated = body.get("riskmitigatedcount").asInt();
 
             Snapshot receivedSnapShot = new Snapshot();
             receivedSnapShot.setBudget(budget);
@@ -104,11 +106,36 @@ public class GameUtility {
             receivedSnapShot.setTwoTurn(twoTurn);
             receivedSnapShot.setPerformedSteps(performedSteps);
             receivedSnapShot.setTotalSteps(totalSteps);
+            receivedSnapShot.setProduction(isProduction);
+            receivedSnapShot.setRiskMitigated(riskMitigated);
             return receivedSnapShot;
         }
         catch (Exception e){
             logger.log(Level.SEVERE,"In getting current details from user:" +  e);
             return null;
+        }
+
+
+    }
+
+    /**
+     * Get production money
+     * @param riskMitigated
+     * @return
+     */
+    public static int getProductionMoney(int riskMitigated) {
+        try {
+            int money=0;
+            int penalty = Constants.INITIAL_NO_OF_RISKS - riskMitigated;
+            Random rand = new Random();
+            int randommoney = (rand.nextInt(100) + 51) * 100;  // random no between 50 and 150
+            money = randommoney - (penalty * 2500);
+
+            return money;
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE,"In getting production money for user:" +  e);
+            return 0;
         }
 
 
@@ -199,7 +226,7 @@ public class GameUtility {
             stmt.setNull(14,Types.VARCHAR);//oops impact id
             stmt.setNull(15,Types.VARCHAR);//surprise impact id
             stmt.setInt(16,currentStep.getLoanAmount());
-            stmt.setNull(17,Types.TINYINT);//Production status
+            stmt.setBoolean(17,currentStep.isProduction());//Production status
             stmt.setInt(18,currentStep.getCapabilityPoints());
             int result = stmt.executeUpdate();
             return result > 0 ? true: false;
@@ -297,6 +324,7 @@ public class GameUtility {
         InitialGameStat gamerules = new InitialGameStat();
         Random rand = new Random();
         int randomnumber = rand.nextInt(100) + 1;
+
         getGameRules(gamerules);
         if(level == 2) {
             if((randomnumber + capabilityBonus) > gamerules.getLevel2Bonus()){
@@ -351,7 +379,7 @@ public class GameUtility {
         PreparedStatement stmt = null;
         try{
             conn = DB.getConnection();
-            String query = "select P.project_step_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus from PROJECT_STEPS P JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM on P.project_step_id = CPM.project_step_id and config_project_step_mapping_id= ?";
+            String query = "select P.project_step_id,CPM.config_phase_mapping_id, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus from PROJECT_STEPS P JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM on P.project_step_id = CPM.project_step_id and config_project_step_mapping_id= ?";
             stmt = conn.prepareStatement(query);
 
             stmt.setString(1,id);
@@ -359,6 +387,8 @@ public class GameUtility {
             ProjectStep ps = null;
             while(rs.next()){
                 ps = new ProjectStep();
+                ps.setPhaseId(rs.getString("config_phase_mapping_id"));
+                ps.setPhaseId(rs.getString("config_phase_mapping_id"));
                 ps.setBudget(rs.getInt(Constants.BUDGET));
                 ps.setCapabilityPoints(rs.getInt(Constants.CAPABILITY_POINTS));
                 ps.setCapabilityBonus(rs.getInt(Constants.CAPABILITY_BONUS));
@@ -740,6 +770,7 @@ public class GameUtility {
                 ps.setPersonnel(rs.getInt(Constants.PERSONNEL));
                 ps.setPreRequisite(rs.getString(Constants.PRE_REQUISITE));
                 ps.setStatus(rs.getBoolean(Constants.STATUS));
+                ps.setPhaseId(phaseId);
                 projectSteps.add(ps);
             }
             logger.log(Level.FINE, "The project steps count:" + projectSteps.size());
@@ -850,7 +881,7 @@ public class GameUtility {
         List<ProjectStep> mititgationSteps = new ArrayList<>();
         try{
             conn = DB.getConnection();
-            String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id,phase_name, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_RISK_MITIGATION_MAPPING CRMM " +
+            String query = "SELECT CPM.config_project_step_mapping_id,P.project_step_id,CPM.config_phase_mapping_id,phase_name, project_step_name, `level`, pre_requisite,budget, personnel, capability_points, capability_bonus,`status` FROM CONFIG_RISK_MITIGATION_MAPPING CRMM " +
                     "JOIN CONFIG_PHASE_PROJECTSTEPS_MAPPING CPM ON CRMM.project_step_id = CPM.config_project_step_mapping_id and CRMM.config_risk_mapping_id = ? " +
                     "JOIN GAME_PLAYER_PROJECT_STEP_STATUS GPS on CPM.config_project_step_mapping_id = GPS.config_project_step_mapping_id and GPS.game_player_id = ? " +
                     "JOIN PROJECT_STEPS P on CPM.project_step_id = P.project_step_id " +
@@ -865,6 +896,7 @@ public class GameUtility {
             while(rs.next()){
                 ps = new ProjectStep();
                 ps.setPhaseName(rs.getString("phase_name"));
+                ps.setPhaseId(rs.getString("config_phase_mapping_id"));
                 ps.setProjectStepId(rs.getString(Constants.CONFIG_PROJECT_STEP_MAPPING_ID));
                 ps.setProjectStepName(rs.getString(Constants.PROJECT_STEP_NAME));
                 ps.setBudget(rs.getInt(Constants.BUDGET));

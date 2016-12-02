@@ -301,6 +301,7 @@ public class GameController extends Controller {
             //Set turn for each player
             String gamePlayerId = session().get(Constants.GAMEPLAYERID);
             initialGameStat.setTurnNo(SessionManager.getAllUsers(gameId).indexOf(gamePlayerId) + 1);
+            //initialGameStat.setTurnNo(1);
             initialGameStat.setSkipTurn(false);
             initialGameStat.setOneTurn(0);//Resources to be back after one turn
             initialGameStat.setTwoTurn(0);//Resources to be back after one turn
@@ -399,6 +400,24 @@ public class GameController extends Controller {
             GameUtility.addReturningResources(currentStep);
             currentStep.setTwoTurn(currentStep.getCurrentStepResource());
         }
+
+        else if("production".equalsIgnoreCase(type)) {
+
+            //currentStep.setMoveStatus(true);
+            //currentStep.setSkipTurnStatus(true);
+            if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
+                logger.log(Level.SEVERE,"Error while updating production");
+                return ok(views.html.error.render());
+
+            }
+            int moneyGained = GameUtility.getProductionMoney(currentStep.getRiskMitigated());
+            int updatedBudget = currentStep.getBudget() + moneyGained;
+            currentStep.setBudget(updatedBudget);
+            GameUtility.addReturningResources(currentStep);
+            currentStep.setTwoTurn(currentStep.getCurrentStepResource());
+            result.put("prod_money",moneyGained);
+        }
+
         else if("projectstep".equalsIgnoreCase(type)) {
             currentStep.setMoveStatus(true);
             if (StartGameUtility.isProjectStepPerformed(projectStepId, gamePlayerId))
@@ -409,9 +428,13 @@ public class GameController extends Controller {
                 return ok(views.html.error.render());
             }
 
+            Constants.PerformStep performAction = Constants.PerformStep.PROJECTSTEP;
 
+            if(!projectStep.getPhaseId().equalsIgnoreCase("CPM1")){
 
-            Constants.PerformStep performAction = GameUtility.getActiontobeTaken(projectStep.getLevel(),currentStep.getCapabilityBonus());
+                performAction = GameUtility.getActiontobeTaken(projectStep.getLevel(),currentStep.getCapabilityBonus());
+            }
+
 
             if(performAction == Constants.PerformStep.OOPS)
             {
@@ -504,11 +527,13 @@ public class GameController extends Controller {
                 GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
                 currentStep.setTwoTurn(rc.getPersonnel());
+                result.put("risk_status","success");
 
             }else{
                 currentStep.setMoveStatus(false);
                 GameUtility.performStep(gamePlayerId,currentStep,Constants.PerformStep.RISK);
                 GameUtility.addReturningResources(currentStep);
+                result.put("risk_status","failure");
             }
 
 

@@ -16,7 +16,7 @@ $(function() {
             if (!timeout && !stopped) {
                  timeout = true;
                  sendTimeoutMessage();
-
+                $('#btnSkipTimeout').trigger('click');
                 setTimer(timerTime);
                 resetTimer();
                 timer.hide();
@@ -59,7 +59,7 @@ $(function() {
 
         //updates turns completed count because missed turn is a lost turn
         var turnNo = parseInt($('#turnNo').html());
-        turnNo = turnNo+1;
+       // turnNo = turnNo+1;
         $('#turnNo').html(turnNo);
 
         //capture screen after timeout once turn Number field is updated
@@ -78,7 +78,7 @@ socket.send(data);
 var turnNo = parseInt($('#turnNo').html());
 turnNo = turnNo+1;
 $('#turnNo').html(turnNo);
-
+//alert("in socket skip..turn no is " + turnNo);
 //capture screen after timeout once turn Number field is updated
 takeSnapshot();
 }
@@ -180,6 +180,11 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
             if(turnNumber == playerTurn){
                 enableMyTurn();
                 publishMyTurn();
+                if($('#btnIsProduction').val() == "true"){
+                $('#btnSkip').trigger('click');
+                }
+
+
             }
 
             //publishMyTurn();

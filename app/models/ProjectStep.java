@@ -7,6 +7,7 @@ public class ProjectStep {
     String projectStepId;
     String projectStepName;
     String projectStepDescription;
+    String phaseId;
     int level;
     String preRequisite;
     int budget;
@@ -21,6 +22,14 @@ public class ProjectStep {
 
     public void setPhaseName(String phaseName) {
         this.phaseName = phaseName;
+    }
+
+    public String getPhaseId() {
+        return phaseId;
+    }
+
+    public void setPhaseId(String phaseId) {
+        this.phaseId = phaseId;
     }
 
     private String phaseName;

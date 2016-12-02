@@ -12,6 +12,7 @@ public class Snapshot {
     private int capabilityBonus;
     private int capabilityPoints;
     private int timeTaken;
+    private int riskMitigated;
     private String moveType;
     private boolean moveStatus;
     private boolean skipTurnStatus;
@@ -85,6 +86,14 @@ public class Snapshot {
 
     public void setTimeTaken(int timeTaken) {
         this.timeTaken = timeTaken;
+    }
+
+    public int getRiskMitigated() {
+        return riskMitigated;
+    }
+
+    public void setRiskMitigated(int riskMitigated) {
+        this.riskMitigated = riskMitigated;
     }
 
     public String getMoveType() {
