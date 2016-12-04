@@ -21,7 +21,7 @@ POST  /uploadimage           controllers.GameController.saveImageSnapshot()
 POST     /host                  controllers.GameController.hostGame()
 POST     /join                  controllers.GameController.joinGame()
 POST     /Activegames                  controllers.DashboardController.activeGames()
-
+POST     /Completegames                  controllers.DashboardController.completedGames()
 POST /joingame              controllers.DashboardController.joinGame()
 POST /observegame              controllers.GameController.observeGame()
 

@@ -1,0 +1,379 @@
+@*//@(implicit session: Session)*@
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta charset="UTF-8" />
+    <title>RISK GAME - CARNEGIE MELLON UNIVERSITY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login and Registration Form with HTML5 and CSS3" />
+    <meta name="keywords" content="html5, css3, form, switch, animation, :target, pseudo-class" />
+    <meta name="author" content="Codrops" />
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/demo.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/style.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/animate-custom.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/sweetalert.css")" />
+    <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jquery.bootgrid.css")" />
+    <script   src="http://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+    <script src="@routes.Assets.at("javascripts/sweetalert.min.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/loading.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/jquery.bootgrid.fa.js.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/jquery.bootgrid.js")" type="text/javascript"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+    <script>
+
+      $(document).ready(function(){
+        // $("#grid-basic").bootgrid();
+        showActiveGames();
+
+      });
+
+      function showActiveGames() {
+        //debugger;
+        var obj = {
+          'phaseId': "tst"
+        };
+        $.ajax({
+          type : 'POST',
+          url : '@routes.DashboardController.completedGames()',
+          //data : JSON.stringify("test"),
+          //data: "",
+          dataType: 'json',
+          //contentType : 'application/json',
+          success : function(data) {
+            //alert(data.length);x`
+            for (i = 0; i < data.length; i++) {
+              //data[i].timebound
+              var obj = data[i];
+              //obj.istimebound = "Yes";
+              obj.istimebound = obj.istimebound == "1" ? "Yes" : "No";
+              // $('#myTable').append('<tr><td>my data</td><td>more data</td></tr>');
+              var appendquery = "<tr><td>" + obj.gameid + "</td> <td>" + obj.status + "</td> <td>" + obj.gametime + "</td> <td>" + obj.fullName + "</td> <td><a href='#'>Join</a></td></tr>";
+              //$('#grid-basic tr:last').after(appendquery);
+              //$('#grid-basic').find(tbody).append(appendquery);
+              $("#grid-basic tbody").append(appendquery);
+            }
+
+            $("#grid-basic").bootgrid({
+              formatters: {
+                "link": function(column, row)
+                {
+                  // return "<a href=\"javascript:Showmodel(" + row.gameid + ");\">" + "Join" ": " + row.gameid + "</a>";
+                  return "<a href=\"#\" onclick='Showmodel(\"" + row.gameid + "\",\"" + row.status + "\",\"" + row.istimebound + "\")'>" + "Join" + "</a>";
+                }
+              },
+              rowCount: [5,10,-1],
+              columnSelection: false
+            });
+          },
+          error : function(data) {
+            alert("error");
+            //setError('Make call failed');
+          }
+        });
+
+        @*$.getJSON("@routes.DashboardController.testMethod1()",obj, function(data) {*@
+        @*alert("Contact added!");*@
+        @*});*@
+      }
+
+      function Showmodel(gameid,status,istimebound)
+      {
+        // alert(gameid + status + istimebound);
+        // gameid
+        $( "#mgameid" ).val(gameid);
+        $("#mgameid").prop("readonly", true);
+
+        $("#errorspan2").html("");
+        $('#wybierz1').hide();
+        if(status == "RUNNING") {
+          $("#isobserver").val('1');
+          $("#isobserver").hide();
+          $("#labelforobserver").hide();
+
+          // $("#labelforobserver").text("You can only join this game as observer");
+          $("#myModalLabel2").text("You can only join this game as observer");
+          //  myModalLabel2
+        }
+        else {
+          $("#isobserver").show();
+          $("#isobserver").val('0');
+          $("#labelforobserver").show();
+          $("#labelforobserver").text("Do you want to join as observer:");
+          $("#myModalLabel2").text("JOIN GAME AS PLAYER OR OBSERVER");
+        }
+        $('#myModal2').modal('show');
+      }
+
+      function hostgame() {
+        // debugger;
+        //  var istimebound = $('input[name=TimeBound]:checked').val();
+        var timeforstep = $( "#selecttime" ).val();
+        var noofsteps = $( "#selectsteps" ).val();
+
+        var obj = {
+          'istimebound': true,
+          // 'istimebound': istimebound == "1" ? true : false,
+          'timeforeachmove': timeforstep,
+          'stepsforeachplayer': noofsteps
+        };
+        $.ajax({
+          type : 'POST',
+          url : '@routes.GameController.hostGame()',
+          // data : JSON.stringify(obj),
+          data: JSON.stringify(obj),
+          dataType: 'json',
+          contentType : 'application/json',
+          success : function(data) {
+            debugger;
+            if(data.message == "success")
+            {
+              //  var $form=$(document.createElement('form')).css({display:'none'}).attr("method","POST").attr("action","/hostgame");
+              // var $input=$(document.createElement('input')).attr('name','FIRST NAME HERE').val("FIRST VALUE HERE");
+              // var $input2=$(document.createElemet('input')).attr('name','SECOND NAME HERE').val("SECOND VALUE HERE");
+              //  $form.append($input).append($input2);
+              // $("body").append($form);
+              //  $form.submit();
+              $("#hgameid").val(data.gameid);
+              $("#hostgameform").submit();
+            }
+            else
+            {
+              //  alert(data.errormsg);
+              $("#errorspan").html(data.errormsg);
+            }
+            // $.('#id').val(data);
+            //setError('Call succedded');
+            //$('#test1').attr("src", data)
+          },
+          error : function(data) {
+            alert("error");
+            //setError('Make call failed');
+          }
+        });
+
+        @*$.getJSON("@routes.DashboardController.testMethod1()",obj, function(data) {*@
+        @*alert("Contact added!");*@
+        @*});*@
+      }
+
+      var observer;
+
+      function joingame() {
+        // debugger;var gameid = $('input[name=TimeBound]:checked').val();
+        //debugger;
+        var gameid = $( "#mgameid" ).val();
+        var isobserver = $("#isobserver").val();
+
+        var obj = {
+          'gameid': gameid,
+          'isobserver': isobserver == "1" ? true : false
+        };
+
+        $.ajax({
+          type : 'POST',
+          url : '@routes.GameController.joinGame()',
+          // data : JSON.stringify(obj),
+          data: JSON.stringify(obj),
+          // dataType: 'json',
+          contentType : 'application/json',
+          success : function(data) {
+            if(data.message == "success")
+            {
+              $("#jgameid").val(gameid);
+              $('#hdn_observer').val(isobserver);
+              $("#joingameform").submit();
+
+            }
+            else
+            {
+              // alert(data.errormsg);
+              $("#errorspan2").html(data.errormsg);
+            }
+
+          },
+          error : function(data) {
+            alert("error");
+            //setError('Make call failed');
+          }
+        });
+
+        @*$.getJSON("@routes.DashboardController.testMethod1()",obj, function(data) {*@
+        @*alert("Contact added!");*@
+        @*});*@
+      }
+
+
+  </script>
+
+  </head>
+  <body>
+    @header()<br>
+  <div class="row">
+    <div class="col-md-12">
+      <h3>
+               Welcome @Http.Context.current().args.get("firstname").asInstanceOf[String]
+              </h3>
+      <form style="display: hidden" action="/hostgame" method="POST" id="hostgameform">
+        <input type="hidden" id = "hgameid" name ="hgameid" value="0"  />
+      </form>
+      <form style="display: hidden" action="/joingame" method="POST" id="joingameform">
+        <input type="hidden" id = "jgameid" name ="jgameid" value="0"  />
+        <input type="hidden" id = "hdn_observer" name ="hdn_observer" value="0" />
+      </form>
+        <!-- Button trigger modal -->
+      <button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+  Host Game
+      </button>
+
+      @*<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal2">*@
+      @*Join Game*@
+      @*</button>*@
+
+        <!-- Host Game Modal -->
+      <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="myModalLabel">HOST GAME</h4>
+            </div>
+            <div class="modal-body">
+              <span style="color:red;" id="errorspan" ></span>
+              <form class="form-horizontal">
+                <fieldset>
+
+                    <!-- Form Name -->
+                  <legend>Game Settings</legend>
+
+                    <!-- Multiple Radios -->
+                    @*<div class="form-group">*@
+                    @*<label class="col-md-4 control-label" for="TimeBound">Is the game timebound</label>*@
+                    @*<div class="col-md-4">*@
+                    @*<div class="radio">*@
+                    @*<label for="TimeBound-0">*@
+                    @*<input type="radio" name="TimeBound" id="TimeBound-0" value="1" checked="checked">*@
+                    @*Yes*@
+                    @*</label>*@
+                    @*</div>*@
+                    @*<div class="radio">*@
+                    @*<label for="TimeBound-1">*@
+                    @*<input type="radio" name="TimeBound" id="TimeBound-1" value="0">*@
+                    @*No*@
+                    @*</label>*@
+                    @*</div>*@
+                    @*</div>*@
+                    @*</div>*@
+
+                    <!-- Select Basic -->
+                  <div class="form-group">
+                    <label class="col-md-4 control-label" for="selecttime">Time for each step(in mins):</label>
+                    <div class="col-md-4">
+                      <select id="selecttime" name="selecttime" class="form-control">
+                        <option value="1">1</option>
+                        <option selected value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="5">10</option>
+                      </select>
+                    </div>
+                  </div>
+
+                    <!-- Select Basic -->
+                  <div class="form-group">
+                    <label class="col-md-4 control-label" for="selectsteps">No. of project steps:</label>
+                    <div class="col-md-4">
+                      <select id="selectsteps" name="selectsteps" class="form-control">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option selected value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                        <option value="20">50</option>
+                        <option value="25">100</option>
+                        <option value="30">500</option>
+                      </select>
+                    </div>
+                  </div>
+
+                </fieldset>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick = "hostgame()" >Host Game</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- join Game Modal -->
+      <div class="modal fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="myModalLabel2">JOIN GAME AS PLAYER OR OBSERVER</h4>
+            </div>
+            <div class="modal-body">
+              <span style="color:red;" id="errorspan2" ></span>
+              <div class="form-group">
+
+                <label for="mgameid">
+						Game ID:
+                </label>
+                <input type="text" class="form-control" id="mgameid" />
+              </div>
+              <div class="form-group">
+                <label class="col-md-6 control-label" id="labelforobserver" for="selecttime">Do you want to join as observer:</label>
+
+                <select id="isobserver" name="isobserver" class="form-control">
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
+                </select>
+
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="button" onclick = "joingame()" class="btn btn-primary">Join Game</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <br><br>
+  <div class="row">
+    <div class="col-md-12">
+      <h4>LIST OF ACTIVE GAMES:</h4>
+      <table id="grid-basic" class="table table-condensed table-hover table-striped">
+        <thead>
+          <tr>
+            <th data-column-id="gameid">ID</th>
+            <th data-column-id="status">Status</th>
+            <th data-column-id="gametime" data-order="desc">GameTime</th>
+            <th data-column-id="fullName" data-order="desc">Host Name</th>
+            <th data-column-id="joingamegrid" data-formatter="link" data-order="desc">Join Game</th>
+          </tr>
+        </thead>
+        <tbody>
+
+
+
+          </tbody>
+      </table>
+    </div>
+  </div>
+    @footer()
+  </body>
+</html>

@@ -52,7 +52,7 @@ public class DashboardController extends Controller {
         String userName = session().get(Constants.USERNAME);
         Http.Context.current().args.put(Constants.USERNAME, userName);
         if(session().get("admin")!=null && session().get("admin").equalsIgnoreCase("true")){
-            return ok(views.html.ProjectDashbard.render());
+            return ok(views.html.InstructorDashboard.render());
 
         }else{
             return ok(views.html.ProjectDashbard.render());
@@ -120,6 +120,58 @@ public class DashboardController extends Controller {
                 else
                 {
                 actobj.setGametime("Not yet started");
+                }
+                actobj.setIstimebound(rs.getString("isTimeBound"));
+                actobj.setGameid(rs.getString("game_id"));
+                listofgames.add(actobj);
+            }
+            return ok(play.libs.Json.toJson(listofgames));
+        }catch(Exception e){
+            logger.log(Level.SEVERE,"Error while retrieving active games:" + e);
+            return badRequest();
+        }
+        finally{
+            GameUtility.cleanUp(stmt,connection);
+        }
+    }
+
+    /**
+     * Active games
+     * @return
+     */
+    public static Result completedGames(){
+
+        String query = "select status,start_time,isTimeBound,game_id,first_name,last_name,G.host from GAME G " +
+                "join USERS U on U.player_id = G.host where status='COMPLETE' or status='RUNNING'";
+        logger.log(Level.FINE,"Inside active games");
+        Connection connection = DB.getConnection();
+        PreparedStatement stmt = null;
+        ResultSet rs;
+        try {
+            stmt = connection.prepareStatement(query);
+            rs = stmt.executeQuery();
+            List<ActiveGames> listofgames = new ArrayList<>();
+            Calendar currentime = Calendar.getInstance();
+            while (rs.next()) {
+                ActiveGames actobj = new ActiveGames();
+                if(rs.getString("status").equalsIgnoreCase("HOSTED")){
+                    actobj.setStatus("Waiting for players to join");
+                }
+                else {
+                    actobj.setStatus(rs.getString("status"));
+                }
+                actobj.setFullName(rs.getString("first_name") + " " + rs.getString("last_name"));
+                actobj.setHostId(rs.getString("host"));
+                if(rs.getTimestamp("start_time") != null)
+                {
+                    Calendar calobj = Calendar.getInstance();
+                    calobj.setTimeInMillis(rs.getTimestamp("start_time").getTime());
+                    long seconds = currentime.getTimeInMillis() - calobj.getTimeInMillis();
+                    actobj.setGametime(convertSecondsToHMmSs(seconds));
+                }
+                else
+                {
+                    actobj.setGametime("Not yet started");
                 }
                 actobj.setIstimebound(rs.getString("isTimeBound"));
                 actobj.setGameid(rs.getString("game_id"));
