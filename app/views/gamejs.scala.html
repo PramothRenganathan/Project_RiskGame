@@ -214,11 +214,13 @@ $(function () {
                 if ($('#btnIsProduction').val() == "true") {
                     $('#btnSkip').trigger('click');
                 }
-            }
+            }else{
+$("#btnSkip").attr("disabled",true);
 
             //publishMyTurn();
 
-        }//ChangeTurn
+        }
+}//ChangeTurn
 
         else if (model.type == "TurnUpdate") {
             var currentPlayer = model.currentPlayer.split("@@")[0];
@@ -261,19 +263,37 @@ $(function () {
 
         if (myTurn == "true") {
 
-            $(".perform-step").attr("disabled", false);
-            $("#btnSkip").attr("disabled", false);
-            $(".perform-risk").attr("disabled", false);
+            @*$(".perform-step").attr("disabled", false);*@
+            @*$("#btnSkip").attr("disabled", false);*@
+            @*$(".perform-risk").attr("disabled", false);*@
 
         } else {
 
             $(".perform-step").attr("disabled", true);
-            $("#btnSkip").attr("disabled", true);
-            $(".perform-risk").attr("disabled", true);
+            @*$("#btnSkip").attr("disabled", true);*@
+            @*$(".perform-risk").attr("disabled", true);*@
         }
 
 
     });
+
+$('#riskDialog').on('shown.bs.modal', function () {
+
+if (myTurn == "true") {
+
+@*$(".perform-step").attr("disabled", false);*@
+@*$("#btnSkip").attr("disabled", false);*@
+@*$(".perform-risk").attr("disabled", false);*@
+
+} else {
+
+@*$(".perform-step").attr("disabled", true);*@
+@*$("#btnSkip").attr("disabled", true);*@
+$(".perform-risk").attr("disabled", true);
+}
+
+
+});
 
     var publishMyTurn = function (event) {
         var data = JSON.stringify({
@@ -293,12 +313,16 @@ $(function () {
     var checkIfFirstTurn = function (event) {
         if (turn == "1") {
             enableMyTurn();
+        }else{
+            $("#btnSkip").attr("disabled",true);
+            
         }
     }
 
     //put all code inside this method to setup the stage for player who is having the current turn
     var enableMyTurn = function (event) {
         myTurn = "true";
+$("#btnSkip").attr("disabled",false);
         timer.show();
         setTimer(timerTime);
         resetTimer();
