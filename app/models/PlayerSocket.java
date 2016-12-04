@@ -22,6 +22,7 @@ public class PlayerSocket{
 
     public static void start(WebSocket.In<JsonNode> in, WebSocket.Out<JsonNode> out){
 
+        
         connections.add(out);
         if(!inoutMap.containsKey(in)){
             inoutMap.put(in, out);
@@ -127,15 +128,43 @@ public class PlayerSocket{
                     wsdata.message = data.message;
                 }
 
-                else if(data.type.equals("leaving")){
+                else if(data.type.equals("LeaveGame")){
                     //push the list of all users so that everyone gets updated
                     List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
                     String userLeaving = data.player.username;
 
+                    String turnToBeSkipped = data.turnNumber;
+                    //adjust the turn number for all other players
+
                     wsdata = new WebSocketData();
-                    wsdata.type = "leaving";
-                    wsdata.leavingUser = userLeaving;
+                    wsdata.active = data.active;
+
+                    //if the leaving player is the one with current turn
+                    if(wsdata.active){
+                        int turnno = Integer.parseInt(data.turnNumber);
+                        int totalPlayers = SessionManager.getAllUsers(data.gameid).size();
+
+                        if(totalPlayers==1){
+                            turnno = 1;
+                            wsdata.turnNumber = String.valueOf(turnno);
+                        }
+
+                        else {
+
+                            turnno = (turnno == totalPlayers - 1) ? totalPlayers : (turnno + 1) % totalPlayers;
+                            wsdata.turnNumber = String.valueOf(turnno);
+                        }
+                    }
+
+                    String userTrimmed = userLeaving.split("@")[0];
+                    userLeaving = userTrimmed + "-" + data.gameid;
+                    SessionManager.removeUser(data.gameid, userLeaving);
+
+
+                    wsdata.type = "LeaveGame";
+                    wsdata.leavingUser = userTrimmed;
                     wsdata.joinedUsers = activeUsers;
+                    wsdata.turnToSkip = turnToBeSkipped;
                 }
 
                 //toJson method was throwing exception

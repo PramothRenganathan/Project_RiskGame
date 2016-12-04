@@ -9,6 +9,7 @@ public class Data {
     public String gameid;
     public String stepName;
     public String message;
+    public boolean active;
 
     public String turnNumber;
 

@@ -1,22 +1,22 @@
-$(function() {
+$(function () {
 
-    var myTurn="false";
+    var myTurn = "false";
     //$('#txtMessage').attr("placeholder", "Enter message (upto 150 chars) and hit return.");
 
 
-    var timerTime = parseInt($('#moveTime').val())*60;
+    var timerTime = parseInt($('#moveTime').val()) * 60;
 
     //this flag will be used to know if the player performed any step after timeout
     var timeout = false,
         stopped = false;
     var clock = $('.mytimer').FlipClock({
         clockFace: 'MinuteCounter',
-        countdown:true,
-        stop: function() {
+        countdown: true,
+        stop: function () {
 
             if (!timeout && !stopped) {
-                 timeout = true;
-                 sendTimeoutMessage();
+                timeout = true;
+                sendTimeoutMessage();
                 $('#btnSkipTimeout').trigger('click');
                 setTimer(timerTime);
                 resetTimer();
@@ -29,29 +29,29 @@ $(function() {
 
 
     //This function should be called whenever each player gets his/her turn
-    var startTimer = function(){
+    var startTimer = function () {
         clock.setTime(timerTime);
         clock.start();
     }
 
-    var setTimer = function(time){
+    var setTimer = function (time) {
         clock.setTime(time);
     }
 
-    var stopTimer = function(){
+    var stopTimer = function () {
         stopped = true;
         clock.stop();
     }
 
-    var resetTimer = function(){
+    var resetTimer = function () {
         stopped = false;
         timeout = false;
     }
 
     // startTimer();
 
-    var sendTimeoutMessage = function(){
-        myTurn="false";
+    var sendTimeoutMessage = function () {
+        myTurn = "false";
         stopTimer();
         resetTimer();
         timer.hide();
@@ -60,29 +60,29 @@ $(function() {
 
         //updates turns completed count because missed turn is a lost turn
         var turnNo = parseInt($('#turnNo').html());
-       // turnNo = turnNo+1;
+        // turnNo = turnNo+1;
         $('#turnNo').html(turnNo);
 
         //capture screen after timeout once turn Number field is updated
         takeSnapshot();
     }
 
-var sendSkipTurnMessage = function(){
-myTurn="false";
-stopTimer();
-resetTimer();
-timer.hide();
-var data = JSON.stringify({"gameid": gameid, "type": "SkipTurn", "player": {"username": username}});
-socket.send(data);
+    var sendSkipTurnMessage = function () {
+        myTurn = "false";
+        stopTimer();
+        resetTimer();
+        timer.hide();
+        var data = JSON.stringify({"gameid": gameid, "type": "SkipTurn", "player": {"username": username}});
+        socket.send(data);
 
 //updates turns completed count because skipped turn is a lost turn
-var turnNo = parseInt($('#turnNo').html());
-turnNo = turnNo+1;
-$('#turnNo').html(turnNo);
+        var turnNo = parseInt($('#turnNo').html());
+        turnNo = turnNo + 1;
+        $('#turnNo').html(turnNo);
 
 //capture screen after timeout once turn Number field is updated
-takeSnapshot();
-}
+        takeSnapshot();
+    }
 
     var username = $('#username').val();
     var gameid = $('#gameid').val();
@@ -100,45 +100,75 @@ takeSnapshot();
     var userList = $('#list-active-players');
 
     var writeMessages = function (event) {
-    var model = event.data;
+        var model = event.data;
 
-    //model is not coming as Json so have to use this jquery json parser
-    model = jQuery.parseJSON(model);
+        //model is not coming as Json so have to use this jquery json parser
+        model = jQuery.parseJSON(model);
 
-    if (model.type == "joined") {
+        if (model.type == "joined") {
 
-       var tmp_username = username.split("@@")[0];
+            var tmp_username = username.split("@@")[0];
 
-        var users = model.joinedUsers;
-        activePlayersList.html("");
-        activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
+            var users = model.joinedUsers;
+            activePlayersList.html("");
+            activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
 
-        for (i = 0; i < users.length; i++) {
-            if (users[i].split("-")[0] != tmp_username) {
-                activePlayersList.append(users[i].split("-")[0] + '<br/>');
+            for (i = 0; i < users.length; i++) {
+                if (users[i].split("-")[0] != tmp_username) {
+                    activePlayersList.append(users[i].split("-")[0] + '<br/>');
                 }//if
             }//for
         }//joined
 
-        else if (model.type == "leaving") {
+        else if (model.type == "LeaveGame") {
+
             var users = model.joinedUsers;
             var leavinguser = model.leavingUser;
+            var activityLog = $('#activity-log');
+            var txt = leavinguser + " left the game!";
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
+            var deadTurn = parseInt(model.turnToSkip);
+            var myTurn = parseInt($('#turn').val());
+            var tmp_username = username.split("@@")[0];
+            var active = model.active;
+            var turnNumber = parseInt(model.turnNumber);
 
-            var listItemToBeRemoved = $(userList).find('#' + leavinguser).remove();
+            if (tmp_username == leavinguser) {
+                $('#dashform').submit();
+            }
+
+            if (active && myTurn == turnNumber) {
+                enableMyTurn();
+            }
+
+            if (myTurn > deadTurn) {
+                myTurn = myTurn - 1;
+                $('#turn').val(myTurn);
+            }
+
+            var users = model.joinedUsers;
+            activePlayersList.html("");
+            activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
+
+            for (i = 0; i < users.length; i++) {
+                if (users[i].split("-")[0] != tmp_username) {
+                    activePlayersList.append(users[i].split("-")[0] + '<br/>');
+                }//if
+            }//for
         }
 
         else if (model.type == "redirect") {
-           $('#frmHidden').submit();
+            $('#frmHidden').submit();
         }
 
         else if (model.type == "UpdateActivityLog") {
             var stepName = model.stepName,
                 playerName = model.player.split("@@")[0];
 
-                var activityLog = $('#activity-log');
-                var txt = playerName + " performed step: " + stepName;
+            var activityLog = $('#activity-log');
+            var txt = playerName + " performed step: " + stepName;
 
-                activityLog.prepend('<p>' + txt + '</p><hr/>');
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//UpdateActivityLog
 
         else if (model.type == "Timeout") {
@@ -151,20 +181,20 @@ takeSnapshot();
             activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//Timeout
 
-else if (model.type == "SkipTurn") {
-var playerName = model.player;
+        else if (model.type == "SkipTurn") {
+            var playerName = model.player;
 
-var activityLog = $('#activity-log');
+            var activityLog = $('#activity-log');
 
-var txt = playerName + " skipped their turn!";
+            var txt = playerName + " skipped their turn!";
 
-activityLog.prepend('<p>' + txt + '</p><hr/>');
-}//SkipTurn
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
+        }//SkipTurn
 
 
         else if (model.type == "Chat") {
             var playerName = model.player.split("@@")[0],
-                    message = model.message;
+                message = model.message;
 
             var chatArea = $('#chatArea');
 
@@ -178,14 +208,12 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
                 playerTurn = $('#turn').val();
 
             //alert("CTurn: " + turnNumber + ", PTurn: " + playerTurn + ", EStatus: " + (turnNumber == playerTurn));
-            if(turnNumber == playerTurn){
+            if (turnNumber == playerTurn) {
                 enableMyTurn();
                 publishMyTurn();
-                if($('#btnIsProduction').val() == "true"){
-                $('#btnSkip').trigger('click');
+                if ($('#btnIsProduction').val() == "true") {
+                    $('#btnSkip').trigger('click');
                 }
-
-
             }
 
             //publishMyTurn();
@@ -193,32 +221,32 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//ChangeTurn
 
         else if (model.type == "TurnUpdate") {
-        var currentPlayer = model.currentPlayer.split("@@")[0];
-        var tmp_username = username.split("@@")[0];
+            var currentPlayer = model.currentPlayer.split("@@")[0];
+            var tmp_username = username.split("@@")[0];
 
-        var users = model.joinedUsers;
-        activePlayersList.html("");
+            var users = model.joinedUsers;
+            activePlayersList.html("");
 
-        if(tmp_username==currentPlayer){
-            activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
-        }
+            if (tmp_username == currentPlayer) {
+                activePlayersList.append('<b>' + tmp_username + ' (you)' + '</b><br/>');
+            }
 
-        else{
-            activePlayersList.append(tmp_username + ' (you)' + '<br/>');
-        }
+            else {
+                activePlayersList.append(tmp_username + ' (you)' + '<br/>');
+            }
 
 
-        for (i = 0; i < users.length; i++) {
-            if (users[i].split("-")[0] != tmp_username) {
-                if(users[i].split("-")[0]==currentPlayer) {
-                    activePlayersList.append('<b>' + users[i].split("-")[0] + '</b><br/>');
-                }
+            for (i = 0; i < users.length; i++) {
+                if (users[i].split("-")[0] != tmp_username) {
+                    if (users[i].split("-")[0] == currentPlayer) {
+                        activePlayersList.append('<b>' + users[i].split("-")[0] + '</b><br/>');
+                    }
 
-                else{
-                    activePlayersList.append(users[i].split("-")[0] + '<br/>');
-                }
-            }//if
-        }//for
+                    else {
+                        activePlayersList.append(users[i].split("-")[0] + '<br/>');
+                    }
+                }//if
+            }//for
 
         }//TurnUpdate
 
@@ -229,26 +257,30 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
         }
     }
 
-        $('#editTodoDialog').on('shown.bs.modal', function () {
+    $('#editTodoDialog').on('shown.bs.modal', function () {
 
-            if(myTurn=="true"){
+        if (myTurn == "true") {
 
-                $(".perform-step").attr("disabled",false);
-                $("#btnSkip").attr("disabled",false);
-                $(".perform-risk").attr("disabled",false);
+            $(".perform-step").attr("disabled", false);
+            $("#btnSkip").attr("disabled", false);
+            $(".perform-risk").attr("disabled", false);
 
-            }else{
+        } else {
 
-                $(".perform-step").attr("disabled",true);
-                $("#btnSkip").attr("disabled",true);
-                $(".perform-risk").attr("disabled",true);
-            }
+            $(".perform-step").attr("disabled", true);
+            $("#btnSkip").attr("disabled", true);
+            $(".perform-risk").attr("disabled", true);
+        }
 
 
-        });
+    });
 
     var publishMyTurn = function (event) {
-        var data = JSON.stringify({"gameid":gameid, "type": "TurnUpdate", "player": {"name": username, "team": "somecode"}});
+        var data = JSON.stringify({
+            "gameid": gameid,
+            "type": "TurnUpdate",
+            "player": {"name": username, "team": "somecode"}
+        });
         socket.send(data);
     }
 
@@ -259,14 +291,14 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
     }
 
     var checkIfFirstTurn = function (event) {
-        if(turn=="1"){
+        if (turn == "1") {
             enableMyTurn();
         }
     }
 
     //put all code inside this method to setup the stage for player who is having the current turn
     var enableMyTurn = function (event) {
-        myTurn="true";
+        myTurn = "true";
         timer.show();
         setTimer(timerTime);
         resetTimer();
@@ -275,15 +307,19 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
 
     var publishMyPresence = function (event) {
         //push to socket on first page load of any user
-        var data = JSON.stringify({"gameid":gameid, "type": "joined", "player": {"name": username, "team": "somecode"}});
+        var data = JSON.stringify({
+            "gameid": gameid,
+            "type": "joined",
+            "player": {"name": username, "team": "somecode"}
+        });
         socket.send(data);
     }
 
     var registerGameId = function (event) {
         //push to socket on first page load of any user
-        var data = JSON.stringify({"gameid":gameid, "type": "RegisterGameId"});
+        var data = JSON.stringify({"gameid": gameid, "type": "RegisterGameId"});
         socket.send(data);
-        }
+    }
 
     //read message from socket
     socket.onmessage = writeMessages;
@@ -315,7 +351,7 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
 
 
     //Event handler for start game event
-    $('#btnStart').click(function(e){
+    $('#btnStart').click(function (e) {
 
         var username = $('#username').val();
         var data = JSON.stringify({"gameid": gameid, "type": "StartGame", "player": {"username": username}});
@@ -328,12 +364,12 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
     });
 
     //Perform step button event handler
-    $('.perform-step').on("click", function(){
-            myTurn="false";
-        var     topModal = $(this).closest('div.modal'),
-                parentModal = topModal.find('div.modal-content'),
-                header = parentModal.find('div.modal-header'),
-                title = header.find('.modal-title').html();
+    $('.perform-step').on("click", function () {
+        myTurn = "false";
+        var topModal = $(this).closest('div.modal'),
+            parentModal = topModal.find('div.modal-content'),
+            header = parentModal.find('div.modal-header'),
+            title = header.find('.modal-title').html();
 
         //this will hide the modal
         topModal.modal('toggle');
@@ -347,25 +383,25 @@ activityLog.prepend('<p>' + txt + '</p><hr/>');
         timer.hide();
     });
 
-$('#updateactivity').on("click", function(){
+    $('#updateactivity').on("click", function () {
 
-var     topModal = $(this).closest('div.modal'),
-parentModal = topModal.find('div.modal-content'),
-header = parentModal.find('div.modal-header'),
-title = header.find('.modal-title').html();
+        var topModal = $(this).closest('div.modal'),
+            parentModal = topModal.find('div.modal-content'),
+            header = parentModal.find('div.modal-header'),
+            title = header.find('.modal-title').html();
 
 //this will hide the modal
 //topModal.modal('toggle');
-var isoops = $('#isoops').val();
-var otitle = "";
-var oopsmsg = $('#oopsmsg').val();
-if(isoops == "true"){
-otitle = "You got an OOPS card." + oopsmsg;
-}
-else{
-otitle="You got an Surprise card" + oopsmsg;
-}
-updateActivityLogs(otitle);
+        var isoops = $('#isoops').val();
+        var otitle = "";
+        var oopsmsg = $('#oopsmsg').val();
+        if (isoops == "true") {
+            otitle = "You got an OOPS card." + oopsmsg;
+        }
+        else {
+            otitle = "You got an Surprise card" + oopsmsg;
+        }
+        updateActivityLogs(otitle);
 //alert("testting oops");
 //publishTurnNumber();
 
@@ -374,55 +410,70 @@ updateActivityLogs(otitle);
 //setTimer(timerTime);
 //resetTimer();
 //timer.hide();
-});
+    });
 
-    var takeSnapshot = function(){
+    var takeSnapshot = function () {
         html2canvas(document.body, {
-        onrendered: function(canvas) {
-        //@*document.body.appendChild(canvas);*@
-        uploadImage(canvas.toDataURL());
-        }
+            onrendered: function (canvas) {
+                //@*document.body.appendChild(canvas);*@
+                uploadImage(canvas.toDataURL());
+            }
         });
     }
 
-    var uploadImage = function(url){
-    var turnNo = parseInt($('#turnNo').html());
-    turnNo = turnNo-1;
-    var obj = {'image-data' : url, 'username' : username, 'gameid' : gameid, 'turnNo' : turnNo};
+    var uploadImage = function (url) {
+        var turnNo = parseInt($('#turnNo').html());
+        turnNo = turnNo - 1;
+        var obj = {'image-data': url, 'username': username, 'gameid': gameid, 'turnNo': turnNo};
         $.ajax({
             type: 'POST',
             url: '@routes.GameController.saveImageSnapshot()',
             data: JSON.stringify(obj),
             contentType: 'application/json',
             success: function (data) {
-            //alert("Image uploaded");
+                //alert("Image uploaded");
             }
         });//ajax call ends here
     }
 
-    var publishTurnNumber = function(){
+    var publishTurnNumber = function () {
         var turnNumber = $('#turn').val();
-        var data = JSON.stringify({"gameid": gameid, "turnNumber":turnNumber, "type": "ChangeTurn"});
+        var data = JSON.stringify({"gameid": gameid, "turnNumber": turnNumber, "type": "ChangeTurn"});
         socket.send(data);
     }
 
     var updateActivityLogs = function (title) {
-        var data = JSON.stringify({"gameid": gameid, "stepName":title, "type": "PerformStep", "player": {"username": username}});
+        var data = JSON.stringify({
+            "gameid": gameid,
+            "stepName": title,
+            "type": "PerformStep",
+            "player": {"username": username}
+        });
         socket.send(data);
     }
 
     $('#btnSend').click(function () {
         var message = $('#txtMessage').val();
         $('#txtMessage').val('');
-        if(message!=""){
-            var data = JSON.stringify({"gameid": gameid, "message":message, "type": "Chat", "player": {"username": username}});
+        if (message != "") {
+            var data = JSON.stringify({
+                "gameid": gameid,
+                "message": message,
+                "type": "Chat",
+                "player": {"username": username}
+            });
             socket.send(data);
         }
     });
 
-    var sendChatMessage = function(message){
-        if(message!=""){
-            var data = JSON.stringify({"gameid": gameid, "message":message, "type": "Chat", "player": {"username": username}});
+    var sendChatMessage = function (message) {
+        if (message != "") {
+            var data = JSON.stringify({
+                "gameid": gameid,
+                "message": message,
+                "type": "Chat",
+                "player": {"username": username}
+            });
             socket.send(data);
         }
     }
@@ -436,15 +487,14 @@ updateActivityLogs(otitle);
             type: "GET",
             url: '/leave',
             data: {'username': username},
-            success:function(data)
-            {
+            success: function (data) {
                 window.location.replace("/");
             }
         });
     });
 
 
-    $('#btnSkip').click(function(){
+    $('#btnSkip').click(function () {
         timeout = true;
         sendSkipTurnMessage();
 
@@ -455,24 +505,58 @@ updateActivityLogs(otitle);
         publishTurnNumber();
     });
 
-    $('#txtMessage').keyup(function(event){
+    $('#txtMessage').keyup(function (event) {
 
-        if(event.keyCode==13){
+        if (event.keyCode == 13) {
 
-                //check if length is more than 150
-                if($(this).val().length<=150){
+            //check if length is more than 150
+            if ($(this).val().length <= 150) {
                 sendChatMessage($(this).val());
                 $('#txtMessage').val('');
                 return;
-                }
+            }
         }
 
-var length = $(this).val().length;
-        if(length>150){
+        var length = $(this).val().length;
+        if (length > 150) {
             $(this).css('color', 'red');
         }
-        else{
+        else {
             $(this).css('color', 'black');
         }
     });
+
+
+    $('#lnkLeave').click(function () {
+
+        // var obj = {'username' : username, 'gameid' : gameid};
+        // $.ajax({
+        //     type: 'POST',
+        //     url: '/leave',
+        //     data: JSON.stringify(obj),
+        //     contentType: 'application/json',
+        //     success: function (data) {
+        //         if(data=="success"){
+        //             notifyOthers();
+        //             $('#dashform').submit();
+        //         }
+        //     }
+        // });//ajax call ends here
+        notifyOthers();
+    });
+
+    var notifyOthers = function () {
+        var turn = $('#turn').val();
+
+        var isActivePlayer = myTurn == "true" ? true : false;
+
+        var data = JSON.stringify({
+            "gameid": gameid,
+            "type": "LeaveGame",
+            "active": isActivePlayer,
+            "turnNumber": turn,
+            "player": {"username": username}
+        });
+        socket.send(data);
+    }
 });
