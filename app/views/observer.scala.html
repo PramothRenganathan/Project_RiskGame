@@ -75,7 +75,31 @@
 
     </script>
     <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" >
-        <div class="container-fluid">
+        <div class="container">
+            <div class="row">
+            <header style="" >
+
+                <div class="col-md-4" style="background-color: #CED4BD; text-align: left">RISK-GAME</div>
+                <div class="col-md-6" style="background-color: #CED4BD;text-align: left">Observer-Dashboard</div>
+                <div class="col-md-2" style="display: inline-block;">
+
+                    <div style=" display: inline-block;" class="btn-group">
+                        <button type="button"
+                        class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Help</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#" onclick="window.open('/assets/images/Riskdesc.pdf', '_blank', 'toolbar=0,location=0,menubar=0');">Risk Description</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/logout" >Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+            </div>
             <div class="row">
                 <div class="col-md-2">
                     <button id="btnShow">Show All</button>

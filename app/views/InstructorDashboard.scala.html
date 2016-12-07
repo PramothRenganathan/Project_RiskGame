@@ -65,7 +65,7 @@
                 "link": function(column, row)
                 {
                   // return "<a href=\"javascript:Showmodel(" + row.gameid + ");\">" + "Join" ": " + row.gameid + "</a>";
-                  return "<a href=\"#\" onclick='redirectFromHere(\"" + row.gameid + "\")'>" + "Join" + "</a>";
+                  return "<a href=\"#\" onclick='redirectFromHere(\"" + row.gameid + "\")'>" + "View" + "</a>";
                 }
               },
               rowCount: [5,10,-1],
@@ -240,9 +240,9 @@
       </form>
 
         <!-- Button trigger modal -->
-      <button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-  Host Game
-      </button>
+      @*<button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">*@
+  @*Host Game*@
+      @*</button>*@
 
       @*<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal2">*@
       @*Join Game*@
@@ -375,7 +375,7 @@
             <th data-column-id="status">Status</th>
             <th data-column-id="gametime" data-order="desc">GameTime</th>
             <th data-column-id="fullName" data-order="desc">Host Name</th>
-            <th data-column-id="joingamegrid" data-formatter="link" data-order="desc">Join Game</th>
+            <th data-column-id="joingamegrid" data-formatter="link" data-order="desc">View Game Snapshot</th>
           </tr>
         </thead>
         <tbody>
