@@ -419,7 +419,7 @@
                         document.getElementById('stepForRisk').innerHTML='Steps that are needed to be performed for '+id;
                     },
                     error: function (data) {
-                        alert("error");
+                        alert("error in risk click");
                         //setError('Make call failed');
                     }
                 });
@@ -542,7 +542,7 @@
                                     },
                                     function(isConfirm){
                                         if (isConfirm) {
-                                            alert("here");
+                                         //   alert("here");
                                             $('#lnkLeave').trigger('click');
 
                                         }
@@ -654,7 +654,7 @@
 
                     },
                     error: function (data) {
-                        alert("error");
+                        alert("error in perform project step");
                         //setError('Make call failed');
                     }
                 });
@@ -893,21 +893,26 @@
 
             <header style="" >
 
-                <div class="col-md-4" style="background-color: #CED4BD">RISK-GAME-- LOGONEW</div>
-                @*<div class="col-md-2 " ></div>*@
-                <div class="col-md-3" style="background-color: #CED4BD" id="gameid">Game ID: @model.getGameId()</div>
-                <div class="col-md-3" style="background-color: #CED4BD">
-                    Total Game time
-                    <span id="minutes">00</span>:<span id="seconds">00</span>
-                </div>
-                <div class="col-md-2" style="display: inline-block;">
-                        <!-- Single button --><div style=" display: inline-block;" class="glyphicon glyphicon-user">Welcome @model.getUserName().split("@")(0)!</div>
-                    <div style=" display: inline-block;" class="btn-group">
-                        <button type="button"
-                        class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
 
-                        </button>
+    <div class="col-md-2" style="background-color: #CED4BD">RISK-GAME</div>
+    @*<div class="col-md-2 " ></div>*@
+    <div class="col-md-2" style="background-color: #CED4BD" id="gameid">Game ID: @model.getGameId()</div>
+    <div class="col-md-3" style="background-color: #CED4BD">
+        Total no. of turns:
+        <span id="labelTurns">@model.getStepsForEachPlayer()</span>
+    </div>
+    <div class="col-md-3" style="background-color: #CED4BD">
+        Total Game time
+        <span id="minutes">00</span>:<span id="seconds">00</span>
+    </div>
+    <div class="col-md-2" style="display: inline-block;">
+            <!-- Single button --><div style=" display: inline-block;" class="glyphicon glyphicon-user">Welcome @model.getUserName().split("@")(0)!</div>
+        <div style=" display: inline-block;" class="btn-group">
+            <button type="button"
+            class=" dropdown-toggle glyphicon glyphicon-cog" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+
+            </button>
                         <ul class="dropdown-menu">
                             <li><a href="#">Help</a></li>
                             <li role="separator" class="divider"></li>

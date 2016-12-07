@@ -15,14 +15,20 @@ $(function () {
         stop: function () {
 
             if (!timeout && !stopped) {
+var turnNo = parseInt($('#turnNo').html());
+var maxTurns = document.getElementById('labelTurns').innerText;
+if(turnNo <= maxTurns){
                 timeout = true;
                 sendTimeoutMessage();
+
                 $('#btnSkipTimeout').trigger('click');
+
                 setTimer(timerTime);
                 resetTimer();
                 timer.hide();
                 //In case of timeout, next player should get his turn
                 publishTurnNumber();
+        }
             }
         }
     });
@@ -209,9 +215,12 @@ $(function () {
 
             //alert("CTurn: " + turnNumber + ", PTurn: " + playerTurn + ", EStatus: " + (turnNumber == playerTurn));
             if (turnNumber == playerTurn) {
+swal("its ur turn");
                 enableMyTurn();
                 publishMyTurn();
-                if ($('#btnIsProduction').val() == "true") {
+           var turnNo = parseInt($('#turnNo').html());
+           var maxTurns = document.getElementById('labelTurns').innerText;
+                if ($('#btnIsProduction').val() == "true" && turnNo <= maxTurns) {
                     $('#btnSkip').trigger('click');
                 }
             }else{
@@ -552,7 +561,7 @@ $("#btnSkip").attr("disabled",false);
 
 
     $('#lnkLeave').click(function () {
-        alert("her2");
+       // alert("her2");
         // var obj = {'username' : username, 'gameid' : gameid};
         // $.ajax({
         //     type: 'POST',
