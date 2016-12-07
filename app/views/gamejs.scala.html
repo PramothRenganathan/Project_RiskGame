@@ -83,7 +83,7 @@ if(turnNo <= maxTurns){
 
 //updates turns completed count because skipped turn is a lost turn
         var turnNo = parseInt($('#turnNo').html());
-        turnNo = turnNo + 1;
+       // turnNo = turnNo + 1;
         $('#turnNo').html(turnNo);
 
 //capture screen after timeout once turn Number field is updated
@@ -215,14 +215,17 @@ if(turnNo <= maxTurns){
 
             //alert("CTurn: " + turnNumber + ", PTurn: " + playerTurn + ", EStatus: " + (turnNumber == playerTurn));
             if (turnNumber == playerTurn) {
+var turnNo = parseInt($('#turnNo').html());
+var maxTurns = document.getElementById('labelTurns').innerText;
+if( turnNo <= maxTurns){
 swal("its ur turn");
                 enableMyTurn();
                 publishMyTurn();
-           var turnNo = parseInt($('#turnNo').html());
-           var maxTurns = document.getElementById('labelTurns').innerText;
-                if ($('#btnIsProduction').val() == "true" && turnNo <= maxTurns) {
+
+                if ($('#btnIsProduction').val() == "true") {
                     $('#btnSkip').trigger('click');
                 }
+}
             }else{
 $("#btnSkip").attr("disabled",true);
 

@@ -408,14 +408,15 @@ public class GameController extends Controller {
 
             //currentStep.setMoveStatus(true);
             //currentStep.setSkipTurnStatus(true);
+            int moneyGained = GameUtility.getProductionMoney(currentStep.getRiskMitigated());
+            int updatedBudget = currentStep.getBudget() + moneyGained;
+            currentStep.setBudget(updatedBudget);
             if(!GameUtility.performStep(gamePlayerId,currentStep, Constants.PerformStep.PROJECTSTEP)){
                 logger.log(Level.SEVERE,"Error while updating production");
                 return ok(views.html.error.render());
 
             }
-            int moneyGained = GameUtility.getProductionMoney(currentStep.getRiskMitigated());
-            int updatedBudget = currentStep.getBudget() + moneyGained;
-            currentStep.setBudget(updatedBudget);
+
             GameUtility.addReturningResources(currentStep);
             currentStep.setTwoTurn(currentStep.getCurrentStepResource());
             result.put("prod_money",moneyGained);

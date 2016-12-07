@@ -448,7 +448,7 @@
                         'capabilitybonus': document.getElementById('capabilitybonus').innerHTML,
                         'capabilitypoints': document.getElementById('capabilitypoints').innerHTML,
                         'personnel' :document.getElementById('personnelremaining').innerHTML,
-                        'turnno': document.getElementById('turnNo').innerHTML - 1,
+                        'turnno': document.getElementById('turnNo').innerHTML,
                         'timetaken': 3,
                         'performedsteps': 0,
                         'totalsteps':totalSteps
@@ -526,7 +526,7 @@
                     url: '@routes.GameController.performStep()',
                     // data : JSON.stringify(obj),
                     data: JSON.stringify(obj),
-                    // dataType: 'json',
+                    async: false,
                     contentType: 'application/json',
                     success: function (data) {
                         onlyPlanning=false;
@@ -654,7 +654,8 @@
 
                     },
                     error: function (data) {
-                        alert("error in perform project step");
+                      //  alert("error in perform project step");
+                        alert(data);
                         //setError('Make call failed');
                     }
                 });
