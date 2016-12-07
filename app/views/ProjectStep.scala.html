@@ -532,7 +532,7 @@
                         onlyPlanning=false;
                         document.getElementById('myCurrentTurn').innerHTML = performedStep;
                         if(data.complete=="true"){
-                            alert(data.complete);
+//                            alert(data.complete);
                             swal({
                                         title: "Congratulations !",
                                         text: "You ended up the game with "+data.budget,
@@ -542,7 +542,7 @@
                                     },
                                     function(isConfirm){
                                         if (isConfirm) {
-                                            alert("here");
+//                                            alert("here");
                                             $('#lnkLeave').trigger('click');
 
                                         }
@@ -871,10 +871,8 @@
             }
 
             function newfunc(){
-            @for(phase <- model.getPhases) {
+                swal("", "Please do not refresh the screen else you will lose your data", "warning");
 
-                var name = '@phase.getPhaseName()';
-                }
             }
     </script>
     <body style="background-image: url(@routes.Assets.at("images/bg.jpg"));" onload="onProjectStepTabClick();newfunc();onPhaseClick('CPM1');
@@ -913,7 +911,9 @@
 
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a href="#">Help</a></li>
+                            <li><a href="#" onclick="window.open('/assets/images/Players_manual.pdf', '_blank', 'toolbar=0,location=0,menubar=0');">Help</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="#" onclick="window.open('/assets/images/Riskdesc.pdf', '_blank', 'toolbar=0,location=0,menubar=0');">Risk Description</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a id="lnkLeave" href="#">Leave Game</a></li>
                             <li role="separator" class="divider"></li>
