@@ -217,9 +217,22 @@
       @header()<br>
       <div class="row">
           <div class="col-md-12">
-              <h3>
+              <div class="col-md-12">
+                  <div class="col-md-6">
+                      <h3>
                Welcome @Http.Context.current().args.get("firstname").asInstanceOf[String]
               </h3>
+                  </div>
+                  <div class="col-md-6" style="float: right">
+                      <h3>
+                          <a class="glyphicon glyphicon-info-sign" href="#" style="float:right;color: blue; text-decoration: underline;font-size: 18px !important;;" onclick="window.open('/assets/images/Players_manual.pdf', '_blank', 'toolbar=0,location=0,menubar=0');">Click here to read instructions!</a>
+                      </h3>
+
+                  </div>
+              </div>
+
+
+
               <form style="display: hidden" action="/hostgame" method="POST" id="hostgameform">
                   <input type="hidden" id = "hgameid" name ="hgameid" value="0"  />
                   </form>
@@ -228,8 +241,9 @@
                   <input type="hidden" id = "hdn_observer" name ="hdn_observer" value="0" />
               </form>
                   <!-- Button trigger modal -->
-              <button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
-  Host Game
+              <div style="height: 90px;"></div>
+              <button type="button" onclick="$('#errorspan').html('');"  class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+  Launch a new game
               </button>
 
               @*<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal2">*@
@@ -237,12 +251,14 @@
               @*</button>*@
 
                   <!-- Host Game Modal -->
+
+
               <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
                   <div class="modal-dialog" role="document">
                       <div class="modal-content">
                           <div class="modal-header">
                               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                              <h4 class="modal-title" id="myModalLabel">HOST GAME</h4>
+                              <h4 class="modal-title" id="myModalLabel">LAUNCH GAME</h4>
                           </div>
                           <div class="modal-body">
                                     <span style="color:red;" id="errorspan" ></span>
@@ -273,7 +289,7 @@
 
                                               <!-- Select Basic -->
                                           <div class="form-group">
-                                              <label class="col-md-4 control-label" for="selecttime">Time for each step(in mins):</label>
+                                              <label class="col-md-5 control-label" for="selecttime">Time for each step(in mins):</label>
                                               <div class="col-md-4">
                                                   <select id="selecttime" name="selecttime" class="form-control">
                                                       <option value="1">1</option>
@@ -288,7 +304,7 @@
 
                                               <!-- Select Basic -->
                                           <div class="form-group">
-                                              <label class="col-md-4 control-label" for="selectsteps">No. of project steps:</label>
+                                              <label class="col-md-5 control-label" for="selectsteps">No. of turns:</label>
                                               <div class="col-md-4">
                                                   <select id="selectsteps" name="selectsteps" class="form-control">
                                                       <option value="5">5</option>
@@ -309,7 +325,7 @@
                           </div>
                           <div class="modal-footer">
                               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                              <button type="button" class="btn btn-primary" onclick = "hostgame()" >Host Game</button>
+                              <button type="button" class="btn btn-primary" onclick = "hostgame()" >Launch</button>
                           </div>
                       </div>
                   </div>
@@ -333,13 +349,17 @@
                               <input type="text" class="form-control" id="mgameid" />
                           </div>
                               <div class="form-group">
-                                  <label class="col-md-6 control-label" id="labelforobserver" for="selecttime">Do you want to join as observer:</label>
+                                  <label class="col-md-6 control-label" id="labelforobserver" for="selecttime">Do you want to join as an observer:</label>
+
+
+                                      <span title="You will be only able to see the steps performed by the users in the game but you cannot participate" class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
 
                                       <select id="isobserver" name="isobserver" class="form-control">
                                           <option value="1">Yes</option>
                                           <option value="0">No</option>
                                       </select>
-
+                                  <div class="glyphicon glyphicon-info-sign" style="color: red;
+                                  ">Join the same Game ID as your friends' to compete against each other!</div>
                               </div>
                           </div>
                           <div class="modal-footer">
@@ -355,11 +375,13 @@
       <br><br>
       <div class="row">
           <div class="col-md-12">
+
               <h4>LIST OF ACTIVE GAMES:</h4>
+
       <table id="grid-basic" class="table table-condensed table-hover table-striped">
           <thead>
               <tr>
-                  <th data-column-id="gameid">ID</th>
+                  <th data-column-id="gameid">Game ID</th>
                   <th data-column-id="status">Status</th>
                   <th data-column-id="gametime" data-order="desc">GameTime</th>
                   <th data-column-id="fullName" data-order="desc">Host Name</th>
