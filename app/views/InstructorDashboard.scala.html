@@ -54,7 +54,7 @@
               //obj.istimebound = "Yes";
               obj.istimebound = obj.istimebound == "1" ? "Yes" : "No";
               // $('#myTable').append('<tr><td>my data</td><td>more data</td></tr>');
-              var appendquery = "<tr><td>" + obj.gameid + "</td> <td>" + obj.status + "</td> <td>" + obj.gametime + "</td> <td>" + obj.fullName + "</td> <td><a href='#'>Join</a></td></tr>";
+              var appendquery = "<tr><td class='gameid-class'>" + obj.gameid + "</td> <td>" + obj.status + "</td> <td>" + obj.gametime + "</td> <td>" + obj.fullName + "</td> <td><a href='#'>Join</a></td></tr>";
               //$('#grid-basic tr:last').after(appendquery);
               //$('#grid-basic').find(tbody).append(appendquery);
               $("#grid-basic tbody").append(appendquery);
@@ -65,7 +65,7 @@
                 "link": function(column, row)
                 {
                   // return "<a href=\"javascript:Showmodel(" + row.gameid + ");\">" + "Join" ": " + row.gameid + "</a>";
-                  return "<a href=\"#\" onclick='Showmodel(\"" + row.gameid + "\",\"" + row.status + "\",\"" + row.istimebound + "\")'>" + "Join" + "</a>";
+                  return "<a href=\"#\" onclick='redirectFromHere(\"" + row.gameid + "\")'>" + "Join" + "</a>";
                 }
               },
               rowCount: [5,10,-1],
@@ -81,6 +81,12 @@
         @*$.getJSON("@routes.DashboardController.testMethod1()",obj, function(data) {*@
         @*alert("Contact added!");*@
         @*});*@
+      }
+
+      function redirectFromHere(gameid) {
+        $('#gameid').val(gameid);
+
+        $('#frmInstructor').submit();
       }
 
       function Showmodel(gameid,status,istimebound)
@@ -227,6 +233,12 @@
         <input type="hidden" id = "jgameid" name ="jgameid" value="0"  />
         <input type="hidden" id = "hdn_observer" name ="hdn_observer" value="0" />
       </form>
+
+      <form id="frmInstructor" method="POST" action="/observegame" hidden>
+        <input type="hidden" value="" id="username" />
+        <input class="hidden_game_id" type="hidden" value="" id="gameid" name="gameid">
+      </form>
+
         <!-- Button trigger modal -->
       <button type="button" onclick="$('#errorspan').html('');" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
   Host Game

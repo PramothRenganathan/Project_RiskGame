@@ -20,9 +20,6 @@
     <script type="text/javascript">
             $(function(){
 
-                //load images on page load
-//                refresh();
-
                 var gameid = $('#gameid').val();
                 var refresh = function(){
                     var obj = {'gameid': gameid};
@@ -51,6 +48,9 @@
                         }
                     });
                 }
+
+                //load images on page load
+                refresh();
 
                 $('#btnShow').on('click', function(){
                    refresh();
