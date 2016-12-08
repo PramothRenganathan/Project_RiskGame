@@ -279,6 +279,9 @@
 //                alert(id);
                 onRiskClick(id);
                 onPerformStep(id);
+
+                $('#btnMitigateRisk').val(id);
+                $('#btnMitigateRisk').trigger('click');
             }
 
 
@@ -889,6 +892,8 @@
 
             <form  id="dashform" hidden method ="GET" action="@routes.DashboardController.viewDashboard()">
             </form>
+
+            <button hidden id="btnMitigateRisk" value=""></button>
 
             <header style="" >
 

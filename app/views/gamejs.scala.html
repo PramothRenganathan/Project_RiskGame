@@ -419,6 +419,29 @@ $("#btnSkip").attr("disabled",false);
         timer.hide();
     });
 
+
+$('#btnMitigateRisk').click(function(){
+
+    var id = $('#btnMitigateRisk').val();
+    var title = "Risk with id " + title + " mitigated.";
+    funcChangeTurn(title);
+
+});
+
+    var funcChangeTurn = function(title){
+
+        updateActivityLogs(title);
+        publishTurnNumber();
+
+        takeSnapshot();
+
+        stopTimer();
+
+        setTimer(timerTime);
+        resetTimer();
+        timer.hide();
+    }
+
     $('#updateactivity').on("click", function () {
 
         var topModal = $(this).closest('div.modal'),
