@@ -852,7 +852,7 @@
 
                 setTimeout(function () {
                     clearInterval(timer);
-                }, 500000);
+                }, 50000000);
             }
             function refreshProjectSteps(){
                 @*alert(@model.getPhases.get(0).getPhaseName);*@
@@ -999,7 +999,7 @@
                             </div>
                             <input type ="text" hidden id="btnIsProduction" value="false"/>
                             <button class="btn btn-danger" id="btnSkip" onclick="onPerformStep(id)">Skip Turn</button>
-                            <button class="btn btn-danger" id="btnSkipTimeout" onclick="onPerformStep(id)">Timeout button</button>
+                            <button style="display: none" class="btn btn-danger" id="btnSkipTimeout" onclick="onPerformStep(id)">Timeout button</button>
                             <div>Your last turn:</div>
                             <div id="myCurrentTurn"></div>
 
