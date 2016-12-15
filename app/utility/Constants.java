@@ -28,6 +28,8 @@ public class Constants {
     public static final String PRE_REQUISITE = "pre_requisite";
     public static final String APPLICATION_JAVASCRIPT = "application/javascript";
 
+    public static final String IsObserver = "isobserver";
+
     /**
      * Different kinds of steps performed
      */

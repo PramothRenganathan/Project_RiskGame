@@ -100,6 +100,23 @@ public class PlayerSocket{
                     wsdata.stepName = data.stepName;
                 }
 
+                else if(data.type.equals("PerformStepWithOopsSurprise")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "UpdateActivityLogWithOopsSurprise";
+                    wsdata.joinedUsers = activeUsers;
+                    wsdata.player = data.player.username;
+                    wsdata.stepName = data.stepName;
+                }
+
+                else if(data.type.equals("DeleteActivity")){
+                    //push the list of all users so that everyone gets updated
+                    List<String> activeUsers = SessionManager.getAllUsers(data.gameid);
+                    wsdata = new WebSocketData();
+                    wsdata.type = "DeleteActivity";
+                }
+
                 else if(data.type.equals("Timeout")){
                     //push the list of all users so that everyone gets updated
                     List<String> activeUsers = SessionManager.getAllUsers(data.gameid);

@@ -182,8 +182,9 @@ public class GameController extends Controller {
         //Check if gameId is sent through the request
         JsonNode json = request().body().asJson();
         String gameId =json.get(Constants.GAMEID).asText();
+
         logger.log(Level.FINE, "GameId:" + gameId);
-        boolean isObserver = json.get("isobserver").asBoolean();
+        boolean isObserver = json.get(Constants.IsObserver).asBoolean();
         if(gameId == null || gameId.isEmpty()){
             result.put(Constants.ERRORMSG,"Error with the request, gameId not found. Contact system admin");
             result.put(Constants.MESSAGE, Constants.FAILURE);
@@ -228,7 +229,7 @@ public class GameController extends Controller {
             return ok(result);
 
         }
-        if(!SessionManager.hasUser(gameId, gamePlayerid)){
+        if(!SessionManager.hasUser(gameId, gamePlayerid) && !isObserver){
             SessionManager.addUser(gameId, gamePlayerid);
         }
 

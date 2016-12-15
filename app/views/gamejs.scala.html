@@ -177,6 +177,19 @@ if(turnNo <= maxTurns){
             activityLog.prepend('<p>' + txt + '</p><hr/>');
         }//UpdateActivityLog
 
+        else if (model.type == "UpdateActivityLogWithOopsSurprise") {
+            var stepName = model.stepName,
+                    playerName = model.player.split("@@")[0];
+
+            var activityLog = $('#activity-log');
+            var txt = playerName + " performed step: " + stepName;
+
+            activityLog.find('p').first().remove();
+            activityLog.find('hr').first().remove();
+
+            activityLog.prepend('<p>' + txt + '</p><hr/>');
+        }//UpdateActivityLogWithOopsSurprise
+
         else if (model.type == "Timeout") {
             var playerName = model.player;
 
@@ -449,8 +462,6 @@ $('#btnMitigateRisk').click(function(){
             header = parentModal.find('div.modal-header'),
             title = header.find('.modal-title').html();
 
-//this will hide the modal
-//topModal.modal('toggle');
         var isoops = $('#isoops').val();
         var otitle = "";
         var oopsmsg = $('#oopsmsg').val();
@@ -460,15 +471,8 @@ $('#btnMitigateRisk').click(function(){
         else {
             otitle = "You got an Surprise card" + oopsmsg;
         }
-        updateActivityLogs(otitle);
-//alert("testting oops");
-//publishTurnNumber();
+        updateActivityLogsWithSurpriseOrOops(otitle);
 
-//stopTimer();
-
-//setTimer(timerTime);
-//resetTimer();
-//timer.hide();
     });
 
     var takeSnapshot = function () {
@@ -506,6 +510,16 @@ $('#btnMitigateRisk').click(function(){
             "gameid": gameid,
             "stepName": title,
             "type": "PerformStep",
+            "player": {"username": username}
+        });
+        socket.send(data);
+    }
+
+    var updateActivityLogsWithSurpriseOrOops = function (title) {
+        var data = JSON.stringify({
+            "gameid": gameid,
+            "stepName": title,
+            "type": "PerformStepWithOopsSurprise",
             "player": {"username": username}
         });
         socket.send(data);
