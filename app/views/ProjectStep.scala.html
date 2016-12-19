@@ -680,7 +680,8 @@
                 if(currentPhase == "CPM6"){
                     swal({   title: "Are you sure?",   text: "You will not be able to do any further project steps after production!",   type: "warning",   showCancelButton: true,   confirmButtonColor: "#DD6B55",   confirmButtonText: "Yes, Go to Production!",   closeOnConfirm: false }, function(){
 
-
+               var maxTurns = document.getElementById('labelTurns').innerText;
+               var currentTurn =  document.getElementById('turnNo').innerHTML;
                      /*   $('#grid-basic > tbody  > tr').each(function() {
                             var status = $(this).find("input.name").val();
 
@@ -699,8 +700,10 @@
                         currentPhase = "CPM1";
                         $('#btnIsProduction').val("true");
                         $('#btnSkip').trigger('click');
+                    if(currentTurn < maxTurns) {
                         swal("Your product is LIVE!", "You have successfully deployed your software to production.", "success");
-                    });
+                    }
+                        });
                 }
 
                 else {
